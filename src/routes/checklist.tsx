@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -7,9 +7,9 @@ export const Route = createFileRoute("/checklist")({
   head: () => ({
     meta: [
       { title: "Travel Checklist — VisaPilot" },
-      { name: "description", content: "Essential travel checklist to make sure you don't forget anything." },
+      { name: "description", content: "Essential travel checklist — your progress saves automatically." },
       { property: "og:title", content: "Travel Checklist — VisaPilot" },
-      { property: "og:description", content: "Essential travel checklist to make sure you don't forget anything." },
+      { property: "og:description", content: "Essential travel checklist — your progress saves automatically." },
     ],
   }),
   component: ChecklistPage,
@@ -31,34 +31,61 @@ const defaultItems: CheckItem[] = [
   { id: "clothes", label: "Clothes", description: "Weather-appropriate clothing and comfortable shoes" },
 ];
 
+const STORAGE_KEY = "vp_checklist";
+
 function ChecklistPage() {
   const [checked, setChecked] = useState<Set<string>>(new Set());
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const arr = JSON.parse(raw) as string[];
+        if (Array.isArray(arr)) setChecked(new Set(arr));
+      }
+    } catch {}
+    setLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (!loaded) return;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(checked)));
+  }, [checked, loaded]);
 
   const toggleItem = (id: string) => {
     setChecked((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   };
+
+  const reset = () => setChecked(new Set());
 
   const progress = Math.round((checked.size / defaultItems.length) * 100);
 
   return (
     <div className="px-5 pt-8 pb-6">
-      <h1 className="text-2xl font-bold text-foreground">Travel Checklist</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Tick off essentials before you fly.
-      </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Travel Checklist</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Saved automatically on this device.</p>
+        </div>
+        {checked.size > 0 && (
+          <button
+            onClick={reset}
+            className="shrink-0 rounded-md px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            Reset
+          </button>
+        )}
+      </div>
 
-      {/* Progress bar */}
       <div className="mt-5">
         <div className="flex items-center justify-between text-xs font-medium">
-          <span className="text-muted-foreground">Progress</span>
+          <span className="text-muted-foreground">{checked.size} of {defaultItems.length} packed</span>
           <span className="text-primary">{progress}%</span>
         </div>
         <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-muted">
@@ -69,7 +96,6 @@ function ChecklistPage() {
         </div>
       </div>
 
-      {/* Checklist */}
       <div className="mt-5 space-y-2.5">
         {defaultItems.map((item) => {
           const isChecked = checked.has(item.id);
@@ -106,9 +132,9 @@ function ChecklistPage() {
       </div>
 
       {progress === 100 && (
-        <div className="mt-6 rounded-xl bg-green-50 p-4 text-center ring-1 ring-green-200">
-          <p className="text-sm font-semibold text-green-700">You're all set!</p>
-          <p className="mt-0.5 text-xs text-green-600">Safe travels.</p>
+        <div className="mt-6 rounded-xl bg-green-50 p-4 text-center ring-1 ring-green-200 dark:bg-green-950/40 dark:ring-green-900/60">
+          <p className="text-sm font-semibold text-green-700 dark:text-green-300">You're all set!</p>
+          <p className="mt-0.5 text-xs text-green-600 dark:text-green-400">Safe travels.</p>
         </div>
       )}
     </div>
