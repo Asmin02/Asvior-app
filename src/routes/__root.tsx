@@ -85,6 +85,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@VisaPilot" },
+      { name: "twitter:title", content: "VisaPilot — Your Travel & Visa Assistant" },
+      { name: "twitter:description", content: "Check visa requirements, plan your travel checklist, and manage your trip budget with VisaPilot." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/5a4a34b0-8af6-4627-9e7e-ed5a6d2cedbe/id-preview-f92db5b2--421b8ab6-9c9f-4857-ae48-833da1221b70.lovable.app-1782655257020.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/5a4a34b0-8af6-4627-9e7e-ed5a6d2cedbe/id-preview-f92db5b2--421b8ab6-9c9f-4857-ae48-833da1221b70.lovable.app-1782655257020.png" },
     ],
     links: [
       {
