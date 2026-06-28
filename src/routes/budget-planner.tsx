@@ -30,6 +30,8 @@ const categories: Category[] = [
   { key: "other", label: "Other", color: "bg-muted text-foreground", icon: <GiftIcon className="h-4 w-4" /> },
 ];
 
+const BUDGET_STORAGE_KEY = "vp_budget";
+
 function BudgetPlannerPage() {
   const [values, setValues] = useState<Record<string, string>>({
     flight: "",
@@ -38,6 +40,23 @@ function BudgetPlannerPage() {
     transport: "",
     other: "",
   });
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(BUDGET_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === "object") setValues((v) => ({ ...v, ...parsed }));
+      }
+    } catch {}
+    setLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (!loaded) return;
+    localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(values));
+  }, [values, loaded]);
 
   const numbers = useMemo(() => {
     const out: Record<string, number> = {};
