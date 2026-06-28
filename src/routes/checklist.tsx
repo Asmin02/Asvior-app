@@ -137,6 +137,13 @@ function ChecklistPage() {
           <p className="mt-0.5 text-xs text-green-600 dark:text-green-400">Safe travels.</p>
         </div>
       )}
+
+      <Link
+        to="/summary"
+        className="mt-6 flex items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+      >
+        View &amp; Share Trip Summary
+      </Link>
     </div>
   );
 }
