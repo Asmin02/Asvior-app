@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { CountryCombobox } from "@/components/CountryCombobox";
 
 export const Route = createFileRoute("/visa-check")({
   head: () => ({
@@ -29,20 +30,58 @@ const countries = [
   "Ukraine", "United Kingdom", "United States", "Vietnam",
 ];
 
-type VisaResult = {
-  status: "Visa Required" | "Not Required" | "Visa on Arrival" | "ETA / eVisa";
+type Status = "Visa Required" | "Not Required" | "Visa on Arrival" | "ETA / eVisa";
+
+interface VisaResult {
+  status: Status;
   explanation: string;
-};
+  maxStay: string;
+  documents: string[];
+  processingTime: string;
+  officialUrl: string;
+}
 
 function getVisaRequirement(passport: string, destination: string): VisaResult {
-  if (passport === destination) {
-    return {
-      status: "Not Required",
-      explanation: "You don't need a visa to travel within your own country.",
+  const base = (status: Status, explanation: string, override: Partial<VisaResult> = {}): VisaResult => {
+    const defaults: Record<Status, Pick<VisaResult, "maxStay" | "documents" | "processingTime">> = {
+      "Not Required": {
+        maxStay: "Up to 90 days",
+        documents: ["Valid passport (6+ months)", "Return ticket", "Proof of accommodation"],
+        processingTime: "No application required",
+      },
+      "Visa on Arrival": {
+        maxStay: "15–30 days",
+        documents: ["Valid passport", "Passport photo", "Visa fee (cash)", "Proof of onward travel"],
+        processingTime: "Issued at the border (15–60 minutes)",
+      },
+      "ETA / eVisa": {
+        maxStay: "Up to 90 days",
+        documents: ["Valid passport", "Online application", "Credit/debit card for fee", "Recent photo"],
+        processingTime: "Usually 24–72 hours",
+      },
+      "Visa Required": {
+        maxStay: "Varies by visa type (typically 30–90 days)",
+        documents: ["Valid passport", "Completed visa form", "Bank statements", "Travel itinerary", "Invitation letter (if applicable)"],
+        processingTime: "2–6 weeks",
+      },
     };
+    return {
+      status,
+      explanation,
+      officialUrl: `https://www.google.com/search?q=${encodeURIComponent(`${destination} official visa information for ${passport} citizens`)}`,
+      ...defaults[status],
+      ...override,
+    };
+  };
+
+  if (passport === destination) {
+    return base("Not Required", "You don't need a visa to travel within your own country.", {
+      maxStay: "Unlimited",
+      documents: ["National ID or passport"],
+      processingTime: "—",
+    });
   }
 
-  // Simplified mock data for demo purposes
   const visaFreePairs: [string, string][] = [
     ["United States", "Canada"], ["Canada", "United States"],
     ["United Kingdom", "Ireland"], ["Ireland", "United Kingdom"],
@@ -75,134 +114,97 @@ function getVisaRequirement(passport: string, destination: string): VisaResult {
   const etaPairs: [string, string][] = [
     ["United States", "Australia"], ["United Kingdom", "Australia"],
     ["Germany", "Australia"], ["France", "Australia"],
-    ["United States", "Canada"], ["United Kingdom", "Canada"],
-    ["Germany", "Canada"], ["France", "Canada"],
     ["United States", "New Zealand"], ["United Kingdom", "New Zealand"],
   ];
 
-  const pairKey = (a: string, b: string) => `${a} → ${b}`;
-
   if (visaFreePairs.some(([a, b]) => a === passport && b === destination)) {
-    return {
-      status: "Not Required",
-      explanation: `Citizens of ${passport} can travel to ${destination} without a visa for short stays (typically up to 90 days).`,
-    };
+    return base(
+      "Not Required",
+      `Citizens of ${passport} can travel to ${destination} without a visa for short stays.`,
+    );
   }
-
   if (visaOnArrivalPairs.some(([a, b]) => a === passport && b === destination)) {
-    return {
-      status: "Visa on Arrival",
-      explanation: `Citizens of ${passport} can obtain a visa on arrival in ${destination}. Bring a valid passport and required fees.`,
-    };
+    return base(
+      "Visa on Arrival",
+      `Citizens of ${passport} can obtain a visa on arrival in ${destination}.`,
+    );
   }
-
   if (etaPairs.some(([a, b]) => a === passport && b === destination)) {
-    return {
-      status: "ETA / eVisa",
-      explanation: `Citizens of ${passport} need to apply for an electronic visa (eVisa/ETA) online before traveling to ${destination}.`,
-    };
+    return base(
+      "ETA / eVisa",
+      `Citizens of ${passport} must apply for an electronic visa online before traveling to ${destination}.`,
+    );
   }
 
-  // Default fallback
   const rand = (passport.length + destination.length) % 4;
-  if (rand === 0) {
-    return {
-      status: "Not Required",
-      explanation: `Citizens of ${passport} can travel to ${destination} without a visa for short stays. Always verify with official sources before traveling.`,
-    };
-  } else if (rand === 1) {
-    return {
-      status: "Visa on Arrival",
-      explanation: `Citizens of ${passport} can obtain a visa on arrival in ${destination}. Bring a valid passport and required fees.`,
-    };
-  } else if (rand === 2) {
-    return {
-      status: "ETA / eVisa",
-      explanation: `Citizens of ${passport} need to apply for an electronic visa (eVisa/ETA) online before traveling to ${destination}.`,
-    };
-  } else {
-    return {
-      status: "Visa Required",
-      explanation: `Citizens of ${passport} must obtain a visa before traveling to ${destination}. Contact the ${destination} embassy or consulate for application details.`,
-    };
-  }
+  const status: Status =
+    rand === 0 ? "Not Required" : rand === 1 ? "Visa on Arrival" : rand === 2 ? "ETA / eVisa" : "Visa Required";
+
+  return base(
+    status,
+    `Estimated requirement for citizens of ${passport} traveling to ${destination}. Always confirm with official sources.`,
+  );
 }
+
+const statusStyles: Record<Status, { chip: string; ring: string; icon: React.ReactNode }> = {
+  "Not Required": {
+    chip: "text-green-700 bg-green-50 dark:text-green-300 dark:bg-green-950/40",
+    ring: "ring-green-200 dark:ring-green-900/60",
+    icon: <CheckIcon className="h-3.5 w-3.5" />,
+  },
+  "Visa on Arrival": {
+    chip: "text-amber-700 bg-amber-50 dark:text-amber-300 dark:bg-amber-950/40",
+    ring: "ring-amber-200 dark:ring-amber-900/60",
+    icon: <ClockIcon className="h-3.5 w-3.5" />,
+  },
+  "ETA / eVisa": {
+    chip: "text-blue-700 bg-blue-50 dark:text-blue-300 dark:bg-blue-950/40",
+    ring: "ring-blue-200 dark:ring-blue-900/60",
+    icon: <GlobeIcon className="h-3.5 w-3.5" />,
+  },
+  "Visa Required": {
+    chip: "text-red-700 bg-red-50 dark:text-red-300 dark:bg-red-950/40",
+    ring: "ring-red-200 dark:ring-red-900/60",
+    icon: <CrossIcon className="h-3.5 w-3.5" />,
+  },
+};
 
 function VisaCheckPage() {
   const [passport, setPassport] = useState("");
   const [destination, setDestination] = useState("");
   const [result, setResult] = useState<VisaResult | null>(null);
-  const [checked, setChecked] = useState(false);
 
   const handleCheck = () => {
     if (!passport || !destination) return;
     setResult(getVisaRequirement(passport, destination));
-    setChecked(true);
-  };
-
-  const statusColor = (status: VisaResult["status"]) => {
-    switch (status) {
-      case "Not Required":
-        return "text-green-600 bg-green-50 ring-green-200";
-      case "Visa on Arrival":
-        return "text-amber-600 bg-amber-50 ring-amber-200";
-      case "ETA / eVisa":
-        return "text-blue-600 bg-blue-50 ring-blue-200";
-      case "Visa Required":
-        return "text-red-600 bg-red-50 ring-red-200";
-      default:
-        return "text-muted-foreground bg-muted ring-border";
-    }
   };
 
   return (
     <div className="px-5 pt-8 pb-6">
       <h1 className="text-2xl font-bold text-foreground">Visa Check</h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        Select your passport and destination to check visa requirements.
+        Search your passport and destination to see visa requirements.
       </p>
 
       <div className="mt-6 space-y-4">
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-foreground">
-            Passport Country
-          </label>
-          <select
+          <label className="mb-1.5 block text-sm font-medium text-foreground">Passport Country</label>
+          <CountryCombobox
             value={passport}
-            onChange={(e) => {
-              setPassport(e.target.value);
-              setChecked(false);
-            }}
-            className="w-full rounded-lg border border-input bg-card px-3 py-2.5 text-sm text-foreground outline-none ring-offset-background focus:ring-2 focus:ring-ring"
-          >
-            <option value="">Select country</option>
-            {countries.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
+            onChange={(v) => { setPassport(v); setResult(null); }}
+            options={countries}
+            placeholder="Search passport country..."
+          />
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-foreground">
-            Destination Country
-          </label>
-          <select
+          <label className="mb-1.5 block text-sm font-medium text-foreground">Destination Country</label>
+          <CountryCombobox
             value={destination}
-            onChange={(e) => {
-              setDestination(e.target.value);
-              setChecked(false);
-            }}
-            className="w-full rounded-lg border border-input bg-card px-3 py-2.5 text-sm text-foreground outline-none ring-offset-background focus:ring-2 focus:ring-ring"
-          >
-            <option value="">Select country</option>
-            {countries.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
+            onChange={(v) => { setDestination(v); setResult(null); }}
+            options={countries}
+            placeholder="Search destination..."
+          />
         </div>
 
         <Button
@@ -214,25 +216,66 @@ function VisaCheckPage() {
         </Button>
       </div>
 
-      {checked && result && (
-        <Card className={`mt-6 ring-1 ${statusColor(result.status).split(" ")[2]}`}>
+      {result && (
+        <Card className={`mt-6 ring-1 ${statusStyles[result.status].ring}`}>
           <CardContent className="p-5">
-            <div className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${statusColor(result.status)}`}>
-              {result.status === "Not Required" && <CheckIcon className="h-3.5 w-3.5" />}
-              {result.status === "Visa Required" && <CrossIcon className="h-3.5 w-3.5" />}
-              {result.status === "Visa on Arrival" && <ClockIcon className="h-3.5 w-3.5" />}
-              {result.status === "ETA / eVisa" && <GlobeIcon className="h-3.5 w-3.5" />}
-              {result.status}
+            <div className="flex items-center justify-between gap-2">
+              <div className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[result.status].chip}`}>
+                {statusStyles[result.status].icon}
+                {result.status}
+              </div>
+              <span className="text-[10px] text-muted-foreground">
+                {passport} → {destination}
+              </span>
             </div>
-            <p className="mt-3 text-sm leading-relaxed text-foreground">
-              {result.explanation}
-            </p>
+
+            <p className="mt-3 text-sm leading-relaxed text-foreground">{result.explanation}</p>
+
+            <div className="mt-4 space-y-3 border-t border-border pt-4">
+              <InfoRow label="Maximum stay" value={result.maxStay} />
+              <InfoRow label="Processing time" value={result.processingTime} />
+
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  Required documents
+                </p>
+                <ul className="mt-1.5 space-y-1">
+                  {result.documents.map((doc) => (
+                    <li key={doc} className="flex items-start gap-2 text-sm text-foreground">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                      {doc}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <a
+                href={result.officialUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary/10 px-3 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/15"
+              >
+                <GlobeIcon className="h-4 w-4" />
+                Visit official information
+                <ExternalIcon className="h-3.5 w-3.5" />
+              </a>
+            </div>
+
             <p className="mt-3 text-[10px] text-muted-foreground">
-              This is a simplified demo. Always confirm requirements with official sources before traveling.
+              Demo data. Always confirm requirements with official government sources.
             </p>
           </CardContent>
         </Card>
       )}
+    </div>
+  );
+}
+
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="mt-0.5 text-sm text-foreground">{value}</p>
     </div>
   );
 }
@@ -244,7 +287,6 @@ function CheckIcon({ className }: { className?: string }) {
     </svg>
   );
 }
-
 function CrossIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
@@ -252,7 +294,6 @@ function CrossIcon({ className }: { className?: string }) {
     </svg>
   );
 }
-
 function ClockIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -260,11 +301,17 @@ function ClockIcon({ className }: { className?: string }) {
     </svg>
   );
 }
-
 function GlobeIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5a17.919 17.919 0 01-8.716-2.247m0 0A9.004 9.004 0 003 12c0 1.681.445 3.268 1.22 4.625" />
+    </svg>
+  );
+}
+function ExternalIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
     </svg>
   );
 }
