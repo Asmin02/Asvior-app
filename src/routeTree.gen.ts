@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VisaCheckRouteImport } from './routes/visa-check'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ChecklistRouteImport } from './routes/checklist'
 import { Route as BudgetPlannerRouteImport } from './routes/budget-planner'
 import { Route as IndexRouteImport } from './routes/index'
@@ -17,6 +18,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const VisaCheckRoute = VisaCheckRouteImport.update({
   id: '/visa-check',
   path: '/visa-check',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChecklistRoute = ChecklistRouteImport.update({
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/budget-planner': typeof BudgetPlannerRoute
   '/checklist': typeof ChecklistRoute
+  '/settings': typeof SettingsRoute
   '/visa-check': typeof VisaCheckRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/budget-planner': typeof BudgetPlannerRoute
   '/checklist': typeof ChecklistRoute
+  '/settings': typeof SettingsRoute
   '/visa-check': typeof VisaCheckRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/budget-planner': typeof BudgetPlannerRoute
   '/checklist': typeof ChecklistRoute
+  '/settings': typeof SettingsRoute
   '/visa-check': typeof VisaCheckRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/budget-planner' | '/checklist' | '/visa-check'
+  fullPaths: '/' | '/budget-planner' | '/checklist' | '/settings' | '/visa-check'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/budget-planner' | '/checklist' | '/visa-check'
-  id: '__root__' | '/' | '/budget-planner' | '/checklist' | '/visa-check'
+  to: '/' | '/budget-planner' | '/checklist' | '/settings' | '/visa-check'
+  id: '__root__' | '/' | '/budget-planner' | '/checklist' | '/settings' | '/visa-check'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BudgetPlannerRoute: typeof BudgetPlannerRoute
   ChecklistRoute: typeof ChecklistRoute
+  SettingsRoute: typeof SettingsRoute
   VisaCheckRoute: typeof VisaCheckRoute
 }
 
@@ -76,6 +86,13 @@ declare module '@tanstack/react-router' {
       path: '/visa-check'
       fullPath: '/visa-check'
       preLoaderRoute: typeof VisaCheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/checklist': {
@@ -106,6 +123,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BudgetPlannerRoute: BudgetPlannerRoute,
   ChecklistRoute: ChecklistRoute,
+  SettingsRoute: SettingsRoute,
   VisaCheckRoute: VisaCheckRoute,
 }
 export const routeTree = rootRouteImport
