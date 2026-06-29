@@ -126,7 +126,7 @@ function MobileNav() {
     { to: "/visa-check", label: "Visa", icon: PassportIcon },
     { to: "/checklist", label: "Checklist", icon: ChecklistIcon },
     { to: "/budget-planner", label: "Budget", icon: WalletIcon },
-    { to: "/settings", label: "Settings", icon: SettingsIcon },
+    { to: "/profile", label: "Profile", icon: UserIcon },
   ];
 
   return (
