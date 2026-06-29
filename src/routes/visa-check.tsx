@@ -365,9 +365,18 @@ function VisaCheckPage() {
                 {statusStyles[result.status].icon}
                 {result.status}
               </div>
-              <span className="text-[10px] text-muted-foreground">
-                {getCountryName(passport)} → {getCountryName(destination)}
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={toggleFav}
+                  aria-label={isFav ? "Remove favorite" : "Add to favorites"}
+                  className={`flex h-7 w-7 items-center justify-center rounded-full transition-colors ${isFav ? "bg-red-50 text-red-500 dark:bg-red-950/40" : "bg-muted text-muted-foreground hover:text-red-500"}`}
+                >
+                  <svg className="h-3.5 w-3.5" fill={isFav ? "currentColor" : "none"} viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+                </button>
+                <span className="text-[10px] text-muted-foreground">
+                  {getCountryName(passport)} → {getCountryName(destination)}
+                </span>
+              </div>
             </div>
 
             <p className="mt-3 text-sm leading-relaxed text-foreground">{result.explanation}</p>
