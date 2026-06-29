@@ -14,7 +14,174 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      favorite_destinations: {
+        Row: {
+          country_code: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          country_code: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          country_code?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          nationality: string | null
+          passport_country: string | null
+          passport_expiry: string | null
+          passport_number: string | null
+          photo_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          nationality?: string | null
+          passport_country?: string | null
+          passport_expiry?: string | null
+          passport_number?: string | null
+          photo_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          nationality?: string | null
+          passport_country?: string | null
+          passport_expiry?: string | null
+          passport_number?: string | null
+          photo_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      saved_trips: {
+        Row: {
+          budget: Json
+          checklist: Json
+          created_at: string
+          destination_code: string | null
+          end_date: string | null
+          id: string
+          name: string
+          notes: string | null
+          passport_code: string | null
+          start_date: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          budget?: Json
+          checklist?: Json
+          created_at?: string
+          destination_code?: string | null
+          end_date?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          passport_code?: string | null
+          start_date?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          budget?: Json
+          checklist?: Json
+          created_at?: string
+          destination_code?: string | null
+          end_date?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          passport_code?: string | null
+          start_date?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          currency: string
+          dark_mode: boolean
+          language: string
+          notify_flight: boolean
+          notify_packing: boolean
+          notify_passport_expiry: boolean
+          notify_visa: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          currency?: string
+          dark_mode?: boolean
+          language?: string
+          notify_flight?: boolean
+          notify_packing?: boolean
+          notify_passport_expiry?: boolean
+          notify_visa?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          currency?: string
+          dark_mode?: boolean
+          language?: string
+          notify_flight?: boolean
+          notify_packing?: boolean
+          notify_passport_expiry?: boolean
+          notify_visa?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      visa_history: {
+        Row: {
+          created_at: string
+          destination_code: string
+          id: string
+          passport_code: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          destination_code: string
+          id?: string
+          passport_code: string
+          status: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          destination_code?: string
+          id?: string
+          passport_code?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
