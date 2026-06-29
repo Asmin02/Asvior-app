@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/summary")({
   head: () => ({
@@ -237,6 +239,23 @@ function SummaryPage() {
       )}
 
       <div className="no-print mt-6 space-y-2">
+        <button
+          onClick={async () => {
+            const { data } = await supabase.auth.getUser();
+            if (!data.user) { toast.error("Sign in to save trips"); return; }
+            const name = prompt("Name this trip:", `Trip · ${today}`);
+            if (!name) return;
+            const checklistArr = Array.from(checked);
+            const { error } = await supabase.from("saved_trips").insert({
+              user_id: data.user.id, name, budget, checklist: checklistArr,
+            });
+            if (error) toast.error(error.message);
+            else toast.success("Trip saved to your account");
+          }}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-travel-blue to-travel-blue-dark px-4 py-3 text-sm font-semibold text-white shadow-sm hover:opacity-90"
+        >
+          💾 Save as Trip (to my account)
+        </button>
         <button
           onClick={handleShare}
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"

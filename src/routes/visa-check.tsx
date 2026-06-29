@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CountryCombobox, type CountryOption } from "@/components/CountryCombobox";
 import { VISA_CODES, VISA_DATA } from "@/data/visa-data";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/visa-check")({
   head: () => ({
@@ -281,12 +283,41 @@ function VisaCheckPage() {
   const [passport, setPassport] = useState("");
   const [destination, setDestination] = useState("");
   const [result, setResult] = useState<VisaResult | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [isFav, setIsFav] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
+  }, []);
+
+  useEffect(() => {
+    if (!userId || !destination) { setIsFav(false); return; }
+    supabase.from("favorite_destinations").select("id").eq("country_code", destination).maybeSingle()
+      .then(({ data }) => setIsFav(!!data));
+  }, [userId, destination]);
 
   const options = useMemo(() => COUNTRY_OPTIONS, []);
 
-  const handleCheck = () => {
+  const handleCheck = async () => {
     if (!passport || !destination) return;
-    setResult(getVisaRequirement(passport, destination));
+    const r = getVisaRequirement(passport, destination);
+    setResult(r);
+    if (userId && r) {
+      await supabase.from("visa_history").insert({
+        user_id: userId, passport_code: passport, destination_code: destination, status: r.status,
+      });
+    }
+  };
+
+  const toggleFav = async () => {
+    if (!userId) { toast.error("Sign in to save favorites"); return; }
+    if (isFav) {
+      await supabase.from("favorite_destinations").delete().eq("country_code", destination);
+      setIsFav(false); toast.success("Removed from favorites");
+    } else {
+      await supabase.from("favorite_destinations").insert({ user_id: userId, country_code: destination });
+      setIsFav(true); toast.success("Added to favorites");
+    }
   };
 
   return (
@@ -334,9 +365,18 @@ function VisaCheckPage() {
                 {statusStyles[result.status].icon}
                 {result.status}
               </div>
-              <span className="text-[10px] text-muted-foreground">
-                {getCountryName(passport)} → {getCountryName(destination)}
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={toggleFav}
+                  aria-label={isFav ? "Remove favorite" : "Add to favorites"}
+                  className={`flex h-7 w-7 items-center justify-center rounded-full transition-colors ${isFav ? "bg-red-50 text-red-500 dark:bg-red-950/40" : "bg-muted text-muted-foreground hover:text-red-500"}`}
+                >
+                  <svg className="h-3.5 w-3.5" fill={isFav ? "currentColor" : "none"} viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+                </button>
+                <span className="text-[10px] text-muted-foreground">
+                  {getCountryName(passport)} → {getCountryName(destination)}
+                </span>
+              </div>
             </div>
 
             <p className="mt-3 text-sm leading-relaxed text-foreground">{result.explanation}</p>
