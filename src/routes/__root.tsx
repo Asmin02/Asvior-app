@@ -251,6 +251,7 @@ function RootComponent() {
         <Outlet />
       </div>
       <MobileNav />
+      <Toaster />
     </QueryClientProvider>
   );
 }
