@@ -251,6 +251,7 @@ function RootComponent() {
       <div className="mx-auto min-h-screen max-w-md bg-background pb-20">
         <Outlet />
       </div>
+      <FloatingAIButton />
       <MobileNav />
       <Toaster />
     </QueryClientProvider>
