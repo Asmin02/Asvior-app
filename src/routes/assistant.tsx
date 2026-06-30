@@ -4,6 +4,20 @@ import { DefaultChatTransport, type UIMessage } from "ai";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
+import {
+  BudgetCard,
+  DocChecklistCard,
+  ErrorRetry,
+  PremiumSkeleton,
+  RatingBar,
+  SuggestedQuestions,
+  VisaSummaryCard,
+  loadBookmarks,
+  parseSegments,
+  removeBookmark,
+  saveBookmark,
+  type BookmarkedConversation,
+} from "@/components/ai-cards";
 
 export const Route = createFileRoute("/assistant")({
   head: () => ({
@@ -47,11 +61,16 @@ function loadInitialMessages(): UIMessage[] {
   }
 }
 
+function getText(message: UIMessage): string {
+  if (!message.parts) return "";
+  return message.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
+}
+
 function AssistantPage() {
   const [initialMessages] = useState<UIMessage[]>(() => loadInitialMessages());
   const transport = useMemo(() => new DefaultChatTransport({ api: "/api/chat" }), []);
 
-  const { messages, sendMessage, status, setMessages, stop } = useChat({
+  const { messages, sendMessage, status, setMessages, stop, error, regenerate } = useChat({
     id: "visapilot-assistant",
     messages: initialMessages,
     transport,
@@ -59,6 +78,8 @@ function AssistantPage() {
   });
 
   const [input, setInput] = useState("");
+  const [showBookmarks, setShowBookmarks] = useState(false);
+  const [bookmarks, setBookmarks] = useState<BookmarkedConversation[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const isLoading = status === "submitted" || status === "streaming";
@@ -76,6 +97,10 @@ function AssistantPage() {
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  useEffect(() => {
+    if (showBookmarks) setBookmarks(loadBookmarks());
+  }, [showBookmarks]);
 
   const handleSend = async (text: string) => {
     const value = text.trim();
@@ -104,18 +129,47 @@ function AssistantPage() {
     }
   };
 
+  const bookmarkConversation = () => {
+    if (messages.length === 0) {
+      toast.info("Send a message first to bookmark it.");
+      return;
+    }
+    const firstUser = messages.find((m) => m.role === "user");
+    const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
+    const title = firstUser ? getText(firstUser).slice(0, 60) : "Travel chat";
+    const preview = lastAssistant ? getText(lastAssistant).replace(/```[\s\S]*?```/g, "").slice(0, 120) : "";
+    saveBookmark({
+      id: `bm_${Date.now()}`,
+      title,
+      preview,
+      createdAt: Date.now(),
+      messages,
+    });
+    toast.success("Conversation bookmarked");
+  };
+
+  const restoreBookmark = (b: BookmarkedConversation) => {
+    setMessages(b.messages as UIMessage[]);
+    setShowBookmarks(false);
+    toast.success("Conversation restored");
+  };
+
+  const deleteBookmark = (id: string) => {
+    removeBookmark(id);
+    setBookmarks(loadBookmarks());
+  };
+
   const isEmpty = messages.length === 0;
+  const lastIsUserOrSubmitted = status === "submitted";
 
   return (
     <div className="relative flex min-h-screen flex-col">
-      {/* Premium gradient backdrop */}
       <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-travel-sky/40 via-background to-background dark:from-travel-blue/10" />
       <div className="pointer-events-none fixed -top-32 -right-20 -z-10 h-72 w-72 rounded-full bg-primary/30 blur-3xl" />
       <div className="pointer-events-none fixed top-40 -left-20 -z-10 h-72 w-72 rounded-full bg-travel-blue-light/40 blur-3xl" />
 
-      {/* Header */}
       <header className="sticky top-0 z-20 border-b border-white/20 bg-background/60 px-4 py-3 backdrop-blur-xl">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <Link to="/" className="flex h-9 w-9 items-center justify-center rounded-full bg-card/70 ring-1 ring-border">
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -131,32 +185,65 @@ function AssistantPage() {
             </div>
             <p className="text-[11px] text-muted-foreground">Your premium travel concierge</p>
           </div>
+          <button
+            onClick={() => setShowBookmarks(true)}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-card/70 ring-1 ring-border hover:bg-accent"
+            aria-label="Bookmarks"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+            </svg>
+          </button>
           {messages.length > 0 && (
-            <button
-              onClick={clearChat}
-              className="rounded-full bg-card/70 px-3 py-1.5 text-[11px] font-medium ring-1 ring-border hover:bg-accent"
-            >
-              New chat
-            </button>
+            <>
+              <button
+                onClick={bookmarkConversation}
+                className="rounded-full bg-card/70 px-2.5 py-1.5 text-[11px] font-medium ring-1 ring-border hover:bg-accent"
+              >
+                Save
+              </button>
+              <button
+                onClick={clearChat}
+                className="rounded-full bg-card/70 px-2.5 py-1.5 text-[11px] font-medium ring-1 ring-border hover:bg-accent"
+              >
+                New
+              </button>
+            </>
           )}
         </div>
       </header>
 
-      {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 pb-40 pt-4">
         {isEmpty ? (
           <EmptyState onPick={(p) => handleSend(p)} />
         ) : (
           <div className="space-y-4">
             {messages.map((m) => (
-              <MessageBubble key={m.id} message={m} onCopy={copyText} />
+              <MessageBubble
+                key={m.id}
+                message={m}
+                onCopy={copyText}
+                onSuggestionPick={(q) => handleSend(q)}
+                isStreaming={isLoading && m.id === messages[messages.length - 1]?.id && m.role === "assistant"}
+              />
             ))}
-            {status === "submitted" && <TypingBubble />}
+            {lastIsUserOrSubmitted && <PremiumSkeleton />}
+            {error && !isLoading && (
+              <ErrorRetry message={error.message} onRetry={() => regenerate()} />
+            )}
           </div>
         )}
       </div>
 
-      {/* Composer */}
+      {showBookmarks && (
+        <BookmarksSheet
+          bookmarks={bookmarks}
+          onClose={() => setShowBookmarks(false)}
+          onRestore={restoreBookmark}
+          onDelete={deleteBookmark}
+        />
+      )}
+
       <div className="fixed bottom-20 left-1/2 z-30 w-full max-w-md -translate-x-1/2 px-3">
         <div className="rounded-2xl border border-white/30 bg-background/80 p-2 shadow-2xl shadow-primary/10 ring-1 ring-border backdrop-blur-2xl">
           <div className="flex items-end gap-2">
@@ -264,14 +351,17 @@ function EmptyState({ onPick }: { onPick: (prompt: string) => void }) {
   );
 }
 
-function getText(message: UIMessage): string {
-  if (!message.parts) return "";
-  return message.parts
-    .map((p) => (p.type === "text" ? p.text : ""))
-    .join("");
-}
-
-function MessageBubble({ message, onCopy }: { message: UIMessage; onCopy: (text: string) => void }) {
+function MessageBubble({
+  message,
+  onCopy,
+  onSuggestionPick,
+  isStreaming,
+}: {
+  message: UIMessage;
+  onCopy: (text: string) => void;
+  onSuggestionPick: (q: string) => void;
+  isStreaming: boolean;
+}) {
   const isUser = message.role === "user";
   const text = getText(message);
 
@@ -285,6 +375,13 @@ function MessageBubble({ message, onCopy }: { message: UIMessage; onCopy: (text:
     );
   }
 
+  const segments = useMemo(() => parseSegments(text), [text]);
+  const textOnlyForCopy = segments
+    .filter((s) => s.kind === "text")
+    .map((s) => (s.kind === "text" ? s.content : ""))
+    .join("\n")
+    .trim();
+
   return (
     <div className="flex gap-2 animate-in fade-in slide-in-from-bottom-1 duration-200">
       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-travel-blue-dark text-primary-foreground shadow">
@@ -292,38 +389,106 @@ function MessageBubble({ message, onCopy }: { message: UIMessage; onCopy: (text:
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l1.8 4.6L18 9.4l-4.2 1.8L12 15.8l-1.8-4.6L6 9.4l4.2-1.8L12 3z" />
         </svg>
       </div>
-      <div className="flex-1 space-y-1">
-        <div className="prose prose-sm max-w-none rounded-2xl rounded-tl-md border border-white/30 bg-card/70 px-4 py-3 text-sm text-card-foreground shadow-sm ring-1 ring-border backdrop-blur-xl prose-headings:mt-2 prose-headings:mb-1 prose-p:my-1.5 prose-ul:my-1.5 prose-li:my-0 prose-a:text-primary dark:prose-invert">
-          <ReactMarkdown>{text || "…"}</ReactMarkdown>
-        </div>
-        {text && (
-          <button
-            onClick={() => onCopy(text)}
-            className="ml-1 flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] text-muted-foreground hover:bg-accent hover:text-foreground"
-          >
-            <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            Copy
-          </button>
+      <div className="flex-1 space-y-2">
+        {segments.length === 0 || (segments.length === 1 && segments[0].kind === "text" && !segments[0].content.trim()) ? (
+          <div className="rounded-2xl rounded-tl-md border border-white/30 bg-card/70 px-4 py-3 text-sm ring-1 ring-border backdrop-blur-xl">
+            <span className="text-muted-foreground">…</span>
+          </div>
+        ) : (
+          segments.map((seg, i) => {
+            if (seg.kind === "text") {
+              const content = seg.content.trim();
+              if (!content) return null;
+              return (
+                <div
+                  key={i}
+                  className="prose prose-sm max-w-none rounded-2xl rounded-tl-md border border-white/30 bg-card/70 px-4 py-3 text-sm text-card-foreground shadow-sm ring-1 ring-border backdrop-blur-xl prose-headings:mt-2 prose-headings:mb-1 prose-p:my-1.5 prose-ul:my-1.5 prose-li:my-0 prose-a:text-primary dark:prose-invert"
+                >
+                  <ReactMarkdown>{content}</ReactMarkdown>
+                </div>
+              );
+            }
+            if (seg.kind === "visa") return <VisaSummaryCard key={i} data={seg.data} />;
+            if (seg.kind === "checklist") return <DocChecklistCard key={i} data={seg.data} />;
+            if (seg.kind === "budget") return <BudgetCard key={i} data={seg.data} />;
+            if (seg.kind === "suggestions") return <SuggestedQuestions key={i} data={seg.data} onPick={onSuggestionPick} />;
+            return null;
+          })
+        )}
+
+        {!isStreaming && textOnlyForCopy && (
+          <div className="ml-1 flex items-center gap-2">
+            <button
+              onClick={() => onCopy(textOnlyForCopy)}
+              className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] text-muted-foreground hover:bg-accent hover:text-foreground"
+            >
+              <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              Copy
+            </button>
+            <RatingBar messageId={message.id} />
+          </div>
         )}
       </div>
     </div>
   );
 }
 
-function TypingBubble() {
+function BookmarksSheet({
+  bookmarks,
+  onClose,
+  onRestore,
+  onDelete,
+}: {
+  bookmarks: BookmarkedConversation[];
+  onClose: () => void;
+  onRestore: (b: BookmarkedConversation) => void;
+  onDelete: (id: string) => void;
+}) {
   return (
-    <div className="flex gap-2">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-travel-blue-dark text-primary-foreground">
-        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l1.8 4.6L18 9.4l-4.2 1.8L12 15.8l-1.8-4.6L6 9.4l4.2-1.8L12 3z" />
-        </svg>
-      </div>
-      <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-md border border-white/30 bg-card/70 px-4 py-3 shadow-sm ring-1 ring-border backdrop-blur-xl">
-        <span className="h-2 w-2 animate-bounce rounded-full bg-primary [animation-delay:-0.3s]" />
-        <span className="h-2 w-2 animate-bounce rounded-full bg-primary [animation-delay:-0.15s]" />
-        <span className="h-2 w-2 animate-bounce rounded-full bg-primary" />
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center sm:justify-center" onClick={onClose}>
+      <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
+      <div
+        className="relative max-h-[80vh] w-full overflow-y-auto rounded-t-3xl border border-white/30 bg-card/95 p-4 shadow-2xl ring-1 ring-border backdrop-blur-2xl sm:max-w-md sm:rounded-3xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-base font-semibold">Saved conversations</h2>
+          <button onClick={onClose} className="rounded-full p-1.5 hover:bg-accent" aria-label="Close">
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        {bookmarks.length === 0 ? (
+          <p className="py-10 text-center text-sm text-muted-foreground">No saved conversations yet.</p>
+        ) : (
+          <ul className="space-y-2">
+            {bookmarks.map((b) => (
+              <li key={b.id} className="rounded-xl border border-border bg-background/60 p-3">
+                <div className="flex items-start gap-2">
+                  <button onClick={() => onRestore(b)} className="flex-1 text-left">
+                    <div className="line-clamp-1 text-sm font-semibold">{b.title}</div>
+                    <div className="mt-0.5 line-clamp-2 text-[11px] text-muted-foreground">{b.preview}</div>
+                    <div className="mt-1 text-[10px] text-muted-foreground">
+                      {new Date(b.createdAt).toLocaleString()}
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => onDelete(b.id)}
+                    className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                    aria-label="Delete"
+                  >
+                    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                    </svg>
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
