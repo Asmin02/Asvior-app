@@ -1,0 +1,330 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport, type UIMessage } from "ai";
+import { useEffect, useMemo, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import { toast } from "sonner";
+
+export const Route = createFileRoute("/assistant")({
+  head: () => ({
+    meta: [
+      { title: "AI Travel Assistant — VisaPilot" },
+      { name: "description", content: "Chat with VisaPilot AI for instant visa, document, budget, weather, and travel guidance." },
+    ],
+  }),
+  component: AssistantPage,
+});
+
+const STORAGE_KEY = "vp_ai_chat_v1";
+
+const QUICK_ACTIONS = [
+  { label: "Check Visa", icon: "🛂", prompt: "Help me check if I need a visa. Ask me my passport country and destination." },
+  { label: "Required Documents", icon: "📄", prompt: "What documents do I typically need for an international trip? Walk me through a checklist." },
+  { label: "Travel Checklist", icon: "✅", prompt: "Build me a smart pre-departure travel checklist." },
+  { label: "Budget Planner", icon: "💰", prompt: "Help me estimate a realistic travel budget. Ask me destination, duration, and travel style." },
+  { label: "Embassy Finder", icon: "🏛️", prompt: "How do I find the nearest embassy or consulate for a country I'm visiting?" },
+  { label: "Travel Tips", icon: "🌍", prompt: "Give me your top 10 smart travel tips for international travelers." },
+];
+
+const SUGGESTIONS = [
+  "Do I need a visa for Japan with a US passport?",
+  "What's the passport validity rule for Schengen countries?",
+  "Best season to visit Bali and what to pack?",
+  "Estimate a 7-day budget for Lisbon, mid-range.",
+  "What currency and tipping etiquette in Thailand?",
+  "Safety tips for solo travel in South America.",
+];
+
+function loadInitialMessages(): UIMessage[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function AssistantPage() {
+  const [initialMessages] = useState<UIMessage[]>(() => loadInitialMessages());
+  const transport = useMemo(() => new DefaultChatTransport({ api: "/api/chat" }), []);
+
+  const { messages, sendMessage, status, setMessages, stop } = useChat({
+    id: "visapilot-assistant",
+    messages: initialMessages,
+    transport,
+    onError: (e) => toast.error(e.message || "AI request failed"),
+  });
+
+  const [input, setInput] = useState("");
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const isLoading = status === "submitted" || status === "streaming";
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+    } catch {}
+  }, [messages]);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages, status]);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  const handleSend = async (text: string) => {
+    const value = text.trim();
+    if (!value || isLoading) return;
+    setInput("");
+    await sendMessage({ text: value });
+    requestAnimationFrame(() => inputRef.current?.focus());
+  };
+
+  const handleVoice = () => {
+    toast.info("Voice input coming soon — type your question for now.");
+  };
+
+  const clearChat = () => {
+    setMessages([]);
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    toast.success("Chat cleared");
+  };
+
+  const copyText = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Copied to clipboard");
+    } catch {
+      toast.error("Couldn't copy");
+    }
+  };
+
+  const isEmpty = messages.length === 0;
+
+  return (
+    <div className="relative flex min-h-screen flex-col">
+      {/* Premium gradient backdrop */}
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-travel-sky/40 via-background to-background dark:from-travel-blue/10" />
+      <div className="pointer-events-none fixed -top-32 -right-20 -z-10 h-72 w-72 rounded-full bg-primary/30 blur-3xl" />
+      <div className="pointer-events-none fixed top-40 -left-20 -z-10 h-72 w-72 rounded-full bg-travel-blue-light/40 blur-3xl" />
+
+      {/* Header */}
+      <header className="sticky top-0 z-20 border-b border-white/20 bg-background/60 px-4 py-3 backdrop-blur-xl">
+        <div className="flex items-center gap-3">
+          <Link to="/" className="flex h-9 w-9 items-center justify-center rounded-full bg-card/70 ring-1 ring-border">
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </Link>
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inset-0 animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              </span>
+              <h1 className="text-base font-semibold tracking-tight">VisaPilot AI</h1>
+            </div>
+            <p className="text-[11px] text-muted-foreground">Your premium travel concierge</p>
+          </div>
+          {messages.length > 0 && (
+            <button
+              onClick={clearChat}
+              className="rounded-full bg-card/70 px-3 py-1.5 text-[11px] font-medium ring-1 ring-border hover:bg-accent"
+            >
+              New chat
+            </button>
+          )}
+        </div>
+      </header>
+
+      {/* Messages */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 pb-40 pt-4">
+        {isEmpty ? (
+          <EmptyState onPick={(p) => handleSend(p)} />
+        ) : (
+          <div className="space-y-4">
+            {messages.map((m) => (
+              <MessageBubble key={m.id} message={m} onCopy={copyText} />
+            ))}
+            {status === "submitted" && <TypingBubble />}
+          </div>
+        )}
+      </div>
+
+      {/* Composer */}
+      <div className="fixed bottom-20 left-1/2 z-30 w-full max-w-md -translate-x-1/2 px-3">
+        <div className="rounded-2xl border border-white/30 bg-background/80 p-2 shadow-2xl shadow-primary/10 ring-1 ring-border backdrop-blur-2xl">
+          <div className="flex items-end gap-2">
+            <button
+              onClick={handleVoice}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground hover:bg-accent/80"
+              aria-label="Voice input"
+            >
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
+              </svg>
+            </button>
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend(input);
+                }
+              }}
+              rows={1}
+              placeholder="Ask anything about your trip..."
+              className="max-h-32 flex-1 resize-none bg-transparent px-2 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+            />
+            {isLoading ? (
+              <button
+                onClick={() => stop()}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-destructive text-destructive-foreground"
+                aria-label="Stop"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>
+              </button>
+            ) : (
+              <button
+                onClick={() => handleSend(input)}
+                disabled={!input.trim()}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-travel-blue-dark text-primary-foreground shadow-lg shadow-primary/30 disabled:opacity-40"
+                aria-label="Send"
+              >
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
+        <p className="mt-1.5 text-center text-[10px] text-muted-foreground">
+          Always verify with official embassy or government sources.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function EmptyState({ onPick }: { onPick: (prompt: string) => void }) {
+  return (
+    <div className="animate-in fade-in-50 slide-in-from-bottom-2 duration-500">
+      <div className="mb-6 mt-4 text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-primary via-travel-blue to-travel-blue-dark text-primary-foreground shadow-xl shadow-primary/40">
+          <svg className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l1.8 4.6L18 9.4l-4.2 1.8L12 15.8l-1.8-4.6L6 9.4l4.2-1.8L12 3z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l.9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9L19 14z" />
+          </svg>
+        </div>
+        <h2 className="mt-4 bg-gradient-to-r from-foreground to-primary bg-clip-text text-2xl font-bold tracking-tight text-transparent">
+          How can I help you travel smarter?
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Visas, documents, budgets, weather, packing — ask anything.
+        </p>
+      </div>
+
+      <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Quick actions</p>
+      <div className="grid grid-cols-2 gap-2">
+        {QUICK_ACTIONS.map((a) => (
+          <button
+            key={a.label}
+            onClick={() => onPick(a.prompt)}
+            className="group flex items-center gap-2 rounded-2xl border border-white/30 bg-card/60 p-3 text-left shadow-sm ring-1 ring-border backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:shadow-md"
+          >
+            <span className="text-xl">{a.icon}</span>
+            <span className="text-xs font-semibold leading-tight">{a.label}</span>
+          </button>
+        ))}
+      </div>
+
+      <p className="mb-2 mt-6 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Try asking</p>
+      <div className="space-y-2">
+        {SUGGESTIONS.map((s) => (
+          <button
+            key={s}
+            onClick={() => onPick(s)}
+            className="flex w-full items-center justify-between gap-2 rounded-xl bg-card/60 p-3 text-left text-sm ring-1 ring-border backdrop-blur-xl transition-colors hover:bg-accent"
+          >
+            <span className="line-clamp-2">{s}</span>
+            <svg className="h-4 w-4 shrink-0 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function getText(message: UIMessage): string {
+  if (!message.parts) return "";
+  return message.parts
+    .map((p) => (p.type === "text" ? p.text : ""))
+    .join("");
+}
+
+function MessageBubble({ message, onCopy }: { message: UIMessage; onCopy: (text: string) => void }) {
+  const isUser = message.role === "user";
+  const text = getText(message);
+
+  if (isUser) {
+    return (
+      <div className="flex justify-end animate-in fade-in slide-in-from-bottom-1 duration-200">
+        <div className="max-w-[85%] rounded-2xl rounded-tr-md bg-gradient-to-br from-primary to-travel-blue-dark px-4 py-2.5 text-sm text-primary-foreground shadow-md shadow-primary/20">
+          {text}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex gap-2 animate-in fade-in slide-in-from-bottom-1 duration-200">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-travel-blue-dark text-primary-foreground shadow">
+        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l1.8 4.6L18 9.4l-4.2 1.8L12 15.8l-1.8-4.6L6 9.4l4.2-1.8L12 3z" />
+        </svg>
+      </div>
+      <div className="flex-1 space-y-1">
+        <div className="prose prose-sm max-w-none rounded-2xl rounded-tl-md border border-white/30 bg-card/70 px-4 py-3 text-sm text-card-foreground shadow-sm ring-1 ring-border backdrop-blur-xl prose-headings:mt-2 prose-headings:mb-1 prose-p:my-1.5 prose-ul:my-1.5 prose-li:my-0 prose-a:text-primary dark:prose-invert">
+          <ReactMarkdown>{text || "…"}</ReactMarkdown>
+        </div>
+        {text && (
+          <button
+            onClick={() => onCopy(text)}
+            className="ml-1 flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] text-muted-foreground hover:bg-accent hover:text-foreground"
+          >
+            <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            Copy
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function TypingBubble() {
+  return (
+    <div className="flex gap-2">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-travel-blue-dark text-primary-foreground">
+        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l1.8 4.6L18 9.4l-4.2 1.8L12 15.8l-1.8-4.6L6 9.4l4.2-1.8L12 3z" />
+        </svg>
+      </div>
+      <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-md border border-white/30 bg-card/70 px-4 py-3 shadow-sm ring-1 ring-border backdrop-blur-xl">
+        <span className="h-2 w-2 animate-bounce rounded-full bg-primary [animation-delay:-0.3s]" />
+        <span className="h-2 w-2 animate-bounce rounded-full bg-primary [animation-delay:-0.15s]" />
+        <span className="h-2 w-2 animate-bounce rounded-full bg-primary" />
+      </div>
+    </div>
+  );
+}

@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
+import { FloatingAIButton } from "@/components/FloatingAIButton";
 
 function NotFoundComponent() {
   return (
@@ -250,6 +251,7 @@ function RootComponent() {
       <div className="mx-auto min-h-screen max-w-md bg-background pb-20">
         <Outlet />
       </div>
+      <FloatingAIButton />
       <MobileNav />
       <Toaster />
     </QueryClientProvider>
