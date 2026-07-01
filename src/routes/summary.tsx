@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Share2, Download, Save, CheckCircle2, Circle, FileText, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -8,9 +8,7 @@ export const Route = createFileRoute("/summary")({
   head: () => ({
     meta: [
       { title: "Trip Summary — VisaPilot" },
-      { name: "description", content: "Your saved travel checklist and budget — share or export as PDF." },
-      { property: "og:title", content: "Trip Summary — VisaPilot" },
-      { property: "og:description", content: "Your saved travel checklist and budget — share or export as PDF." },
+      { name: "description", content: "Your saved travel checklist and budget." },
     ],
   }),
   component: SummaryPage,
@@ -45,10 +43,7 @@ function SummaryPage() {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(CHECKLIST_KEY);
-      if (raw) {
-        const arr = JSON.parse(raw);
-        if (Array.isArray(arr)) setChecked(new Set(arr));
-      }
+      if (raw) { const arr = JSON.parse(raw); if (Array.isArray(arr)) setChecked(new Set(arr)); }
     } catch {}
     try {
       const raw = localStorage.getItem(BUDGET_KEY);
@@ -61,37 +56,19 @@ function SummaryPage() {
     } catch {}
   }, []);
 
-  const total = useMemo(
-    () => budgetCategories.reduce((s, c) => s + (budget[c.key] || 0), 0),
-    [budget],
-  );
-
-  const fmt = (n: number) =>
-    n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-  const today = new Date().toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const total = useMemo(() => budgetCategories.reduce((s, c) => s + (budget[c.key] || 0), 0), [budget]);
+  const fmt = (n: number) => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const today = new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
 
   const buildShareText = () => {
-    const lines: string[] = [];
-    lines.push("✈️ My VisaPilot Trip Summary");
-    lines.push(today);
-    lines.push("");
-    lines.push("📋 Checklist:");
-    for (const item of checklistItems) {
-      lines.push(`  ${checked.has(item.id) ? "✅" : "⬜"} ${item.label}`);
-    }
-    lines.push("");
-    lines.push("💰 Budget:");
+    const lines = ["✈️ My VisaPilot Trip Summary", today, "", "📋 Checklist:"];
+    for (const item of checklistItems) lines.push(`  ${checked.has(item.id) ? "✅" : "⬜"} ${item.label}`);
+    lines.push("", "💰 Budget:");
     for (const c of budgetCategories) {
       const v = budget[c.key] || 0;
       if (v > 0) lines.push(`  • ${c.label}: $${fmt(v)}`);
     }
-    lines.push(`  ─────────────`);
-    lines.push(`  Total: $${fmt(total)}`);
+    lines.push(`  ─────────────`, `  Total: $${fmt(total)}`);
     return lines.join("\n");
   };
 
@@ -104,173 +81,126 @@ function SummaryPage() {
       } else if (navigator?.clipboard) {
         await navigator.clipboard.writeText(text);
         setShareMsg("Copied to clipboard");
-      } else {
-        setShareMsg("Sharing not supported");
-      }
-    } catch {
-      setShareMsg(null);
-    }
-    if (shareMsg) return;
+      } else setShareMsg("Sharing not supported");
+    } catch { setShareMsg(null); }
     setTimeout(() => setShareMsg(null), 2500);
   };
 
-  const handleExportPdf = () => {
-    if (typeof window !== "undefined") window.print();
-  };
-
   const packed = checklistItems.filter((i) => checked.has(i.id)).length;
-  const hasData = packed > 0 || total > 0;
 
   return (
-    <div className="px-5 pt-8 pb-6">
-      <style>{`
-        @media print {
-          nav, .no-print { display: none !important; }
-          body { background: white !important; }
-        }
-      `}</style>
+    <div className="relative overflow-hidden">
+      <style>{`@media print { nav, .no-print { display: none !important; } body { background: white !important; } }`}</style>
 
-      <div className="no-print">
-        <h1 className="text-2xl font-bold text-foreground">Trip Summary</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Share with travel buddies or save as a PDF.
-        </p>
-      </div>
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-64 gradient-hero-bg" aria-hidden />
 
-      <div id="summary-printable" className="mt-5 space-y-5">
-        <div className="rounded-2xl bg-primary p-5 text-primary-foreground">
-          <p className="text-xs uppercase tracking-wide opacity-80">VisaPilot Trip Summary</p>
-          <p className="mt-1 text-lg font-bold">{today}</p>
-          <p className="mt-2 text-xs opacity-80">
-            {packed} of {checklistItems.length} items packed · Total budget ${fmt(total)}
+      <header className="relative px-6 pt-10 no-print">
+        <div className="glass inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold text-primary">
+          <FileText className="h-3.5 w-3.5" /> Ready to share
+        </div>
+        <h1 className="mt-3 text-display text-3xl text-foreground">Trip Summary</h1>
+        <p className="mt-1.5 text-sm text-muted-foreground">Share with your travel buddies or save as PDF.</p>
+      </header>
+
+      <div id="summary-printable" className="relative mt-6 space-y-4 px-6">
+        <div className="relative overflow-hidden rounded-3xl gradient-navy p-6 text-white shadow-float">
+          <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-primary/30 blur-3xl" />
+          <p className="relative text-[11px] font-bold uppercase tracking-widest opacity-70">VisaPilot Trip Summary</p>
+          <p className="relative mt-2 text-display text-2xl">{today}</p>
+          <p className="relative mt-3 text-xs opacity-80">
+            {packed} of {checklistItems.length} items packed · ${fmt(total)} budget
           </p>
         </div>
 
-        <Card className="ring-1 ring-border">
-          <CardContent className="p-4">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
-              Checklist
-            </h2>
-            <ul className="mt-3 space-y-2">
-              {checklistItems.map((item) => {
-                const isChecked = checked.has(item.id);
-                return (
-                  <li key={item.id} className="flex items-center gap-2 text-sm">
-                    <span
-                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border ${
-                        isChecked
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border bg-background"
-                      }`}
-                    >
-                      {isChecked && (
-                        <svg viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5">
-                          <path
-                            fillRule="evenodd"
-                            d="M16.7 5.3a1 1 0 010 1.4l-8 8a1 1 0 01-1.4 0l-4-4a1 1 0 011.4-1.4L8 12.58l7.3-7.3a1 1 0 011.4 0z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      )}
-                    </span>
-                    <span
-                      className={
-                        isChecked ? "text-muted-foreground line-through" : "text-foreground"
-                      }
-                    >
-                      {item.label}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          </CardContent>
-        </Card>
+        <div className="glass rounded-3xl p-5">
+          <h2 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald" /> Checklist
+          </h2>
+          <ul className="mt-3 space-y-2">
+            {checklistItems.map((item) => {
+              const isChecked = checked.has(item.id);
+              return (
+                <li key={item.id} className="flex items-center gap-2.5 text-sm">
+                  {isChecked
+                    ? <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald" />
+                    : <Circle className="h-5 w-5 shrink-0 text-muted-foreground" strokeWidth={1.5} />}
+                  <span className={isChecked ? "text-muted-foreground line-through" : "font-medium text-foreground"}>
+                    {item.label}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
 
-        <Card className="ring-1 ring-border">
-          <CardContent className="p-4">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
-              Budget
-            </h2>
-            {total === 0 ? (
-              <p className="mt-3 text-sm text-muted-foreground">
-                No budget entered yet.{" "}
-                <Link to="/budget-planner" className="text-primary underline no-print">
-                  Add costs
-                </Link>
-                .
-              </p>
-            ) : (
-              <>
-                <ul className="mt-3 space-y-2">
-                  {budgetCategories.map((c) => {
-                    const v = budget[c.key] || 0;
-                    if (v <= 0) return null;
-                    const pct = total > 0 ? (v / total) * 100 : 0;
-                    return (
-                      <li key={c.key} className="flex items-center justify-between text-sm">
-                        <span className="text-foreground">{c.label}</span>
-                        <span className="text-muted-foreground">
-                          ${fmt(v)}{" "}
-                          <span className="text-xs">({pct.toFixed(0)}%)</span>
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
-                <div className="mt-3 flex items-center justify-between border-t border-border pt-3 text-sm">
-                  <span className="font-semibold text-foreground">Total</span>
-                  <span className="font-bold text-primary">${fmt(total)}</span>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+        <div className="glass rounded-3xl p-5">
+          <h2 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+            <Wallet className="h-3.5 w-3.5 text-primary" /> Budget
+          </h2>
+          {total === 0 ? (
+            <p className="mt-3 text-sm text-muted-foreground">
+              No budget entered yet.{" "}
+              <Link to="/budget-planner" className="font-semibold text-primary underline no-print">Add costs</Link>.
+            </p>
+          ) : (
+            <>
+              <ul className="mt-3 space-y-2">
+                {budgetCategories.map((c) => {
+                  const v = budget[c.key] || 0;
+                  if (v <= 0) return null;
+                  const pct = total > 0 ? (v / total) * 100 : 0;
+                  return (
+                    <li key={c.key} className="flex items-center justify-between text-sm">
+                      <span className="font-medium text-foreground">{c.label}</span>
+                      <span className="text-muted-foreground">
+                        <span className="font-bold text-foreground">${fmt(v)}</span>{" "}
+                        <span className="text-xs">({pct.toFixed(0)}%)</span>
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+              <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
+                <span className="text-sm font-semibold text-foreground">Total</span>
+                <span className="text-display text-xl text-primary">${fmt(total)}</span>
+              </div>
+            </>
+          )}
+        </div>
 
-        <p className="text-center text-[10px] text-muted-foreground">
-          Generated by VisaPilot
-        </p>
+        <p className="text-center text-[10px] text-muted-foreground">Generated by VisaPilot</p>
       </div>
 
-      {!hasData && (
-        <p className="mt-4 text-center text-xs text-muted-foreground no-print">
-          Tip: complete your checklist or budget to build a richer summary.
-        </p>
-      )}
-
-      <div className="no-print mt-6 space-y-2">
+      <div className="no-print relative mt-6 space-y-2.5 px-6 pb-6">
         <button
           onClick={async () => {
             const { data } = await supabase.auth.getUser();
             if (!data.user) { toast.error("Sign in to save trips"); return; }
             const name = prompt("Name this trip:", `Trip · ${today}`);
             if (!name) return;
-            const checklistArr = Array.from(checked);
             const { error } = await supabase.from("saved_trips").insert({
-              user_id: data.user.id, name, budget, checklist: checklistArr,
+              user_id: data.user.id, name, budget, checklist: Array.from(checked),
             });
             if (error) toast.error(error.message);
             else toast.success("Trip saved to your account");
           }}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-travel-blue to-travel-blue-dark px-4 py-3 text-sm font-semibold text-white shadow-sm hover:opacity-90"
+          className="flex w-full items-center justify-center gap-2 rounded-2xl gradient-emerald px-4 py-3.5 text-sm font-semibold text-white shadow-float transition-transform active:scale-[0.98]"
         >
-          💾 Save as Trip (to my account)
+          <Save className="h-4 w-4" /> Save to my account
         </button>
         <button
           onClick={handleShare}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+          className="flex w-full items-center justify-center gap-2 rounded-2xl gradient-primary px-4 py-3.5 text-sm font-semibold text-primary-foreground shadow-float transition-transform active:scale-[0.98]"
         >
-          Share Summary
+          <Share2 className="h-4 w-4" /> Share summary
         </button>
         <button
-          onClick={handleExportPdf}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+          onClick={() => typeof window !== "undefined" && window.print()}
+          className="glass flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3.5 text-sm font-semibold text-foreground"
         >
-          Export as PDF
+          <Download className="h-4 w-4" /> Export as PDF
         </button>
-        {shareMsg && (
-          <p className="text-center text-xs text-muted-foreground">{shareMsg}</p>
-        )}
+        {shareMsg && <p className="text-center text-xs text-muted-foreground">{shareMsg}</p>}
       </div>
     </div>
   );

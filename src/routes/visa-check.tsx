@@ -1,7 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import {
+  ArrowRight,
+  Check,
+  Clock,
+  Globe2,
+  Heart,
+  ShieldCheck,
+  X,
+  ExternalLink,
+  FileText,
+  Plane,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { CountryCombobox, type CountryOption } from "@/components/CountryCombobox";
 import { VISA_CODES, VISA_DATA } from "@/data/visa-data";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,9 +22,7 @@ export const Route = createFileRoute("/visa-check")({
   head: () => ({
     meta: [
       { title: "Visa Check — VisaPilot" },
-      { name: "description", content: "Check real visa requirements between 199 countries with VisaPilot." },
-      { property: "og:title", content: "Visa Check — VisaPilot" },
-      { property: "og:description", content: "Check real visa requirements between 199 countries with VisaPilot." },
+      { name: "description", content: "Real visa requirements between 199 countries." },
     ],
   }),
   component: VisaCheckPage,
@@ -31,21 +40,15 @@ interface VisaResult {
   source: string;
 }
 
-// Lazy display-name resolver (uses browser Intl.DisplayNames, falls back to code)
 function getCountryName(code: string): string {
-  try {
-    const dn = new Intl.DisplayNames(["en"], { type: "region" });
-    return dn.of(code) || code;
-  } catch {
-    return code;
-  }
+  try { return new Intl.DisplayNames(["en"], { type: "region" }).of(code) || code; }
+  catch { return code; }
 }
 
 const COUNTRY_OPTIONS: CountryOption[] = VISA_CODES
   .map((code) => ({ code, name: getCountryName(code) }))
   .sort((a, b) => a.name.localeCompare(b.name));
 
-// Best-effort official immigration / e-visa portal per destination (curated)
 const OFFICIAL_URLS: Record<string, string> = {
   US: "https://travel.state.gov/content/travel/en/us-visas.html",
   GB: "https://www.gov.uk/check-uk-visa",
@@ -94,189 +97,35 @@ function parseDays(code: string): number | null {
 
 function getVisaRequirement(passport: string, destination: string): VisaResult | null {
   if (!passport || !destination) return null;
-
   const passportName = getCountryName(passport);
   const destName = getCountryName(destination);
-
-  const officialUrl =
-    OFFICIAL_URLS[destination] ||
-    `https://www.google.com/search?q=${encodeURIComponent(
-      `${destName} official visa information for ${passportName} citizens`,
-    )}`;
+  const officialUrl = OFFICIAL_URLS[destination]
+    || `https://www.google.com/search?q=${encodeURIComponent(`${destName} official visa information for ${passportName} citizens`)}`;
 
   if (passport === destination) {
-    return {
-      status: "Visa Free",
-      explanation: "You don't need a visa to enter your own country.",
-      maxStay: "Unlimited",
-      documents: ["National ID or passport"],
-      processingTime: "—",
-      officialUrl,
-      source: "passport-index-dataset",
-    };
+    return { status: "Visa Free", explanation: "You don't need a visa to enter your own country.", maxStay: "Unlimited", documents: ["National ID or passport"], processingTime: "—", officialUrl, source: "passport-index-dataset" };
   }
-
   const code = VISA_DATA[passport]?.[destination];
   if (!code) {
-    return {
-      status: "Visa Required",
-      explanation: `No data available for ${passportName} → ${destName}. Confirm directly with the destination's embassy.`,
-      maxStay: "Varies",
-      documents: ["Valid passport"],
-      processingTime: "Varies",
-      officialUrl,
-      source: "fallback",
-    };
+    return { status: "Visa Required", explanation: `No data available for ${passportName} → ${destName}. Confirm directly with the embassy.`, maxStay: "Varies", documents: ["Valid passport"], processingTime: "Varies", officialUrl, source: "fallback" };
   }
-
   const days = parseDays(code);
-
-  if (code === "S") {
-    return {
-      status: "Visa Free",
-      explanation: "Domestic travel — no visa required.",
-      maxStay: "Unlimited",
-      documents: ["National ID or passport"],
-      processingTime: "—",
-      officialUrl,
-      source: "passport-index-dataset",
-    };
-  }
-
-  if (code === "F" || days !== null) {
-    return {
-      status: "Visa Free",
-      explanation: `Citizens of ${passportName} can enter ${destName} visa-free${
-        days ? ` for stays up to ${days} days` : ""
-      }.`,
-      maxStay: days ? `${days} days per entry` : "Varies (visa-free)",
-      documents: [
-        "Valid passport (6+ months recommended)",
-        "Return or onward ticket",
-        "Proof of accommodation",
-        "Proof of sufficient funds",
-      ],
-      processingTime: "No application required",
-      officialUrl,
-      source: "passport-index-dataset",
-    };
-  }
-
-  if (code === "A") {
-    return {
-      status: "Visa on Arrival",
-      explanation: `Citizens of ${passportName} can obtain a visa on arrival in ${destName}.`,
-      maxStay: "Typically 15–30 days (check destination rules)",
-      documents: [
-        "Valid passport (6+ months)",
-        "Passport-sized photo",
-        "Visa fee (cash, often USD)",
-        "Proof of onward travel",
-        "Proof of accommodation",
-      ],
-      processingTime: "Issued at the border (15–60 minutes)",
-      officialUrl,
-      source: "passport-index-dataset",
-    };
-  }
-
-  if (code === "E") {
-    return {
-      status: "eVisa",
-      explanation: `Citizens of ${passportName} must apply online for an eVisa before travelling to ${destName}.`,
-      maxStay: "Usually 30–90 days (depends on visa type)",
-      documents: [
-        "Valid passport (6+ months)",
-        "Digital passport photo",
-        "Completed online application",
-        "Credit/debit card for visa fee",
-        "Travel itinerary",
-      ],
-      processingTime: "Typically 24–72 hours, up to 2 weeks",
-      officialUrl,
-      source: "passport-index-dataset",
-    };
-  }
-
-  if (code === "T") {
-    return {
-      status: "ETA",
-      explanation: `Citizens of ${passportName} need an Electronic Travel Authorization before flying to ${destName}.`,
-      maxStay: "Up to 90 days per entry (varies)",
-      documents: [
-        "Valid passport",
-        "Online ETA application",
-        "Email address",
-        "Credit/debit card for fee",
-      ],
-      processingTime: "Minutes to 72 hours",
-      officialUrl,
-      source: "passport-index-dataset",
-    };
-  }
-
-  if (code === "X") {
-    return {
-      status: "No Admission",
-      explanation: `${destName} does not admit holders of ${passportName} passports. Contact the embassy for any exceptions.`,
-      maxStay: "Not permitted",
-      documents: ["Special authorization (if any)"],
-      processingTime: "—",
-      officialUrl,
-      source: "passport-index-dataset",
-    };
-  }
-
-  // "R" or anything else
-  return {
-    status: "Visa Required",
-    explanation: `Citizens of ${passportName} must obtain a visa in advance before travelling to ${destName}.`,
-    maxStay: "Varies by visa type (typically 30–90 days)",
-    documents: [
-      "Valid passport (6+ months)",
-      "Completed visa application form",
-      "Recent passport photos",
-      "Proof of accommodation & itinerary",
-      "Bank statements / proof of funds",
-      "Invitation letter (if applicable)",
-    ],
-    processingTime: "Typically 2–6 weeks",
-    officialUrl,
-    source: "passport-index-dataset",
-  };
+  if (code === "S") return { status: "Visa Free", explanation: "Domestic travel — no visa required.", maxStay: "Unlimited", documents: ["National ID or passport"], processingTime: "—", officialUrl, source: "passport-index-dataset" };
+  if (code === "F" || days !== null) return { status: "Visa Free", explanation: `Citizens of ${passportName} can enter ${destName} visa-free${days ? ` for stays up to ${days} days` : ""}.`, maxStay: days ? `${days} days per entry` : "Varies (visa-free)", documents: ["Valid passport (6+ months recommended)", "Return or onward ticket", "Proof of accommodation", "Proof of sufficient funds"], processingTime: "No application required", officialUrl, source: "passport-index-dataset" };
+  if (code === "A") return { status: "Visa on Arrival", explanation: `Citizens of ${passportName} can obtain a visa on arrival in ${destName}.`, maxStay: "Typically 15–30 days", documents: ["Valid passport (6+ months)", "Passport-sized photo", "Visa fee (cash, often USD)", "Proof of onward travel", "Proof of accommodation"], processingTime: "Issued at the border (15–60 minutes)", officialUrl, source: "passport-index-dataset" };
+  if (code === "E") return { status: "eVisa", explanation: `Citizens of ${passportName} must apply online for an eVisa before travelling to ${destName}.`, maxStay: "Usually 30–90 days", documents: ["Valid passport (6+ months)", "Digital passport photo", "Completed online application", "Credit/debit card for visa fee", "Travel itinerary"], processingTime: "24–72 hours, up to 2 weeks", officialUrl, source: "passport-index-dataset" };
+  if (code === "T") return { status: "ETA", explanation: `Citizens of ${passportName} need an Electronic Travel Authorization before flying to ${destName}.`, maxStay: "Up to 90 days per entry", documents: ["Valid passport", "Online ETA application", "Email address", "Credit/debit card for fee"], processingTime: "Minutes to 72 hours", officialUrl, source: "passport-index-dataset" };
+  if (code === "X") return { status: "No Admission", explanation: `${destName} does not admit holders of ${passportName} passports.`, maxStay: "Not permitted", documents: ["Special authorization (if any)"], processingTime: "—", officialUrl, source: "passport-index-dataset" };
+  return { status: "Visa Required", explanation: `Citizens of ${passportName} must obtain a visa in advance before travelling to ${destName}.`, maxStay: "Varies by visa type (typically 30–90 days)", documents: ["Valid passport (6+ months)", "Completed visa application form", "Recent passport photos", "Proof of accommodation & itinerary", "Bank statements / proof of funds", "Invitation letter (if applicable)"], processingTime: "Typically 2–6 weeks", officialUrl, source: "passport-index-dataset" };
 }
 
-const statusStyles: Record<Status, { chip: string; ring: string; icon: React.ReactNode }> = {
-  "Visa Free": {
-    chip: "text-green-700 bg-green-50 dark:text-green-300 dark:bg-green-950/40",
-    ring: "ring-green-200 dark:ring-green-900/60",
-    icon: <CheckIcon className="h-3.5 w-3.5" />,
-  },
-  "Visa on Arrival": {
-    chip: "text-amber-700 bg-amber-50 dark:text-amber-300 dark:bg-amber-950/40",
-    ring: "ring-amber-200 dark:ring-amber-900/60",
-    icon: <ClockIcon className="h-3.5 w-3.5" />,
-  },
-  ETA: {
-    chip: "text-blue-700 bg-blue-50 dark:text-blue-300 dark:bg-blue-950/40",
-    ring: "ring-blue-200 dark:ring-blue-900/60",
-    icon: <GlobeIcon className="h-3.5 w-3.5" />,
-  },
-  eVisa: {
-    chip: "text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-950/40",
-    ring: "ring-indigo-200 dark:ring-indigo-900/60",
-    icon: <GlobeIcon className="h-3.5 w-3.5" />,
-  },
-  "Visa Required": {
-    chip: "text-red-700 bg-red-50 dark:text-red-300 dark:bg-red-950/40",
-    ring: "ring-red-200 dark:ring-red-900/60",
-    icon: <CrossIcon className="h-3.5 w-3.5" />,
-  },
-  "No Admission": {
-    chip: "text-zinc-700 bg-zinc-100 dark:text-zinc-300 dark:bg-zinc-900/60",
-    ring: "ring-zinc-300 dark:ring-zinc-800",
-    icon: <CrossIcon className="h-3.5 w-3.5" />,
-  },
+const statusMeta: Record<Status, { tone: string; icon: React.ReactNode; label: string }> = {
+  "Visa Free":       { tone: "gradient-emerald text-white",                icon: <ShieldCheck className="h-4 w-4" />, label: "Visa Free" },
+  "Visa on Arrival": { tone: "bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200", icon: <Clock className="h-4 w-4" />, label: "Visa on Arrival" },
+  ETA:               { tone: "bg-primary/10 text-primary",                 icon: <Globe2 className="h-4 w-4" />, label: "ETA Required" },
+  eVisa:             { tone: "gradient-primary text-primary-foreground",    icon: <Globe2 className="h-4 w-4" />, label: "eVisa" },
+  "Visa Required":   { tone: "bg-destructive/10 text-destructive",         icon: <X className="h-4 w-4" />, label: "Visa Required" },
+  "No Admission":    { tone: "gradient-navy text-white",                    icon: <X className="h-4 w-4" />, label: "No Admission" },
 };
 
 function VisaCheckPage() {
@@ -321,78 +170,107 @@ function VisaCheckPage() {
   };
 
   return (
-    <div className="px-5 pt-8 pb-6">
-      <h1 className="text-2xl font-bold text-foreground">Visa Check</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Real visa requirements for 199 countries — sourced from the Passport Index dataset.
-      </p>
+    <div className="relative overflow-hidden">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 gradient-hero-bg" aria-hidden />
+      <div className="pointer-events-none absolute -top-16 -right-10 h-52 w-52 rounded-full bg-primary/25 blur-3xl" aria-hidden />
 
-      <div className="mt-6 space-y-4">
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-foreground">Passport Country</label>
-          <CountryCombobox
-            value={passport}
-            onChange={(v) => { setPassport(v); setResult(null); }}
-            options={options}
-            placeholder="Search passport country..."
-          />
+      <header className="relative px-6 pt-10">
+        <div className="glass inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold text-primary">
+          <Plane className="h-3.5 w-3.5" /> 199 countries · live data
         </div>
+        <h1 className="mt-3 text-display text-3xl text-foreground">Visa Check</h1>
+        <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+          Instantly see if you need a visa, how long you can stay, and what to bring.
+        </p>
+      </header>
 
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-foreground">Destination Country</label>
-          <CountryCombobox
-            value={destination}
-            onChange={(v) => { setDestination(v); setResult(null); }}
-            options={options}
-            placeholder="Search destination..."
-          />
+      <section className="relative mt-6 px-6 animate-fade-up">
+        <div className="glass rounded-3xl p-5 space-y-4">
+          <div>
+            <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+              Passport
+            </label>
+            <CountryCombobox
+              value={passport}
+              onChange={(v) => { setPassport(v); setResult(null); }}
+              options={options}
+              placeholder="Search passport country..."
+            />
+          </div>
+
+          <div className="flex justify-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <ArrowRight className="h-4 w-4 rotate-90" />
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+              Destination
+            </label>
+            <CountryCombobox
+              value={destination}
+              onChange={(v) => { setDestination(v); setResult(null); }}
+              options={options}
+              placeholder="Search destination..."
+            />
+          </div>
+
+          <Button
+            onClick={handleCheck}
+            disabled={!passport || !destination}
+            className="mt-2 h-12 w-full rounded-2xl gradient-primary text-sm font-semibold shadow-float transition-transform active:scale-[0.98] hover:shadow-float"
+          >
+            <ShieldCheck className="h-4 w-4" />
+            Check requirements
+          </Button>
         </div>
-
-        <Button
-          onClick={handleCheck}
-          disabled={!passport || !destination}
-          className="w-full py-5 text-sm font-semibold"
-        >
-          Check Visa
-        </Button>
-      </div>
+      </section>
 
       {result && (
-        <Card className={`mt-6 ring-1 ${statusStyles[result.status].ring}`}>
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between gap-2">
-              <div className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[result.status].chip}`}>
-                {statusStyles[result.status].icon}
-                {result.status}
-              </div>
-              <div className="flex items-center gap-2">
+        <section className="relative mt-5 px-6 pb-6 animate-scale-in">
+          <div className="glass overflow-hidden rounded-3xl">
+            {/* Status header */}
+            <div className={`${statusMeta[result.status].tone} px-5 py-4`}>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="inline-flex items-center gap-1.5 rounded-full bg-white/25 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm">
+                    {statusMeta[result.status].icon}
+                    {statusMeta[result.status].label}
+                  </div>
+                  <p className="mt-2 text-[13px] font-semibold opacity-95">
+                    {getCountryName(passport)} → {getCountryName(destination)}
+                  </p>
+                </div>
                 <button
                   onClick={toggleFav}
-                  aria-label={isFav ? "Remove favorite" : "Add to favorites"}
-                  className={`flex h-7 w-7 items-center justify-center rounded-full transition-colors ${isFav ? "bg-red-50 text-red-500 dark:bg-red-950/40" : "bg-muted text-muted-foreground hover:text-red-500"}`}
+                  aria-label={isFav ? "Remove favorite" : "Add favorite"}
+                  className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm transition-transform active:scale-95"
                 >
-                  <svg className="h-3.5 w-3.5" fill={isFav ? "currentColor" : "none"} viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+                  <Heart className={`h-4 w-4 ${isFav ? "fill-current" : ""}`} />
                 </button>
-                <span className="text-[10px] text-muted-foreground">
-                  {getCountryName(passport)} → {getCountryName(destination)}
-                </span>
               </div>
             </div>
 
-            <p className="mt-3 text-sm leading-relaxed text-foreground">{result.explanation}</p>
+            {/* Body */}
+            <div className="space-y-4 p-5">
+              <p className="text-sm leading-relaxed text-foreground">{result.explanation}</p>
 
-            <div className="mt-4 space-y-3 border-t border-border pt-4">
-              <InfoRow label="Maximum stay" value={result.maxStay} />
-              <InfoRow label="Processing time" value={result.processingTime} />
+              <div className="grid grid-cols-2 gap-3">
+                <InfoTile icon={<Clock className="h-4 w-4" />} label="Max stay" value={result.maxStay} />
+                <InfoTile icon={<Globe2 className="h-4 w-4" />} label="Processing" value={result.processingTime} />
+              </div>
 
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  Required documents
+              <div className="rounded-2xl bg-muted/60 p-4">
+                <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                  <FileText className="h-3.5 w-3.5" /> Required documents
                 </p>
-                <ul className="mt-1.5 space-y-1">
+                <ul className="mt-2.5 space-y-1.5">
                   {result.documents.map((doc) => (
                     <li key={doc} className="flex items-start gap-2 text-sm text-foreground">
-                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                      <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald/15 text-emerald">
+                        <Check className="h-3 w-3" strokeWidth={3} />
+                      </span>
                       {doc}
                     </li>
                   ))}
@@ -403,65 +281,32 @@ function VisaCheckPage() {
                 href={result.officialUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary/10 px-3 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/15"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl gradient-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-float transition-transform active:scale-[0.98]"
               >
-                <GlobeIcon className="h-4 w-4" />
-                Visit official information
-                <ExternalIcon className="h-3.5 w-3.5" />
+                <Globe2 className="h-4 w-4" />
+                Visit official portal
+                <ExternalLink className="h-3.5 w-3.5" />
               </a>
-            </div>
 
-            <p className="mt-3 text-[10px] text-muted-foreground">
-              Source: Passport Index dataset. Documents and processing times are general guidance — always confirm with the destination's official immigration authority.
-            </p>
-          </CardContent>
-        </Card>
+              <p className="text-center text-[10px] text-muted-foreground">
+                Source: Passport Index · Always verify with the destination's immigration authority.
+              </p>
+            </div>
+          </div>
+        </section>
       )}
     </div>
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+function InfoTile({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div>
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className="mt-0.5 text-sm text-foreground">{value}</p>
+    <div className="rounded-2xl bg-muted/60 p-3">
+      <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+        <span className="text-primary">{icon}</span>
+        {label}
+      </p>
+      <p className="mt-1 text-sm font-semibold text-foreground">{value}</p>
     </div>
-  );
-}
-
-function CheckIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-    </svg>
-  );
-}
-function CrossIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-    </svg>
-  );
-}
-function ClockIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  );
-}
-function GlobeIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5a17.919 17.919 0 01-8.716-2.247m0 0A9.004 9.004 0 003 12c0 1.681.445 3.268 1.22 4.625" />
-    </svg>
-  );
-}
-function ExternalIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-    </svg>
   );
 }

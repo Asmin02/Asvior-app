@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Moon, Languages, DollarSign, Bell, Info, Palette } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -79,75 +79,89 @@ function SettingsPage() {
   };
 
   return (
-    <div className="px-5 pt-8 pb-6">
-      <h1 className="text-2xl font-bold text-foreground">Settings</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        {userId ? "Synced to your account." : "Sign in to sync across devices."}
+    <div className="relative overflow-hidden">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-64 gradient-hero-bg" aria-hidden />
+
+      <header className="relative px-6 pt-10">
+        <div className="glass inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold text-primary">
+          <Palette className="h-3.5 w-3.5" /> {userId ? "Synced to your account" : "Local device"}
+        </div>
+        <h1 className="mt-3 text-display text-3xl text-foreground">Settings</h1>
+        <p className="mt-1.5 text-sm text-muted-foreground">Personalize your VisaPilot experience.</p>
+      </header>
+
+      <section className="relative mt-6 space-y-3 px-6 pb-6">
+        <SettingsCard icon={<Moon className="h-4 w-4" />} title="Appearance">
+          <Row label="Dark mode" hint="Easier on the eyes at night.">
+            <Switch checked={s.dark_mode} onCheckedChange={(v) => update({ dark_mode: v })} />
+          </Row>
+        </SettingsCard>
+
+        <SettingsCard icon={<Languages className="h-4 w-4" />} title="Preferences">
+          <Select label="Language" value={s.language} onChange={(v) => update({ language: v })} options={LANGUAGES.map((l) => [l.code, l.label] as const)} />
+          <div className="mt-3">
+            <Select label="Currency" icon={<DollarSign className="h-3.5 w-3.5" />} value={s.currency} onChange={(v) => update({ currency: v })} options={CURRENCIES.map((c) => [c, c] as const)} />
+          </div>
+        </SettingsCard>
+
+        <SettingsCard icon={<Bell className="h-4 w-4" />} title="Notifications">
+          <Row label="Passport expiry" hint="Warn me before my passport expires.">
+            <Switch checked={s.notify_passport_expiry} onCheckedChange={(v) => update({ notify_passport_expiry: v })} />
+          </Row>
+          <Row label="Visa updates" hint="Application status reminders.">
+            <Switch checked={s.notify_visa} onCheckedChange={(v) => update({ notify_visa: v })} />
+          </Row>
+          <Row label="Flights" hint="Heads-up before departure.">
+            <Switch checked={s.notify_flight} onCheckedChange={(v) => update({ notify_flight: v })} />
+          </Row>
+          <Row label="Packing" hint="Finish your checklist on time.">
+            <Switch checked={s.notify_packing} onCheckedChange={(v) => update({ notify_packing: v })} />
+          </Row>
+        </SettingsCard>
+
+        <SettingsCard icon={<Info className="h-4 w-4" />} title="About">
+          <p className="text-xs text-muted-foreground">VisaPilot v3.0 · Premium travel & visa assistant.</p>
+        </SettingsCard>
+      </section>
+    </div>
+  );
+}
+
+function SettingsCard({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
+  return (
+    <div className="glass rounded-3xl p-5">
+      <p className="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+        <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/10 text-primary">{icon}</span>
+        {title}
       </p>
-
-      <div className="mt-6 space-y-3">
-        <Card className="ring-1 ring-border">
-          <CardContent className="p-4">
-            <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Appearance</p>
-            <Row label="Dark Mode" hint="Easier on the eyes at night.">
-              <Switch checked={s.dark_mode} onCheckedChange={(v) => update({ dark_mode: v })} />
-            </Row>
-          </CardContent>
-        </Card>
-
-        <Card className="ring-1 ring-border">
-          <CardContent className="space-y-3 p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Preferences</p>
-            <Select label="Language" value={s.language} onChange={(v) => update({ language: v })} options={LANGUAGES.map((l) => [l.code, l.label] as const)} />
-            <Select label="Currency" value={s.currency} onChange={(v) => update({ currency: v })} options={CURRENCIES.map((c) => [c, c] as const)} />
-          </CardContent>
-        </Card>
-
-        <Card className="ring-1 ring-border">
-          <CardContent className="p-4">
-            <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Notifications</p>
-            <Row label="Passport expiry reminders" hint="Warn me before my passport expires.">
-              <Switch checked={s.notify_passport_expiry} onCheckedChange={(v) => update({ notify_passport_expiry: v })} />
-            </Row>
-            <Row label="Visa reminders" hint="Remind me about visa application status.">
-              <Switch checked={s.notify_visa} onCheckedChange={(v) => update({ notify_visa: v })} />
-            </Row>
-            <Row label="Flight reminders" hint="Heads-up before departure.">
-              <Switch checked={s.notify_flight} onCheckedChange={(v) => update({ notify_flight: v })} />
-            </Row>
-            <Row label="Packing reminders" hint="Nudge me to finish my checklist.">
-              <Switch checked={s.notify_packing} onCheckedChange={(v) => update({ notify_packing: v })} />
-            </Row>
-          </CardContent>
-        </Card>
-
-        <Card className="ring-1 ring-border">
-          <CardContent className="p-4">
-            <p className="text-sm font-semibold text-foreground">About</p>
-            <p className="mt-1 text-xs text-muted-foreground">VisaPilot v2.0 — premium travel & visa assistant.</p>
-          </CardContent>
-        </Card>
-      </div>
+      {children}
     </div>
   );
 }
 
 function Row({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-3 py-2">
+    <div className="flex items-center justify-between gap-3 py-2.5">
       <div className="min-w-0">
-        <p className="text-sm font-medium text-foreground">{label}</p>
+        <p className="text-sm font-semibold text-foreground">{label}</p>
         {hint && <p className="text-[11px] text-muted-foreground">{hint}</p>}
       </div>
       {children}
     </div>
   );
 }
-function Select({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: ReadonlyArray<readonly [string, string]> }) {
+
+function Select({ label, value, onChange, options, icon }: { label: string; value: string; onChange: (v: string) => void; options: ReadonlyArray<readonly [string, string]>; icon?: React.ReactNode }) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-medium text-muted-foreground">{label}</label>
-      <select value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-lg border border-input bg-card px-3 py-2.5 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring">
+      <label className="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+        {icon}{label}
+      </label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-2xl border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground outline-none transition-all focus:ring-2 focus:ring-primary/40"
+      >
         {options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
       </select>
     </div>
