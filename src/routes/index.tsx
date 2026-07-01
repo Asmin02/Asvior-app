@@ -1,12 +1,23 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import {
+  Plane,
+  CheckSquare,
+  Wallet,
+  Sparkles,
+  Globe2,
+  ArrowRight,
+  Compass,
+  ShieldCheck,
+  Zap,
+} from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "VisaPilot — Your Travel & Visa Assistant" },
-      { name: "description", content: "Check visa requirements, plan your travel checklist, and manage your trip budget with VisaPilot." },
-      { property: "og:title", content: "VisaPilot — Your Travel & Visa Assistant" },
-      { property: "og:description", content: "Check visa requirements, plan your travel checklist, and manage your trip budget with VisaPilot." },
+      { title: "VisaPilot — Premium Travel & Visa Assistant" },
+      { name: "description", content: "Check visa requirements, plan smarter trips, and get AI-powered travel guidance — all in one beautiful app." },
+      { property: "og:title", content: "VisaPilot — Premium Travel & Visa Assistant" },
+      { property: "og:description", content: "Check visa requirements, plan smarter trips, and get AI-powered travel guidance." },
     ],
   }),
   component: HomePage,
@@ -14,126 +25,183 @@ export const Route = createFileRoute("/")({
 
 function HomePage() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-6 py-12">
-      {/* Logo / Brand */}
-      <div className="mb-2 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg">
-        <PlaneIcon className="h-8 w-8" />
-      </div>
+    <div className="relative overflow-hidden">
+      {/* Hero background */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[520px] gradient-hero-bg" aria-hidden />
+      <div className="pointer-events-none absolute -top-24 -right-16 h-72 w-72 rounded-full bg-primary/25 blur-3xl" aria-hidden />
+      <div className="pointer-events-none absolute top-40 -left-20 h-64 w-64 rounded-full bg-emerald/25 blur-3xl" aria-hidden />
 
-      <h1 className="mt-4 text-3xl font-bold tracking-tight text-foreground">
-        VisaPilot
-      </h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Your Travel & Visa Assistant
-      </p>
+      {/* Header */}
+      <header className="relative flex items-center justify-between px-6 pt-8">
+        <div className="flex items-center gap-2">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl gradient-primary shadow-float">
+            <Plane className="h-5 w-5 text-primary-foreground" strokeWidth={2.4} />
+          </div>
+          <div>
+            <p className="text-display text-lg text-foreground">VisaPilot</p>
+            <p className="-mt-0.5 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Premium travel OS</p>
+          </div>
+        </div>
+        <Link
+          to="/profile"
+          className="glass rounded-full px-3 py-1.5 text-[11px] font-semibold text-foreground"
+        >
+          Sign in
+        </Link>
+      </header>
 
-      {/* Hero illustration area */}
-      <div className="mt-8 w-full rounded-2xl bg-travel-sky/30 p-6 text-center">
-        <GlobeIcon className="mx-auto h-12 w-12 text-travel-blue" />
-        <p className="mt-3 text-sm font-medium text-foreground">
-          Plan smarter. Travel further.
+      {/* Hero */}
+      <section className="relative px-6 pt-10 animate-fade-up">
+        <div className="glass inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold text-primary">
+          <Sparkles className="h-3.5 w-3.5" />
+          AI travel concierge · always on
+        </div>
+        <h1 className="mt-4 text-display text-[40px] leading-[1.05] text-foreground">
+          Fly further.
+          <br />
+          <span className="bg-gradient-to-r from-primary via-royal-deep to-emerald bg-clip-text text-transparent">
+            Plan smarter.
+          </span>
+        </h1>
+        <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-muted-foreground">
+          Check visas across 199 countries, build packing lists, plan budgets, and chat with your personal AI travel expert.
         </p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Check visas, pack right, and stay on budget.
+
+        <div className="mt-6 flex gap-2">
+          <Link
+            to="/assistant"
+            className="group inline-flex items-center gap-2 rounded-2xl gradient-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-float transition-transform active:scale-95 hover:-translate-y-0.5"
+          >
+            <Sparkles className="h-4 w-4" />
+            Ask VisaPilot AI
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </Link>
+          <Link
+            to="/visa-check"
+            className="glass inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold text-foreground"
+          >
+            Check visa
+          </Link>
+        </div>
+
+        {/* Hero illustration */}
+        <div className="relative mt-8 h-40">
+          <div className="glass absolute inset-x-4 top-0 flex items-center gap-3 rounded-3xl p-4 animate-float">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl gradient-emerald text-white shadow-soft">
+              <Globe2 className="h-6 w-6" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-emerald">Visa Free · 90 days</p>
+              <p className="truncate text-sm font-bold text-foreground">🇺🇸 → 🇯🇵 Japan</p>
+            </div>
+            <ShieldCheck className="h-5 w-5 text-emerald" />
+          </div>
+          <div className="glass absolute inset-x-10 top-16 flex items-center gap-3 rounded-3xl p-4 shadow-float" style={{ animationDelay: "300ms" }}>
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl gradient-primary text-primary-foreground shadow-soft">
+              <Compass className="h-6 w-6" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-primary">Trip · 7 days</p>
+              <p className="truncate text-sm font-bold text-foreground">Lisbon adventure</p>
+            </div>
+            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">€1,240</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Feature grid */}
+      <section className="relative mt-10 px-6">
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Everything you need</p>
+          <span className="text-[10px] font-semibold text-emerald">All free</span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <FeatureCard
+            to="/visa-check"
+            title="Visa Check"
+            desc="199 countries"
+            icon={<Plane className="h-5 w-5" />}
+            tone="primary"
+          />
+          <FeatureCard
+            to="/checklist"
+            title="Checklist"
+            desc="Never forget a thing"
+            icon={<CheckSquare className="h-5 w-5" />}
+            tone="emerald"
+          />
+          <FeatureCard
+            to="/budget-planner"
+            title="Budget"
+            desc="Plan every dollar"
+            icon={<Wallet className="h-5 w-5" />}
+            tone="navy"
+          />
+          <FeatureCard
+            to="/assistant"
+            title="AI Assistant"
+            desc="Ask anything"
+            icon={<Sparkles className="h-5 w-5" />}
+            tone="royal"
+          />
+        </div>
+
+        {/* CTA banner */}
+        <Link
+          to="/assistant"
+          className="mt-6 flex items-center gap-3 overflow-hidden rounded-3xl gradient-navy p-5 text-white shadow-float"
+        >
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm">
+            <Zap className="h-5 w-5" strokeWidth={2.4} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold">Try VisaPilot AI</p>
+            <p className="mt-0.5 text-[11px] text-white/70">Visas, budgets, itineraries — instantly</p>
+          </div>
+          <ArrowRight className="h-5 w-5 opacity-80" />
+        </Link>
+
+        <p className="mt-8 pb-4 text-center text-[11px] text-muted-foreground">
+          Trusted by travelers worldwide · No account required
         </p>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="mt-8 w-full space-y-3">
-        <Link
-          to="/visa-check"
-          className="flex w-full items-center gap-4 rounded-xl bg-primary p-4 text-primary-foreground shadow-md transition-transform active:scale-[0.98]"
-        >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-foreground/20">
-            <PassportIcon className="h-5 w-5" />
-          </div>
-          <div className="text-left">
-            <p className="text-sm font-semibold">Visa Check</p>
-            <p className="text-xs opacity-80">Check if you need a visa</p>
-          </div>
-          <ChevronRight className="ml-auto h-5 w-5 opacity-60" />
-        </Link>
-
-        <Link
-          to="/checklist"
-          className="flex w-full items-center gap-4 rounded-xl bg-card p-4 text-foreground shadow-sm ring-1 ring-border transition-transform active:scale-[0.98]"
-        >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-travel-sky text-travel-blue">
-            <ChecklistIcon className="h-5 w-5" />
-          </div>
-          <div className="text-left">
-            <p className="text-sm font-semibold">Travel Checklist</p>
-            <p className="text-xs text-muted-foreground">Don't forget anything</p>
-          </div>
-          <ChevronRight className="ml-auto h-5 w-5 text-muted-foreground" />
-        </Link>
-
-        <Link
-          to="/budget-planner"
-          className="flex w-full items-center gap-4 rounded-xl bg-card p-4 text-foreground shadow-sm ring-1 ring-border transition-transform active:scale-[0.98]"
-        >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-travel-sand text-travel-blue-dark">
-            <WalletIcon className="h-5 w-5" />
-          </div>
-          <div className="text-left">
-            <p className="text-sm font-semibold">Budget Planner</p>
-            <p className="text-xs text-muted-foreground">Plan your trip budget</p>
-          </div>
-          <ChevronRight className="ml-auto h-5 w-5 text-muted-foreground" />
-        </Link>
-      </div>
-
-      <p className="mt-10 text-[10px] text-muted-foreground">
-        No account needed &middot; Free &middot; Private
-      </p>
+      </section>
     </div>
   );
 }
 
-function PlaneIcon({ className }: { className?: string }) {
+function FeatureCard({
+  to,
+  title,
+  desc,
+  icon,
+  tone,
+}: {
+  to: string;
+  title: string;
+  desc: string;
+  icon: React.ReactNode;
+  tone: "primary" | "emerald" | "navy" | "royal";
+}) {
+  const toneClasses: Record<string, string> = {
+    primary: "gradient-primary text-primary-foreground",
+    emerald: "gradient-emerald text-white",
+    navy: "gradient-navy text-white",
+    royal: "bg-primary/10 text-primary",
+  };
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-    </svg>
-  );
-}
-
-function GlobeIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5a17.919 17.919 0 01-8.716-2.247m0 0A9.004 9.004 0 003 12c0 1.681.445 3.268 1.22 4.625" />
-    </svg>
-  );
-}
-
-function PassportIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0z" />
-    </svg>
-  );
-}
-
-function ChecklistIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  );
-}
-
-function WalletIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 9m0 18V9" />
-    </svg>
-  );
-}
-
-function ChevronRight({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-    </svg>
+    <Link
+      to={to}
+      className="glass group relative flex flex-col justify-between overflow-hidden rounded-3xl p-4 transition-all active:scale-[0.98] hover:-translate-y-1 hover:shadow-float"
+    >
+      <div className={`flex h-11 w-11 items-center justify-center rounded-2xl shadow-soft ${toneClasses[tone]}`}>
+        {icon}
+      </div>
+      <div className="mt-6">
+        <p className="text-[15px] font-bold text-foreground">{title}</p>
+        <p className="mt-0.5 text-[11px] font-medium text-muted-foreground">{desc}</p>
+      </div>
+      <ArrowRight className="absolute top-4 right-4 h-4 w-4 text-muted-foreground transition-all group-hover:translate-x-1 group-hover:text-primary" />
+    </Link>
   );
 }
