@@ -20,6 +20,9 @@ import {
 } from "@/components/ai-cards";
 
 export const Route = createFileRoute("/assistant")({
+  validateSearch: (search: Record<string, unknown>): { q?: string } => ({
+    q: typeof search.q === "string" && search.q ? search.q : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "AI Travel Assistant — VisaPilot" },
@@ -109,6 +112,18 @@ function AssistantPage() {
     await sendMessage({ text: value });
     requestAnimationFrame(() => inputRef.current?.focus());
   };
+
+  const { q } = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const autoAskedRef = useRef(false);
+  useEffect(() => {
+    if (q && !autoAskedRef.current) {
+      autoAskedRef.current = true;
+      navigate({ search: {}, replace: true });
+      handleSend(q);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q]);
 
   const handleVoice = () => {
     toast.info("Voice input coming soon — type your question for now.");

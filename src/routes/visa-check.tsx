@@ -1,9 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
   Check,
   Clock,
+  Compass,
   Globe2,
   Heart,
   ShieldCheck,
@@ -14,7 +15,15 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CountryCombobox, type CountryOption } from "@/components/CountryCombobox";
-import { VISA_CODES, VISA_DATA } from "@/data/visa-data";
+import { VISA_CODES } from "@/data/visa-data";
+import {
+  getCountryName,
+  getVisaRequirement,
+  loadSavedPassport,
+  savePassport,
+  type VisaResult,
+  type VisaStatus,
+} from "@/lib/visa";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -28,98 +37,11 @@ export const Route = createFileRoute("/visa-check")({
   component: VisaCheckPage,
 });
 
-type Status = "Visa Free" | "Visa on Arrival" | "ETA" | "eVisa" | "Visa Required" | "No Admission";
-
-interface VisaResult {
-  status: Status;
-  explanation: string;
-  maxStay: string;
-  documents: string[];
-  processingTime: string;
-  officialUrl: string;
-  source: string;
-}
-
-function getCountryName(code: string): string {
-  try { return new Intl.DisplayNames(["en"], { type: "region" }).of(code) || code; }
-  catch { return code; }
-}
-
 const COUNTRY_OPTIONS: CountryOption[] = VISA_CODES
   .map((code) => ({ code, name: getCountryName(code) }))
   .sort((a, b) => a.name.localeCompare(b.name));
 
-const OFFICIAL_URLS: Record<string, string> = {
-  US: "https://travel.state.gov/content/travel/en/us-visas.html",
-  GB: "https://www.gov.uk/check-uk-visa",
-  CA: "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada.html",
-  AU: "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-finder",
-  NZ: "https://www.immigration.govt.nz/new-zealand-visas",
-  IN: "https://indianvisaonline.gov.in/evisa/",
-  CN: "https://www.visaforchina.cn/",
-  JP: "https://www.mofa.go.jp/j_info/visit/visa/",
-  KR: "https://www.k-eta.go.kr/",
-  SG: "https://www.ica.gov.sg/enter-transit-depart/entering-singapore",
-  TH: "https://www.thaievisa.go.th/",
-  VN: "https://evisa.xuatnhapcanh.gov.vn/",
-  ID: "https://molina.imigrasi.go.id/",
-  MY: "https://malaysiavisa.imi.gov.my/",
-  PH: "https://evisa.gov.ph/",
-  AE: "https://smartservices.icp.gov.ae/",
-  SA: "https://visa.visitsaudi.com/",
-  QA: "https://www.moi.gov.qa/site/english/index.html",
-  TR: "https://www.evisa.gov.tr/",
-  EG: "https://visa2egypt.gov.eg/",
-  KE: "https://evisa.go.ke/",
-  ZA: "https://www.dha.gov.za/index.php/immigration-services",
-  BR: "https://www.gov.br/mre/pt-br/consulado-virtual/visto",
-  AR: "https://www.argentina.gob.ar/interior/migraciones",
-  MX: "https://www.inm.gob.mx/",
-  RU: "https://electronic-visa.kdmid.ru/",
-  DE: "https://www.auswaertiges-amt.de/en/visa-service",
-  FR: "https://france-visas.gouv.fr/",
-  IT: "https://vistoperitalia.esteri.it/home/en",
-  ES: "https://www.exteriores.gob.es/en/ServiciosAlCiudadano/Paginas/Visados.aspx",
-  NL: "https://www.netherlandsworldwide.nl/visa-the-netherlands",
-  CH: "https://www.sem.admin.ch/sem/en/home/themen/einreise.html",
-  IE: "https://www.irishimmigration.ie/coming-to-visit-ireland/",
-  SE: "https://www.migrationsverket.se/English/Private-individuals/Visiting-Sweden.html",
-  NO: "https://www.udi.no/en/want-to-apply/visit/",
-};
-
-function parseDays(code: string): number | null {
-  if (code.startsWith("F") && code.length > 1) {
-    const n = parseInt(code.slice(1), 10);
-    return Number.isFinite(n) ? n : null;
-  }
-  return null;
-}
-
-function getVisaRequirement(passport: string, destination: string): VisaResult | null {
-  if (!passport || !destination) return null;
-  const passportName = getCountryName(passport);
-  const destName = getCountryName(destination);
-  const officialUrl = OFFICIAL_URLS[destination]
-    || `https://www.google.com/search?q=${encodeURIComponent(`${destName} official visa information for ${passportName} citizens`)}`;
-
-  if (passport === destination) {
-    return { status: "Visa Free", explanation: "You don't need a visa to enter your own country.", maxStay: "Unlimited", documents: ["National ID or passport"], processingTime: "—", officialUrl, source: "passport-index-dataset" };
-  }
-  const code = VISA_DATA[passport]?.[destination];
-  if (!code) {
-    return { status: "Visa Required", explanation: `No data available for ${passportName} → ${destName}. Confirm directly with the embassy.`, maxStay: "Varies", documents: ["Valid passport"], processingTime: "Varies", officialUrl, source: "fallback" };
-  }
-  const days = parseDays(code);
-  if (code === "S") return { status: "Visa Free", explanation: "Domestic travel — no visa required.", maxStay: "Unlimited", documents: ["National ID or passport"], processingTime: "—", officialUrl, source: "passport-index-dataset" };
-  if (code === "F" || days !== null) return { status: "Visa Free", explanation: `Citizens of ${passportName} can enter ${destName} visa-free${days ? ` for stays up to ${days} days` : ""}.`, maxStay: days ? `${days} days per entry` : "Varies (visa-free)", documents: ["Valid passport (6+ months recommended)", "Return or onward ticket", "Proof of accommodation", "Proof of sufficient funds"], processingTime: "No application required", officialUrl, source: "passport-index-dataset" };
-  if (code === "A") return { status: "Visa on Arrival", explanation: `Citizens of ${passportName} can obtain a visa on arrival in ${destName}.`, maxStay: "Typically 15–30 days", documents: ["Valid passport (6+ months)", "Passport-sized photo", "Visa fee (cash, often USD)", "Proof of onward travel", "Proof of accommodation"], processingTime: "Issued at the border (15–60 minutes)", officialUrl, source: "passport-index-dataset" };
-  if (code === "E") return { status: "eVisa", explanation: `Citizens of ${passportName} must apply online for an eVisa before travelling to ${destName}.`, maxStay: "Usually 30–90 days", documents: ["Valid passport (6+ months)", "Digital passport photo", "Completed online application", "Credit/debit card for visa fee", "Travel itinerary"], processingTime: "24–72 hours, up to 2 weeks", officialUrl, source: "passport-index-dataset" };
-  if (code === "T") return { status: "ETA", explanation: `Citizens of ${passportName} need an Electronic Travel Authorization before flying to ${destName}.`, maxStay: "Up to 90 days per entry", documents: ["Valid passport", "Online ETA application", "Email address", "Credit/debit card for fee"], processingTime: "Minutes to 72 hours", officialUrl, source: "passport-index-dataset" };
-  if (code === "X") return { status: "No Admission", explanation: `${destName} does not admit holders of ${passportName} passports.`, maxStay: "Not permitted", documents: ["Special authorization (if any)"], processingTime: "—", officialUrl, source: "passport-index-dataset" };
-  return { status: "Visa Required", explanation: `Citizens of ${passportName} must obtain a visa in advance before travelling to ${destName}.`, maxStay: "Varies by visa type (typically 30–90 days)", documents: ["Valid passport (6+ months)", "Completed visa application form", "Recent passport photos", "Proof of accommodation & itinerary", "Bank statements / proof of funds", "Invitation letter (if applicable)"], processingTime: "Typically 2–6 weeks", officialUrl, source: "passport-index-dataset" };
-}
-
-const statusMeta: Record<Status, { tone: string; icon: React.ReactNode; label: string }> = {
+const statusMeta: Record<VisaStatus, { tone: string; icon: React.ReactNode; label: string }> = {
   "Visa Free":       { tone: "gradient-emerald text-white",                icon: <ShieldCheck className="h-4 w-4" />, label: "Visa Free" },
   "Visa on Arrival": { tone: "bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200", icon: <Clock className="h-4 w-4" />, label: "Visa on Arrival" },
   ETA:               { tone: "bg-primary/10 text-primary",                 icon: <Globe2 className="h-4 w-4" />, label: "ETA Required" },
@@ -129,7 +51,7 @@ const statusMeta: Record<Status, { tone: string; icon: React.ReactNode; label: s
 };
 
 function VisaCheckPage() {
-  const [passport, setPassport] = useState("");
+  const [passport, setPassport] = useState(() => loadSavedPassport());
   const [destination, setDestination] = useState("");
   const [result, setResult] = useState<VisaResult | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -192,7 +114,7 @@ function VisaCheckPage() {
             </label>
             <CountryCombobox
               value={passport}
-              onChange={(v) => { setPassport(v); setResult(null); }}
+              onChange={(v) => { setPassport(v); savePassport(v); setResult(null); }}
               options={options}
               placeholder="Search passport country..."
             />
@@ -287,6 +209,16 @@ function VisaCheckPage() {
                 Visit official portal
                 <ExternalLink className="h-3.5 w-3.5" />
               </a>
+
+              <Link
+                to="/country/$code"
+                params={{ code: destination }}
+                className="glass inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold text-foreground transition-transform active:scale-[0.98]"
+              >
+                <Compass className="h-4 w-4 text-primary" />
+                Explore {getCountryName(destination)} guide
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
 
               <p className="text-center text-[10px] text-muted-foreground">
                 Source: Passport Index · Always verify with the destination's immigration authority.

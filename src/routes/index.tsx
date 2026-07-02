@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   Zap,
 } from "lucide-react";
+import regionEurope from "@/assets/region-europe.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -146,6 +147,30 @@ function HomePage() {
             tone="royal"
           />
         </div>
+
+        {/* Country Hub banner */}
+        <Link
+          to="/countries"
+          className="group relative mt-3 block overflow-hidden rounded-3xl shadow-float"
+        >
+          <img
+            src={regionEurope}
+            alt="Explore country guides"
+            width={1024}
+            height={576}
+            loading="lazy"
+            className="h-32 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-navy/90 via-navy/55 to-navy/10" />
+          <div className="absolute inset-y-0 left-0 flex flex-col justify-center p-5">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-white/70">New · Country Hub</p>
+            <p className="mt-1 text-lg font-extrabold text-white">Explore 199 countries</p>
+            <p className="mt-0.5 flex items-center gap-1 text-[11px] font-semibold text-white/80">
+              Visas · costs · attractions <ArrowRight className="h-3 w-3" />
+            </p>
+          </div>
+        </Link>
+
 
         {/* CTA banner */}
         <Link
