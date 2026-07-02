@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, Compass, Search, Sparkles } from "lucide-react";
 import { VISA_CODES } from "@/data/visa-data";
 import { getCountryName, flagEmoji } from "@/lib/visa";
