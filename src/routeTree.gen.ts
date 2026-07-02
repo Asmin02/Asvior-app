@@ -13,12 +13,14 @@ import { Route as VisaCheckRouteImport } from './routes/visa-check'
 import { Route as SummaryRouteImport } from './routes/summary'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as CountriesRouteImport } from './routes/countries'
 import { Route as ChecklistRouteImport } from './routes/checklist'
 import { Route as BudgetPlannerRouteImport } from './routes/budget-planner'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CountryCodeRouteImport } from './routes/country.$code'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedTripsRouteImport } from './routes/_authenticated/trips'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
@@ -43,6 +45,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CountriesRoute = CountriesRouteImport.update({
+  id: '/countries',
+  path: '/countries',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChecklistRoute = ChecklistRouteImport.update({
@@ -72,6 +79,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CountryCodeRoute = CountryCodeRouteImport.update({
+  id: '/country/$code',
+  path: '/country/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiChatRoute = ApiChatRouteImport.update({
@@ -106,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/budget-planner': typeof BudgetPlannerRoute
   '/checklist': typeof ChecklistRoute
+  '/countries': typeof CountriesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/summary': typeof SummaryRoute
@@ -115,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/trips': typeof AuthenticatedTripsRoute
   '/api/chat': typeof ApiChatRoute
+  '/country/$code': typeof CountryCodeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -122,6 +136,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/budget-planner': typeof BudgetPlannerRoute
   '/checklist': typeof ChecklistRoute
+  '/countries': typeof CountriesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/summary': typeof SummaryRoute
@@ -131,6 +146,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/trips': typeof AuthenticatedTripsRoute
   '/api/chat': typeof ApiChatRoute
+  '/country/$code': typeof CountryCodeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -140,6 +156,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/budget-planner': typeof BudgetPlannerRoute
   '/checklist': typeof ChecklistRoute
+  '/countries': typeof CountriesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/summary': typeof SummaryRoute
@@ -149,6 +166,7 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/trips': typeof AuthenticatedTripsRoute
   '/api/chat': typeof ApiChatRoute
+  '/country/$code': typeof CountryCodeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -158,6 +176,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/budget-planner'
     | '/checklist'
+    | '/countries'
     | '/reset-password'
     | '/settings'
     | '/summary'
@@ -167,6 +186,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/trips'
     | '/api/chat'
+    | '/country/$code'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -174,6 +194,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/budget-planner'
     | '/checklist'
+    | '/countries'
     | '/reset-password'
     | '/settings'
     | '/summary'
@@ -183,6 +204,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/trips'
     | '/api/chat'
+    | '/country/$code'
   id:
     | '__root__'
     | '/'
@@ -191,6 +213,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/budget-planner'
     | '/checklist'
+    | '/countries'
     | '/reset-password'
     | '/settings'
     | '/summary'
@@ -200,6 +223,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/trips'
     | '/api/chat'
+    | '/country/$code'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -209,11 +233,13 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BudgetPlannerRoute: typeof BudgetPlannerRoute
   ChecklistRoute: typeof ChecklistRoute
+  CountriesRoute: typeof CountriesRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SettingsRoute: typeof SettingsRoute
   SummaryRoute: typeof SummaryRoute
   VisaCheckRoute: typeof VisaCheckRoute
   ApiChatRoute: typeof ApiChatRoute
+  CountryCodeRoute: typeof CountryCodeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -244,6 +270,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/countries': {
+      id: '/countries'
+      path: '/countries'
+      fullPath: '/countries'
+      preLoaderRoute: typeof CountriesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/checklist': {
@@ -286,6 +319,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/country/$code': {
+      id: '/country/$code'
+      path: '/country/$code'
+      fullPath: '/country/$code'
+      preLoaderRoute: typeof CountryCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/chat': {
@@ -350,11 +390,13 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   BudgetPlannerRoute: BudgetPlannerRoute,
   ChecklistRoute: ChecklistRoute,
+  CountriesRoute: CountriesRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SettingsRoute: SettingsRoute,
   SummaryRoute: SummaryRoute,
   VisaCheckRoute: VisaCheckRoute,
   ApiChatRoute: ApiChatRoute,
+  CountryCodeRoute: CountryCodeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
