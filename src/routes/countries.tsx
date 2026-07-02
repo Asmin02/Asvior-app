@@ -26,24 +26,30 @@ interface Entry {
   region: Region | null;
 }
 
-const ALL: Entry[] = VISA_CODES.map((code) => ({
-  code,
-  name: getCountryName(code),
-  region: (COUNTRY_PROFILES[code]?.region as Region) ?? null,
-})).sort((a, b) => a.name.localeCompare(b.name));
+function buildAll(): Entry[] {
+  return VISA_CODES.map((code) => ({
+    code,
+    name: getCountryName(code),
+    region: (COUNTRY_PROFILES[code]?.region as Region) ?? null,
+  })).sort((a, b) => a.name.localeCompare(b.name));
+}
 
 function CountriesPage() {
   const [query, setQuery] = useState("");
   const [region, setRegion] = useState<Region | "all">("all");
+  // Country display names come from the browser's Intl API, which can differ
+  // from the server's — build the list after mount to avoid hydration mismatch.
+  const [all, setAll] = useState<Entry[]>([]);
+  useEffect(() => setAll(buildAll()), []);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return ALL.filter((c) => {
+    return all.filter((c) => {
       if (region !== "all" && c.region !== region) return false;
       if (!q) return true;
       return c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q);
     });
-  }, [query, region]);
+  }, [all, query, region]);
 
   const showFeatured = !query && region === "all";
 
