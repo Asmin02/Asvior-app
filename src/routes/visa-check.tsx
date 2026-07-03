@@ -21,6 +21,7 @@ import {
   getVisaRequirement,
   loadSavedPassport,
   savePassport,
+  saveRecentSearch,
   type VisaResult,
   type VisaStatus,
 } from "@/lib/visa";
