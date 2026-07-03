@@ -1,14 +1,41 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Moon, Languages, DollarSign, Bell, Info, Palette } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useId, useState } from "react";
+import {
+  Moon,
+  Languages,
+  DollarSign,
+  Bell,
+  Info,
+  Palette,
+  ShieldCheck,
+  FileText,
+  Mail,
+  ChevronRight,
+  Trash2,
+  Plane,
+} from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { deleteAccount } from "@/lib/account.functions";
+import { APP_VERSION, SUPPORT_EMAIL } from "@/lib/app-info";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
       { title: "Settings — VisaPilot" },
-      { name: "description", content: "Theme, language, currency, and notification preferences." },
+      { name: "description", content: "Theme, language, currency, notifications, privacy, and account options." },
     ],
   }),
   component: SettingsPage,
@@ -32,8 +59,10 @@ const DEFAULT: Settings = {
 };
 
 function SettingsPage() {
+  const navigate = useNavigate();
   const [s, setS] = useState<Settings>(DEFAULT);
   const [userId, setUserId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -78,6 +107,23 @@ function SettingsPage() {
     if (userId) await supabase.from("user_settings").upsert({ user_id: userId, ...next });
   };
 
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    try {
+      await deleteAccount();
+      await supabase.auth.signOut();
+      try {
+        localStorage.removeItem("vp_ai_chat_v1");
+      } catch {}
+      toast.success("Your account has been deleted");
+      navigate({ to: "/" });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't delete your account. Please try again.");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <div className="relative overflow-hidden">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-64 gradient-hero-bg" aria-hidden />
@@ -93,7 +139,7 @@ function SettingsPage() {
       <section className="relative mt-6 space-y-3 px-6 pb-6">
         <SettingsCard icon={<Moon className="h-4 w-4" />} title="Appearance">
           <Row label="Dark mode" hint="Easier on the eyes at night.">
-            <Switch checked={s.dark_mode} onCheckedChange={(v) => update({ dark_mode: v })} />
+            <Switch checked={s.dark_mode} onCheckedChange={(v) => update({ dark_mode: v })} aria-label="Toggle dark mode" />
           </Row>
         </SettingsCard>
 
@@ -106,22 +152,76 @@ function SettingsPage() {
 
         <SettingsCard icon={<Bell className="h-4 w-4" />} title="Notifications">
           <Row label="Passport expiry" hint="Warn me before my passport expires.">
-            <Switch checked={s.notify_passport_expiry} onCheckedChange={(v) => update({ notify_passport_expiry: v })} />
+            <Switch checked={s.notify_passport_expiry} onCheckedChange={(v) => update({ notify_passport_expiry: v })} aria-label="Toggle passport expiry notifications" />
           </Row>
           <Row label="Visa updates" hint="Application status reminders.">
-            <Switch checked={s.notify_visa} onCheckedChange={(v) => update({ notify_visa: v })} />
+            <Switch checked={s.notify_visa} onCheckedChange={(v) => update({ notify_visa: v })} aria-label="Toggle visa update notifications" />
           </Row>
           <Row label="Flights" hint="Heads-up before departure.">
-            <Switch checked={s.notify_flight} onCheckedChange={(v) => update({ notify_flight: v })} />
+            <Switch checked={s.notify_flight} onCheckedChange={(v) => update({ notify_flight: v })} aria-label="Toggle flight notifications" />
           </Row>
           <Row label="Packing" hint="Finish your checklist on time.">
-            <Switch checked={s.notify_packing} onCheckedChange={(v) => update({ notify_packing: v })} />
+            <Switch checked={s.notify_packing} onCheckedChange={(v) => update({ notify_packing: v })} aria-label="Toggle packing notifications" />
           </Row>
         </SettingsCard>
 
-        <SettingsCard icon={<Info className="h-4 w-4" />} title="About">
-          <p className="text-xs text-muted-foreground">VisaPilot v3.0 · Premium travel & visa assistant.</p>
+        <SettingsCard icon={<Info className="h-4 w-4" />} title="Support & Legal">
+          <div className="divide-y divide-border/60">
+            <LinkRow to="/about" icon={<Plane className="h-4 w-4" />} label="About VisaPilot" />
+            <LinkRow to="/privacy" icon={<ShieldCheck className="h-4 w-4" />} label="Privacy Policy" />
+            <LinkRow to="/terms" icon={<FileText className="h-4 w-4" />} label="Terms of Service" />
+            <a
+              href={`mailto:${SUPPORT_EMAIL}?subject=VisaPilot%20Support`}
+              className="flex min-h-11 items-center justify-between gap-3 py-3 text-sm font-semibold text-foreground transition-colors hover:text-primary"
+            >
+              <span className="flex items-center gap-2.5">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Mail className="h-4 w-4" />
+                </span>
+                Contact support
+              </span>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </a>
+          </div>
+          <p className="mt-3 text-[11px] text-muted-foreground">VisaPilot v{APP_VERSION} · Premium travel & visa assistant</p>
         </SettingsCard>
+
+        {userId && (
+          <SettingsCard icon={<Trash2 className="h-4 w-4" />} title="Account">
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              Permanently delete your account, profile, trips, favorites, and search history. This cannot be undone.
+            </p>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button
+                  disabled={deleting}
+                  className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-destructive/10 px-4 py-3 text-sm font-semibold text-destructive transition-transform active:scale-[0.98] disabled:opacity-60"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {deleting ? "Deleting account…" : "Delete account"}
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="rounded-3xl">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete your account?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This permanently removes your profile, saved trips, favorites, visa history, and settings.
+                    This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="rounded-2xl">Keep my account</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDeleteAccount}
+                    className="rounded-2xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Delete permanently
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </SettingsCard>
+        )}
       </section>
     </div>
   );
@@ -141,7 +241,7 @@ function SettingsCard({ icon, title, children }: { icon: React.ReactNode; title:
 
 function Row({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-3 py-2.5">
+    <div className="flex min-h-11 items-center justify-between gap-3 py-2.5">
       <div className="min-w-0">
         <p className="text-sm font-semibold text-foreground">{label}</p>
         {hint && <p className="text-[11px] text-muted-foreground">{hint}</p>}
@@ -151,16 +251,33 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
   );
 }
 
+function LinkRow({ to, icon, label }: { to: string; icon: React.ReactNode; label: string }) {
+  return (
+    <Link
+      to={to}
+      className="flex min-h-11 items-center justify-between gap-3 py-3 text-sm font-semibold text-foreground transition-colors hover:text-primary"
+    >
+      <span className="flex items-center gap-2.5">
+        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">{icon}</span>
+        {label}
+      </span>
+      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+    </Link>
+  );
+}
+
 function Select({ label, value, onChange, options, icon }: { label: string; value: string; onChange: (v: string) => void; options: ReadonlyArray<readonly [string, string]>; icon?: React.ReactNode }) {
+  const id = useId();
   return (
     <div>
-      <label className="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+      <label htmlFor={id} className="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
         {icon}{label}
       </label>
       <select
+        id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-2xl border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground outline-none transition-all focus:ring-2 focus:ring-primary/40"
+        className="min-h-11 w-full rounded-2xl border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground outline-none transition-all focus:ring-2 focus:ring-primary/40"
       >
         {options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
       </select>

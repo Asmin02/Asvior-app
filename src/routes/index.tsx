@@ -269,9 +269,18 @@ function HomePage() {
           <ArrowRight className="h-5 w-5 opacity-80" />
         </Link>
 
-        <p className="mt-8 pb-4 text-center text-[11px] text-muted-foreground">
-          Trusted by travelers worldwide · No account required
-        </p>
+        <footer className="mt-8 space-y-3 pb-4 text-center">
+          <p className="text-[11px] text-muted-foreground">
+            Trusted by travelers worldwide · No account required
+          </p>
+          <nav aria-label="Legal" className="flex items-center justify-center gap-4 text-[11px] font-semibold text-muted-foreground">
+            <Link to="/about" className="hover:text-foreground">About</Link>
+            <span aria-hidden>·</span>
+            <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
+            <span aria-hidden>·</span>
+            <Link to="/terms" className="hover:text-foreground">Terms</Link>
+          </nav>
+        </footer>
       </section>
     </div>
   );
