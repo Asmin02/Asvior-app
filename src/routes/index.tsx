@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import {
   Plane,
   CheckSquare,
@@ -9,8 +10,17 @@ import {
   Compass,
   ShieldCheck,
   Zap,
+  Clock,
+  X,
+  FileText,
 } from "lucide-react";
 import regionEurope from "@/assets/region-europe.jpg";
+import {
+  getCountryName,
+  flagEmoji,
+  loadRecentSearches,
+  type RecentSearch,
+} from "@/lib/visa";
 
 export const Route = createFileRoute("/")({
   head: () => ({
