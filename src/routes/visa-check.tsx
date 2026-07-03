@@ -74,6 +74,14 @@ function VisaCheckPage() {
     if (!passport || !destination) return;
     const r = getVisaRequirement(passport, destination);
     setResult(r);
+    if (r) {
+      saveRecentSearch({
+        passport,
+        destination,
+        status: r.status,
+        timestamp: Date.now(),
+      });
+    }
     if (userId && r) {
       await supabase.from("visa_history").insert({
         user_id: userId, passport_code: passport, destination_code: destination, status: r.status,
