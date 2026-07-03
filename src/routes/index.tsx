@@ -35,6 +35,18 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
+  const [recent, setRecent] = useState<RecentSearch[]>([]);
+  const [hasTripPlan, setHasTripPlan] = useState(false);
+
+  useEffect(() => {
+    setRecent(loadRecentSearches());
+    try {
+      const b = localStorage.getItem("vp_budget");
+      const c = localStorage.getItem("vp_checklist");
+      setHasTripPlan(!!b || !!c);
+    } catch {}
+  }, []);
+
   return (
     <div className="relative overflow-hidden">
       {/* Hero background */}
