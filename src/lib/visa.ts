@@ -117,6 +117,14 @@ export function getVisaRequirement(passport: string, destination: string): VisaR
 }
 
 const PASSPORT_KEY = "vp_passport_code";
+const RECENT_KEY = "vp_recent_searches";
+
+export interface RecentSearch {
+  passport: string;
+  destination: string;
+  status: string;
+  timestamp: number;
+}
 
 export function loadSavedPassport(): string {
   if (typeof window === "undefined") return "";
@@ -131,4 +139,23 @@ export function savePassport(code: string) {
   try {
     localStorage.setItem(PASSPORT_KEY, code);
   } catch {}
+}
+
+export function saveRecentSearch(search: RecentSearch) {
+  try {
+    const raw = localStorage.getItem(RECENT_KEY);
+    const arr: RecentSearch[] = raw ? JSON.parse(raw) : [];
+    const next = [search, ...arr.filter((s) => s.passport !== search.passport || s.destination !== search.destination)].slice(0, 6);
+    localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+  } catch {}
+}
+
+export function loadRecentSearches(): RecentSearch[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(RECENT_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
 }
