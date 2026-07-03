@@ -10,14 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VisaCheckRouteImport } from './routes/visa-check'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SummaryRouteImport } from './routes/summary'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as CountriesRouteImport } from './routes/countries'
 import { Route as ChecklistRouteImport } from './routes/checklist'
 import { Route as BudgetPlannerRouteImport } from './routes/budget-planner'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AssistantRouteImport } from './routes/assistant'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CountryCodeRouteImport } from './routes/country.$code'
@@ -30,6 +33,11 @@ import { Route as AuthenticatedFavoritesRouteImport } from './routes/_authentica
 const VisaCheckRoute = VisaCheckRouteImport.update({
   id: '/visa-check',
   path: '/visa-check',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SummaryRoute = SummaryRouteImport.update({
@@ -45,6 +53,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CountriesRoute = CountriesRouteImport.update({
@@ -70,6 +83,11 @@ const AuthRoute = AuthRouteImport.update({
 const AssistantRoute = AssistantRouteImport.update({
   id: '/assistant',
   path: '/assistant',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
@@ -114,14 +132,17 @@ const AuthenticatedFavoritesRoute = AuthenticatedFavoritesRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/assistant': typeof AssistantRoute
   '/auth': typeof AuthRoute
   '/budget-planner': typeof BudgetPlannerRoute
   '/checklist': typeof ChecklistRoute
   '/countries': typeof CountriesRoute
+  '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/summary': typeof SummaryRoute
+  '/terms': typeof TermsRoute
   '/visa-check': typeof VisaCheckRoute
   '/favorites': typeof AuthenticatedFavoritesRoute
   '/history': typeof AuthenticatedHistoryRoute
@@ -132,14 +153,17 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/assistant': typeof AssistantRoute
   '/auth': typeof AuthRoute
   '/budget-planner': typeof BudgetPlannerRoute
   '/checklist': typeof ChecklistRoute
   '/countries': typeof CountriesRoute
+  '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/summary': typeof SummaryRoute
+  '/terms': typeof TermsRoute
   '/visa-check': typeof VisaCheckRoute
   '/favorites': typeof AuthenticatedFavoritesRoute
   '/history': typeof AuthenticatedHistoryRoute
@@ -152,14 +176,17 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/about': typeof AboutRoute
   '/assistant': typeof AssistantRoute
   '/auth': typeof AuthRoute
   '/budget-planner': typeof BudgetPlannerRoute
   '/checklist': typeof ChecklistRoute
   '/countries': typeof CountriesRoute
+  '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/summary': typeof SummaryRoute
+  '/terms': typeof TermsRoute
   '/visa-check': typeof VisaCheckRoute
   '/_authenticated/favorites': typeof AuthenticatedFavoritesRoute
   '/_authenticated/history': typeof AuthenticatedHistoryRoute
@@ -172,14 +199,17 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
     | '/assistant'
     | '/auth'
     | '/budget-planner'
     | '/checklist'
     | '/countries'
+    | '/privacy'
     | '/reset-password'
     | '/settings'
     | '/summary'
+    | '/terms'
     | '/visa-check'
     | '/favorites'
     | '/history'
@@ -190,14 +220,17 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
     | '/assistant'
     | '/auth'
     | '/budget-planner'
     | '/checklist'
     | '/countries'
+    | '/privacy'
     | '/reset-password'
     | '/settings'
     | '/summary'
+    | '/terms'
     | '/visa-check'
     | '/favorites'
     | '/history'
@@ -209,14 +242,17 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/about'
     | '/assistant'
     | '/auth'
     | '/budget-planner'
     | '/checklist'
     | '/countries'
+    | '/privacy'
     | '/reset-password'
     | '/settings'
     | '/summary'
+    | '/terms'
     | '/visa-check'
     | '/_authenticated/favorites'
     | '/_authenticated/history'
@@ -229,14 +265,17 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AboutRoute: typeof AboutRoute
   AssistantRoute: typeof AssistantRoute
   AuthRoute: typeof AuthRoute
   BudgetPlannerRoute: typeof BudgetPlannerRoute
   ChecklistRoute: typeof ChecklistRoute
   CountriesRoute: typeof CountriesRoute
+  PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SettingsRoute: typeof SettingsRoute
   SummaryRoute: typeof SummaryRoute
+  TermsRoute: typeof TermsRoute
   VisaCheckRoute: typeof VisaCheckRoute
   ApiChatRoute: typeof ApiChatRoute
   CountryCodeRoute: typeof CountryCodeRoute
@@ -249,6 +288,13 @@ declare module '@tanstack/react-router' {
       path: '/visa-check'
       fullPath: '/visa-check'
       preLoaderRoute: typeof VisaCheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/summary': {
@@ -270,6 +316,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/countries': {
@@ -305,6 +358,13 @@ declare module '@tanstack/react-router' {
       path: '/assistant'
       fullPath: '/assistant'
       preLoaderRoute: typeof AssistantRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -386,14 +446,17 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AboutRoute: AboutRoute,
   AssistantRoute: AssistantRoute,
   AuthRoute: AuthRoute,
   BudgetPlannerRoute: BudgetPlannerRoute,
   ChecklistRoute: ChecklistRoute,
   CountriesRoute: CountriesRoute,
+  PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SettingsRoute: SettingsRoute,
   SummaryRoute: SummaryRoute,
+  TermsRoute: TermsRoute,
   VisaCheckRoute: VisaCheckRoute,
   ApiChatRoute: ApiChatRoute,
   CountryCodeRoute: CountryCodeRoute,
@@ -401,13 +464,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

@@ -17,7 +17,7 @@ import { FloatingAIButton } from "@/components/FloatingAIButton";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center gradient-hero-bg px-4">
+    <div className="flex min-h-dvh items-center justify-center gradient-hero-bg px-4">
       <div className="glass max-w-md rounded-3xl p-8 text-center">
         <h1 className="text-display text-7xl text-foreground">404</h1>
         <h2 className="mt-3 text-xl font-semibold text-foreground">Page not found</h2>
@@ -43,7 +43,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center gradient-hero-bg px-4">
+    <div className="flex min-h-dvh items-center justify-center gradient-hero-bg px-4">
       <div className="glass max-w-md rounded-3xl p-8 text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           This page didn't load
@@ -74,7 +74,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "theme-color", content: "#0F172A" },
       { title: "VisaPilot — Premium Travel & Visa Assistant" },
       { name: "description", content: "Check visa requirements, plan trips, and get AI-powered travel guidance with VisaPilot." },
@@ -128,7 +128,10 @@ function MobileNav() {
   ] as const;
 
   return (
-    <nav className="fixed bottom-3 left-1/2 z-50 w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2">
+    <nav
+      aria-label="Main navigation"
+      className="fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-1/2 z-50 w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2"
+    >
       <div className="glass-strong flex items-center justify-around rounded-3xl px-2 py-2">
         {navItems.map((item) => {
           const isActive = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
@@ -137,6 +140,7 @@ function MobileNav() {
             <Link
               key={item.to}
               to={item.to}
+              aria-current={isActive ? "page" : undefined}
               className="group relative flex flex-1 flex-col items-center gap-0.5 rounded-2xl py-1.5 transition-all"
             >
               <div className={`flex h-9 w-9 items-center justify-center rounded-2xl transition-all ${
@@ -171,9 +175,9 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="mx-auto min-h-screen max-w-md bg-background pb-28 font-sans antialiased">
+      <main className="mx-auto min-h-dvh max-w-md bg-background pb-[calc(7rem+env(safe-area-inset-bottom))] font-sans antialiased">
         <Outlet />
-      </div>
+      </main>
       <FloatingAIButton />
       <MobileNav />
       <Toaster />
