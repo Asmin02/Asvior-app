@@ -65,7 +65,7 @@ function AuthPage() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <div className="relative min-h-dvh overflow-hidden">
       <div className="pointer-events-none absolute inset-0 gradient-hero-bg" aria-hidden />
       <div className="pointer-events-none absolute -top-20 -right-16 h-72 w-72 rounded-full bg-primary/30 blur-3xl" aria-hidden />
       <div className="pointer-events-none absolute -bottom-16 -left-16 h-72 w-72 rounded-full bg-emerald/25 blur-3xl" aria-hidden />

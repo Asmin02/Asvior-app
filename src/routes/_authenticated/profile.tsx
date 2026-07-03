@@ -128,6 +128,7 @@ function ProfilePage() {
         <div className="relative mt-6 flex items-center gap-4">
           <button
             onClick={() => fileRef.current?.click()}
+            aria-label="Change profile photo"
             className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-3xl ring-4 ring-white/25 transition-transform active:scale-95"
           >
             {avatarSrc ? (

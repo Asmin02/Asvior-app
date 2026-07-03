@@ -178,14 +178,14 @@ function AssistantPage() {
   const lastIsUserOrSubmitted = status === "submitted";
 
   return (
-    <div className="relative flex min-h-screen flex-col">
+    <div className="relative flex min-h-dvh flex-col">
       <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-travel-sky/40 via-background to-background dark:from-travel-blue/10" />
       <div className="pointer-events-none fixed -top-32 -right-20 -z-10 h-72 w-72 rounded-full bg-primary/30 blur-3xl" />
       <div className="pointer-events-none fixed top-40 -left-20 -z-10 h-72 w-72 rounded-full bg-travel-blue-light/40 blur-3xl" />
 
       <header className="sticky top-0 z-20 border-b border-white/20 bg-background/60 px-4 py-3 backdrop-blur-xl">
         <div className="flex items-center gap-2">
-          <Link to="/" className="flex h-9 w-9 items-center justify-center rounded-full bg-card/70 ring-1 ring-border">
+          <Link to="/" aria-label="Back to home" className="flex h-9 w-9 items-center justify-center rounded-full bg-card/70 ring-1 ring-border">
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
@@ -259,7 +259,7 @@ function AssistantPage() {
         />
       )}
 
-      <div className="fixed bottom-20 left-1/2 z-30 w-full max-w-md -translate-x-1/2 px-3">
+      <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-1/2 z-30 w-full max-w-md -translate-x-1/2 px-3">
         <div className="rounded-2xl border border-white/30 bg-background/80 p-2 shadow-2xl shadow-primary/10 ring-1 ring-border backdrop-blur-2xl">
           <div className="flex items-end gap-2">
             <button
