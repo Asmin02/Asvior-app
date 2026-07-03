@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import {
   Plane,
   CheckSquare,
@@ -9,8 +10,17 @@ import {
   Compass,
   ShieldCheck,
   Zap,
+  Clock,
+  X,
+  FileText,
 } from "lucide-react";
 import regionEurope from "@/assets/region-europe.jpg";
+import {
+  getCountryName,
+  flagEmoji,
+  loadRecentSearches,
+  type RecentSearch,
+} from "@/lib/visa";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -25,6 +35,18 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
+  const [recent, setRecent] = useState<RecentSearch[]>([]);
+  const [hasTripPlan, setHasTripPlan] = useState(false);
+
+  useEffect(() => {
+    setRecent(loadRecentSearches());
+    try {
+      const b = localStorage.getItem("vp_budget");
+      const c = localStorage.getItem("vp_checklist");
+      setHasTripPlan(!!b || !!c);
+    } catch {}
+  }, []);
+
   return (
     <div className="relative overflow-hidden">
       {/* Hero background */}
@@ -85,28 +107,88 @@ function HomePage() {
           </Link>
         </div>
 
-        {/* Hero illustration */}
-        <div className="relative mt-8 h-40">
-          <div className="glass absolute inset-x-4 top-0 flex items-center gap-3 rounded-3xl p-4 animate-float">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl gradient-emerald text-white shadow-soft">
-              <Globe2 className="h-6 w-6" />
+        {/* Recent activity */}
+        <div className="relative mt-8">
+          {recent.length === 0 && !hasTripPlan ? (
+            <div className="glass flex flex-col items-start gap-3 rounded-3xl p-5 animate-fade-up">
+              <p className="text-sm font-medium text-muted-foreground">No recent searches yet.</p>
+              <Link
+                to="/visa-check"
+                className="inline-flex items-center gap-2 rounded-2xl gradient-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-float transition-transform active:scale-95"
+              >
+                <Globe2 className="h-4 w-4" />
+                Start your first visa search
+                <ArrowRight className="h-4 w-4" />
+              </Link>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold text-emerald">Visa Free · 90 days</p>
-              <p className="truncate text-sm font-bold text-foreground">🇺🇸 → 🇯🇵 Japan</p>
+          ) : (
+            <div className="space-y-3 animate-fade-up">
+              {recent.slice(0, 2).map((r, i) => {
+                const tone =
+                  r.status === "Visa Free"
+                    ? "text-emerald"
+                    : r.status === "Visa on Arrival"
+                    ? "text-amber-500"
+                    : r.status === "eVisa" || r.status === "ETA"
+                    ? "text-primary"
+                    : r.status === "No Admission"
+                    ? "text-navy"
+                    : "text-destructive";
+                const bg =
+                  r.status === "Visa Free"
+                    ? "gradient-emerald"
+                    : r.status === "Visa on Arrival"
+                    ? "bg-amber-100 text-amber-900"
+                    : r.status === "eVisa" || r.status === "ETA"
+                    ? "gradient-primary"
+                    : r.status === "No Admission"
+                    ? "gradient-navy"
+                    : "bg-destructive/10 text-destructive";
+                return (
+                  <Link
+                    key={`${r.passport}-${r.destination}-${r.timestamp}`}
+                    to="/visa-check"
+                    className="glass flex items-center gap-3 rounded-3xl p-4 shadow-soft transition-transform active:scale-[0.98]"
+                    style={{ animationDelay: `${i * 120}ms` }}
+                  >
+                    <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-white shadow-soft ${bg}`}>
+                      {r.status === "Visa Free" ? (
+                        <ShieldCheck className="h-5 w-5" />
+                      ) : r.status === "Visa on Arrival" ? (
+                        <Clock className="h-5 w-5" />
+                      ) : r.status === "No Admission" ? (
+                        <X className="h-5 w-5" />
+                      ) : (
+                        <Globe2 className="h-5 w-5" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className={`text-xs font-semibold ${tone}`}>{r.status}</p>
+                      <p className="truncate text-sm font-bold text-foreground">
+                        {flagEmoji(r.passport)} {getCountryName(r.passport)} → {flagEmoji(r.destination)} {getCountryName(r.destination)}
+                      </p>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                  </Link>
+                );
+              })}
+              {hasTripPlan && (
+                <Link
+                  to="/summary"
+                  className="glass flex items-center gap-3 rounded-3xl p-4 shadow-soft transition-transform active:scale-[0.98]"
+                >
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl gradient-navy text-white shadow-soft">
+                    <FileText className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-primary">Trip plan</p>
+                    <p className="truncate text-sm font-bold text-foreground">Continue planning your trip</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                </Link>
+              )}
             </div>
-            <ShieldCheck className="h-5 w-5 text-emerald" />
-          </div>
-          <div className="glass absolute inset-x-10 top-16 flex items-center gap-3 rounded-3xl p-4 shadow-float" style={{ animationDelay: "300ms" }}>
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl gradient-primary text-primary-foreground shadow-soft">
-              <Compass className="h-6 w-6" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold text-primary">Trip · 7 days</p>
-              <p className="truncate text-sm font-bold text-foreground">Lisbon adventure</p>
-            </div>
-            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">€1,240</span>
-          </div>
+          )}
         </div>
       </section>
 
