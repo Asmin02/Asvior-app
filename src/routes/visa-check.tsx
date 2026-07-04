@@ -7,6 +7,7 @@ import {
   Compass,
   Globe2,
   Heart,
+  Loader2,
   ShieldCheck,
   X,
   ExternalLink,
@@ -51,10 +52,19 @@ const statusMeta: Record<VisaStatus, { tone: string; icon: React.ReactNode; labe
   "No Admission":    { tone: "gradient-navy text-white",                    icon: <X className="h-4 w-4" />, label: "No Admission" },
 };
 
+const LOADING_STEPS = [
+  "Checking visa requirements...",
+  "Reviewing entry rules...",
+  "Preparing document checklist...",
+  "Finalizing your results...",
+];
+
 function VisaCheckPage() {
   const [passport, setPassport] = useState(() => loadSavedPassport());
   const [destination, setDestination] = useState("");
   const [result, setResult] = useState<VisaResult | null>(null);
+  const [checking, setChecking] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
   const [userId, setUserId] = useState<string | null>(null);
   const [isFav, setIsFav] = useState(false);
 
@@ -71,9 +81,18 @@ function VisaCheckPage() {
   const options = useMemo(() => COUNTRY_OPTIONS, []);
 
   const handleCheck = async () => {
-    if (!passport || !destination) return;
+    if (!passport || !destination || checking) return;
+    setResult(null);
+    setChecking(true);
+    setLoadingStep(0);
+    const timer = setInterval(() => {
+      setLoadingStep((s) => Math.min(s + 1, LOADING_STEPS.length - 1));
+    }, 380);
+    await new Promise((res) => setTimeout(res, 1250));
+    clearInterval(timer);
     const r = getVisaRequirement(passport, destination);
     setResult(r);
+    setChecking(false);
     if (r) {
       saveRecentSearch({
         passport,
