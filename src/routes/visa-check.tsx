@@ -7,6 +7,7 @@ import {
   Compass,
   Globe2,
   Heart,
+  Loader2,
   ShieldCheck,
   X,
   ExternalLink,
@@ -51,10 +52,19 @@ const statusMeta: Record<VisaStatus, { tone: string; icon: React.ReactNode; labe
   "No Admission":    { tone: "gradient-navy text-white",                    icon: <X className="h-4 w-4" />, label: "No Admission" },
 };
 
+const LOADING_STEPS = [
+  "Checking visa requirements...",
+  "Reviewing entry rules...",
+  "Preparing document checklist...",
+  "Finalizing your results...",
+];
+
 function VisaCheckPage() {
   const [passport, setPassport] = useState(() => loadSavedPassport());
   const [destination, setDestination] = useState("");
   const [result, setResult] = useState<VisaResult | null>(null);
+  const [checking, setChecking] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
   const [userId, setUserId] = useState<string | null>(null);
   const [isFav, setIsFav] = useState(false);
 
@@ -71,9 +81,18 @@ function VisaCheckPage() {
   const options = useMemo(() => COUNTRY_OPTIONS, []);
 
   const handleCheck = async () => {
-    if (!passport || !destination) return;
+    if (!passport || !destination || checking) return;
+    setResult(null);
+    setChecking(true);
+    setLoadingStep(0);
+    const timer = setInterval(() => {
+      setLoadingStep((s) => Math.min(s + 1, LOADING_STEPS.length - 1));
+    }, 380);
+    await new Promise((res) => setTimeout(res, 1250));
+    clearInterval(timer);
     const r = getVisaRequirement(passport, destination);
     setResult(r);
+    setChecking(false);
     if (r) {
       saveRecentSearch({
         passport,
@@ -149,16 +168,37 @@ function VisaCheckPage() {
 
           <Button
             onClick={handleCheck}
-            disabled={!passport || !destination}
+            disabled={!passport || !destination || checking}
             className="mt-2 h-12 w-full rounded-2xl gradient-primary text-sm font-semibold shadow-float transition-transform active:scale-[0.98] hover:shadow-float"
           >
-            <ShieldCheck className="h-4 w-4" />
-            Check requirements
+            {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+            {checking ? "Checking..." : "Check requirements"}
           </Button>
         </div>
       </section>
 
-      {result && (
+      {checking && (
+        <section className="relative mt-5 px-6 pb-6 animate-fade-up" aria-live="polite">
+          <div className="glass flex items-center gap-4 rounded-3xl p-5">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl gradient-primary text-primary-foreground shadow-soft">
+              <Loader2 className="h-5 w-5 animate-spin" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p key={loadingStep} className="animate-fade-up text-sm font-semibold text-foreground">
+                {LOADING_STEPS[loadingStep]}
+              </p>
+              <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full gradient-primary transition-all duration-500 ease-out"
+                  style={{ width: `${((loadingStep + 1) / LOADING_STEPS.length) * 100}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {result && !checking && (
         <section className="relative mt-5 px-6 pb-6 animate-scale-in">
           <div className="glass overflow-hidden rounded-3xl">
             {/* Status header */}
@@ -229,9 +269,10 @@ function VisaCheckPage() {
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
 
-              <p className="text-center text-[10px] leading-relaxed text-muted-foreground">
-                Visa rules can change at any time. Always verify with the official embassy or
-                immigration authority of your destination before travelling. Source: Passport Index.
+              <p className="rounded-2xl bg-muted/60 p-3 text-center text-[10px] leading-relaxed text-muted-foreground">
+                Visa requirements may change at any time. Always verify the latest information
+                with the official embassy, immigration authority or government before making
+                travel arrangements. Source: Passport Index.
               </p>
             </div>
           </div>

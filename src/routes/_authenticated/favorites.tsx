@@ -58,7 +58,15 @@ function FavoritesPage() {
       </Card>
 
       {favs.length === 0 ? (
-        <p className="mt-6 text-center text-sm text-muted-foreground">No favorites yet — add your first dream destination ✨</p>
+        <Card className="mt-6 ring-1 ring-border">
+          <CardContent className="p-8 text-center">
+            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-travel-sky text-2xl">🌍</div>
+            <p className="text-sm font-semibold text-foreground">No favorites yet.</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              Start planning your first adventure — add a dream destination above.
+            </p>
+          </CardContent>
+        </Card>
       ) : (
         <div className="mt-5 grid grid-cols-2 gap-3">
           {favs.map((code) => (

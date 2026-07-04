@@ -247,8 +247,10 @@ function CountryHubPage() {
                   <Landmark className="h-4 w-4 text-primary" /> Immigration authority <ExternalLink className="h-3.5 w-3.5" />
                 </a>
               </div>
-              <p className="text-center text-[10px] text-muted-foreground">
-                Rules change — always verify with official sources before booking.
+              <p className="rounded-2xl bg-muted/60 p-3 text-center text-[10px] leading-relaxed text-muted-foreground">
+                Visa requirements may change at any time. Always verify the latest information
+                with the official embassy, immigration authority or government before making
+                travel arrangements.
               </p>
             </div>
           </div>

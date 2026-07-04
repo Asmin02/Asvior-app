@@ -62,13 +62,18 @@ function TripsPage() {
       <p className="mt-1 text-sm text-muted-foreground">All your planned journeys in one place.</p>
 
       {loading ? (
-        <p className="mt-6 text-sm text-muted-foreground">Loading…</p>
+        <div className="mt-6 space-y-3" aria-hidden>
+          <div className="h-24 animate-pulse rounded-xl bg-muted" />
+          <div className="h-24 animate-pulse rounded-xl bg-muted" />
+        </div>
       ) : trips.length === 0 ? (
         <Card className="mt-6 ring-1 ring-border">
           <CardContent className="p-8 text-center">
             <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-travel-sky text-travel-blue-dark text-2xl">🧳</div>
-            <p className="text-sm font-semibold text-foreground">No trips yet</p>
-            <p className="mt-1 text-xs text-muted-foreground">Save your budget or checklist as a trip to see it here.</p>
+            <p className="text-sm font-semibold text-foreground">No saved trips yet.</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              Start planning your first adventure — save a budget or checklist as a trip and it will appear here.
+            </p>
           </CardContent>
         </Card>
       ) : (
