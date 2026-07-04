@@ -326,10 +326,11 @@ function EmptyState({ onPick }: { onPick: (prompt: string) => void }) {
           </svg>
         </div>
         <h2 className="mt-4 bg-gradient-to-r from-foreground to-primary bg-clip-text text-2xl font-bold tracking-tight text-transparent">
-          How can I help you travel smarter?
+          Hi! I'm VisaPilot AI ✈️
         </h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Visas, documents, budgets, weather, packing — ask anything.
+        <p className="mx-auto mt-1 max-w-xs text-sm leading-relaxed text-muted-foreground">
+          Tell me your nationality and destination and I'll guide you through the visa process
+          step by step.
         </p>
       </div>
 

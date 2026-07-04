@@ -36,7 +36,15 @@ function HistoryPage() {
 
       <div className="mt-4 space-y-2">
         {tab === "visa" ? (
-          checks.length === 0 ? <p className="text-center text-sm text-muted-foreground">No checks yet.</p> :
+          checks.length === 0 ? (
+            <Card className="ring-1 ring-border">
+              <CardContent className="p-8 text-center">
+                <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-travel-sky text-2xl">🛂</div>
+                <p className="text-sm font-semibold text-foreground">No visa checks yet.</p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Run your first visa search and it will appear here.</p>
+              </CardContent>
+            </Card>
+          ) :
           checks.map((c) => (
             <Card key={c.id} className="ring-1 ring-border">
               <CardContent className="flex items-center gap-3 p-3">
@@ -50,7 +58,15 @@ function HistoryPage() {
             </Card>
           ))
         ) : (
-          trips.length === 0 ? <p className="text-center text-sm text-muted-foreground">No saved trips yet.</p> :
+          trips.length === 0 ? (
+            <Card className="ring-1 ring-border">
+              <CardContent className="p-8 text-center">
+                <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-travel-sky text-2xl">🧳</div>
+                <p className="text-sm font-semibold text-foreground">No saved trips yet.</p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Start planning your first adventure.</p>
+              </CardContent>
+            </Card>
+          ) :
           trips.map((t) => (
             <Card key={t.id} className="ring-1 ring-border">
               <CardContent className="flex items-center gap-3 p-3">

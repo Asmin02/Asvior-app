@@ -7,7 +7,6 @@ import {
   Sparkles,
   Globe2,
   ArrowRight,
-  Compass,
   ShieldCheck,
   Zap,
   Clock,

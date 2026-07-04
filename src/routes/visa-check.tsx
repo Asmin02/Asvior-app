@@ -269,9 +269,10 @@ function VisaCheckPage() {
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
 
-              <p className="text-center text-[10px] leading-relaxed text-muted-foreground">
-                Visa rules can change at any time. Always verify with the official embassy or
-                immigration authority of your destination before travelling. Source: Passport Index.
+              <p className="rounded-2xl bg-muted/60 p-3 text-center text-[10px] leading-relaxed text-muted-foreground">
+                Visa requirements may change at any time. Always verify the latest information
+                with the official embassy, immigration authority or government before making
+                travel arrangements. Source: Passport Index.
               </p>
             </div>
           </div>
