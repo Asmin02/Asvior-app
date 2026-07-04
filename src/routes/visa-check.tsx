@@ -168,16 +168,37 @@ function VisaCheckPage() {
 
           <Button
             onClick={handleCheck}
-            disabled={!passport || !destination}
+            disabled={!passport || !destination || checking}
             className="mt-2 h-12 w-full rounded-2xl gradient-primary text-sm font-semibold shadow-float transition-transform active:scale-[0.98] hover:shadow-float"
           >
-            <ShieldCheck className="h-4 w-4" />
-            Check requirements
+            {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+            {checking ? "Checking..." : "Check requirements"}
           </Button>
         </div>
       </section>
 
-      {result && (
+      {checking && (
+        <section className="relative mt-5 px-6 pb-6 animate-fade-up" aria-live="polite">
+          <div className="glass flex items-center gap-4 rounded-3xl p-5">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl gradient-primary text-primary-foreground shadow-soft">
+              <Loader2 className="h-5 w-5 animate-spin" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p key={loadingStep} className="animate-fade-up text-sm font-semibold text-foreground">
+                {LOADING_STEPS[loadingStep]}
+              </p>
+              <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full gradient-primary transition-all duration-500 ease-out"
+                  style={{ width: `${((loadingStep + 1) / LOADING_STEPS.length) * 100}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {result && !checking && (
         <section className="relative mt-5 px-6 pb-6 animate-scale-in">
           <div className="glass overflow-hidden rounded-3xl">
             {/* Status header */}
