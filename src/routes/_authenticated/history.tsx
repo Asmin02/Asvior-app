@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/history")({
   head: () => ({ meta: [{ title: "Travel History — VisaPilot" }] }),
@@ -18,24 +19,49 @@ function HistoryPage() {
   const [checks, setChecks] = useState<HistoryRow[]>([]);
   const [trips, setTrips] = useState<TripRow[]>([]);
   const [tab, setTab] = useState<"visa" | "trips">("visa");
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
-  useEffect(() => {
-    supabase.from("visa_history").select("*").order("created_at", { ascending: false }).limit(50).then(({ data }) => setChecks((data as HistoryRow[]) || []));
-    supabase.from("saved_trips").select("id, name, destination_code, created_at").order("created_at", { ascending: false }).then(({ data }) => setTrips((data as TripRow[]) || []));
-  }, []);
+  useEffect(() => { load(); }, []);
+  const load = async () => {
+    setLoadError(false);
+    const [checksRes, tripsRes] = await Promise.all([
+      supabase.from("visa_history").select("*").order("created_at", { ascending: false }).limit(50),
+      supabase.from("saved_trips").select("id, name, destination_code, created_at").order("created_at", { ascending: false }),
+    ]);
+    if (checksRes.error || tripsRes.error) { setLoadError(true); setLoading(false); return; }
+    setChecks((checksRes.data as HistoryRow[]) || []);
+    setTrips((tripsRes.data as TripRow[]) || []);
+    setLoading(false);
+  };
 
   return (
     <div className="px-5 pt-8 pb-6">
       <h1 className="text-2xl font-bold text-foreground">Travel History</h1>
       <p className="mt-1 text-sm text-muted-foreground">Your visa checks and saved trips, all in one timeline.</p>
 
-      <div className="mt-5 grid grid-cols-2 gap-2 rounded-xl bg-muted p-1">
-        <button onClick={() => setTab("visa")} className={`rounded-lg py-2 text-xs font-semibold ${tab === "visa" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}>Visa Checks</button>
-        <button onClick={() => setTab("trips")} className={`rounded-lg py-2 text-xs font-semibold ${tab === "trips" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}>Trip Plans</button>
+      <div className="mt-5 grid grid-cols-2 gap-2 rounded-xl bg-muted p-1" role="tablist" aria-label="History type">
+        <button role="tab" aria-selected={tab === "visa"} onClick={() => setTab("visa")} className={`rounded-lg py-2 text-xs font-semibold transition-colors ${tab === "visa" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}>Visa Checks</button>
+        <button role="tab" aria-selected={tab === "trips"} onClick={() => setTab("trips")} className={`rounded-lg py-2 text-xs font-semibold transition-colors ${tab === "trips" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}>Trip Plans</button>
       </div>
 
       <div className="mt-4 space-y-2">
-        {tab === "visa" ? (
+        {loading ? (
+          <div className="space-y-2" aria-hidden>
+            <div className="h-16 animate-pulse rounded-xl bg-muted" />
+            <div className="h-16 animate-pulse rounded-xl bg-muted" />
+            <div className="h-16 animate-pulse rounded-xl bg-muted" />
+          </div>
+        ) : loadError ? (
+          <Card className="ring-1 ring-border">
+            <CardContent className="p-8 text-center">
+              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10 text-2xl">📡</div>
+              <p className="text-sm font-semibold text-foreground">Couldn't load your history.</p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Check your connection and try again.</p>
+              <Button variant="outline" size="sm" className="mt-4" onClick={() => { setLoading(true); load(); }}>Retry</Button>
+            </CardContent>
+          </Card>
+        ) : tab === "visa" ? (
           checks.length === 0 ? (
             <Card className="ring-1 ring-border">
               <CardContent className="p-8 text-center">
@@ -46,7 +72,7 @@ function HistoryPage() {
             </Card>
           ) :
           checks.map((c) => (
-            <Card key={c.id} className="ring-1 ring-border">
+            <Card key={c.id} className="ring-1 ring-border animate-fade-in">
               <CardContent className="flex items-center gap-3 p-3">
                 <div className="text-xl">{flag(c.passport_code)}→{flag(c.destination_code)}</div>
                 <div className="min-w-0 flex-1">
@@ -68,7 +94,7 @@ function HistoryPage() {
             </Card>
           ) :
           trips.map((t) => (
-            <Card key={t.id} className="ring-1 ring-border">
+            <Card key={t.id} className="ring-1 ring-border animate-fade-in">
               <CardContent className="flex items-center gap-3 p-3">
                 <div className="text-2xl">{t.destination_code ? flag(t.destination_code) : "🧳"}</div>
                 <div className="min-w-0 flex-1">

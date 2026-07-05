@@ -28,12 +28,15 @@ interface Trip {
 function TripsPage() {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState<Partial<Trip>>({});
 
   useEffect(() => { load(); }, []);
   const load = async () => {
-    const { data } = await supabase.from("saved_trips").select("*").order("created_at", { ascending: false });
+    setLoadError(false);
+    const { data, error } = await supabase.from("saved_trips").select("*").order("created_at", { ascending: false });
+    if (error) { setLoadError(true); setLoading(false); return; }
     setTrips((data as Trip[]) || []);
     setLoading(false);
   };
@@ -66,6 +69,15 @@ function TripsPage() {
           <div className="h-24 animate-pulse rounded-xl bg-muted" />
           <div className="h-24 animate-pulse rounded-xl bg-muted" />
         </div>
+      ) : loadError ? (
+        <Card className="mt-6 ring-1 ring-border">
+          <CardContent className="p-8 text-center">
+            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10 text-2xl">📡</div>
+            <p className="text-sm font-semibold text-foreground">Couldn't load your trips.</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Check your connection and try again.</p>
+            <Button variant="outline" size="sm" className="mt-4" onClick={() => { setLoading(true); load(); }}>Retry</Button>
+          </CardContent>
+        </Card>
       ) : trips.length === 0 ? (
         <Card className="mt-6 ring-1 ring-border">
           <CardContent className="p-8 text-center">

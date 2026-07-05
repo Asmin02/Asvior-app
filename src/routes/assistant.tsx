@@ -380,6 +380,7 @@ function MessageBubble({
 }) {
   const isUser = message.role === "user";
   const text = getText(message);
+  const segments = useMemo(() => (isUser ? [] : parseSegments(text)), [isUser, text]);
 
   if (isUser) {
     return (
@@ -391,7 +392,6 @@ function MessageBubble({
     );
   }
 
-  const segments = useMemo(() => parseSegments(text), [text]);
   const textOnlyForCopy = segments
     .filter((s) => s.kind === "text")
     .map((s) => (s.kind === "text" ? s.content : ""))

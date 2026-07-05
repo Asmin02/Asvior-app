@@ -14,6 +14,7 @@ import {
   FileText,
 } from "lucide-react";
 import regionEurope from "@/assets/region-europe.jpg";
+import { supabase } from "@/integrations/supabase/client";
 import {
   getCountryName,
   flagEmoji,
@@ -36,6 +37,7 @@ export const Route = createFileRoute("/")({
 function HomePage() {
   const [recent, setRecent] = useState<RecentSearch[]>([]);
   const [hasTripPlan, setHasTripPlan] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
 
   useEffect(() => {
     setRecent(loadRecentSearches());
@@ -44,6 +46,7 @@ function HomePage() {
       const c = localStorage.getItem("vp_checklist");
       setHasTripPlan(!!b || !!c);
     } catch {}
+    supabase.auth.getUser().then(({ data }) => setSignedIn(!!data.user)).catch(() => {});
   }, []);
 
   return (
@@ -68,7 +71,7 @@ function HomePage() {
           to="/profile"
           className="glass rounded-full px-3 py-1.5 text-[11px] font-semibold text-foreground"
         >
-          Sign in
+          {signedIn ? "My profile" : "Sign in"}
         </Link>
       </header>
 
@@ -127,22 +130,22 @@ function HomePage() {
                   r.status === "Visa Free"
                     ? "text-emerald"
                     : r.status === "Visa on Arrival"
-                    ? "text-amber-500"
+                    ? "text-amber-600 dark:text-amber-400"
                     : r.status === "eVisa" || r.status === "ETA"
                     ? "text-primary"
                     : r.status === "No Admission"
-                    ? "text-navy"
+                    ? "text-foreground"
                     : "text-destructive";
                 const bg =
                   r.status === "Visa Free"
                     ? "gradient-emerald"
                     : r.status === "Visa on Arrival"
-                    ? "bg-amber-100 text-amber-900"
+                    ? "bg-amber-500"
                     : r.status === "eVisa" || r.status === "ETA"
                     ? "gradient-primary"
                     : r.status === "No Admission"
                     ? "gradient-navy"
-                    : "bg-destructive/10 text-destructive";
+                    : "bg-destructive";
                 return (
                   <Link
                     key={`${r.passport}-${r.destination}-${r.timestamp}`}
