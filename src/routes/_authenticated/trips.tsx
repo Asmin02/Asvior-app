@@ -28,12 +28,15 @@ interface Trip {
 function TripsPage() {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState<Partial<Trip>>({});
 
   useEffect(() => { load(); }, []);
   const load = async () => {
-    const { data } = await supabase.from("saved_trips").select("*").order("created_at", { ascending: false });
+    setLoadError(false);
+    const { data, error } = await supabase.from("saved_trips").select("*").order("created_at", { ascending: false });
+    if (error) { setLoadError(true); setLoading(false); return; }
     setTrips((data as Trip[]) || []);
     setLoading(false);
   };
