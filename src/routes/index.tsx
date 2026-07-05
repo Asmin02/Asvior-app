@@ -130,22 +130,22 @@ function HomePage() {
                   r.status === "Visa Free"
                     ? "text-emerald"
                     : r.status === "Visa on Arrival"
-                    ? "text-amber-500"
+                    ? "text-amber-600 dark:text-amber-400"
                     : r.status === "eVisa" || r.status === "ETA"
                     ? "text-primary"
                     : r.status === "No Admission"
-                    ? "text-navy"
+                    ? "text-foreground"
                     : "text-destructive";
                 const bg =
                   r.status === "Visa Free"
                     ? "gradient-emerald"
                     : r.status === "Visa on Arrival"
-                    ? "bg-amber-100 text-amber-900"
+                    ? "bg-amber-500"
                     : r.status === "eVisa" || r.status === "ETA"
                     ? "gradient-primary"
                     : r.status === "No Admission"
                     ? "gradient-navy"
-                    : "bg-destructive/10 text-destructive";
+                    : "bg-destructive";
                 return (
                   <Link
                     key={`${r.passport}-${r.destination}-${r.timestamp}`}
