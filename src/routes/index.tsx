@@ -14,6 +14,7 @@ import {
   FileText,
 } from "lucide-react";
 import regionEurope from "@/assets/region-europe.jpg";
+import { supabase } from "@/integrations/supabase/client";
 import {
   getCountryName,
   flagEmoji,
