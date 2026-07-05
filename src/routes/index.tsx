@@ -37,6 +37,7 @@ export const Route = createFileRoute("/")({
 function HomePage() {
   const [recent, setRecent] = useState<RecentSearch[]>([]);
   const [hasTripPlan, setHasTripPlan] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
 
   useEffect(() => {
     setRecent(loadRecentSearches());
@@ -45,6 +46,7 @@ function HomePage() {
       const c = localStorage.getItem("vp_checklist");
       setHasTripPlan(!!b || !!c);
     } catch {}
+    supabase.auth.getUser().then(({ data }) => setSignedIn(!!data.user)).catch(() => {});
   }, []);
 
   return (
