@@ -71,7 +71,7 @@ function HomePage() {
           to="/profile"
           className="glass rounded-full px-3 py-1.5 text-[11px] font-semibold text-foreground"
         >
-          Sign in
+          {signedIn ? "My profile" : "Sign in"}
         </Link>
       </header>
 
