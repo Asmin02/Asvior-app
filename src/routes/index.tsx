@@ -64,7 +64,7 @@ function HomePage() {
           </div>
           <div>
             <p className="text-display text-lg text-foreground">Asvior</p>
-            <p className="-mt-0.5 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Premium travel OS</p>
+            <p className="-mt-0.5 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Travel Smarter. Explore Further.</p>
           </div>
         </div>
         <Link
