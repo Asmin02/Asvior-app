@@ -183,7 +183,7 @@ function SettingsPage() {
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </a>
           </div>
-          <p className="mt-3 text-[11px] text-muted-foreground">Asvior v{APP_VERSION} · Premium travel & visa assistant</p>
+          <p className="mt-3 text-[11px] text-muted-foreground">Asvior v{APP_VERSION} · Travel Smarter. Explore Further.</p>
         </SettingsCard>
 
         {userId && (
