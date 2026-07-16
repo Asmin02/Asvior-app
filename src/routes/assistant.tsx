@@ -25,8 +25,8 @@ export const Route = createFileRoute("/assistant")({
   }),
   head: () => ({
     meta: [
-      { title: "AI Travel Assistant — VisaPilot" },
-      { name: "description", content: "Chat with VisaPilot AI for instant visa, document, budget, weather, and travel guidance." },
+      { title: "AI Travel Assistant — Asvior" },
+      { name: "description", content: "Chat with Asvior AI for instant visa, document, budget, weather, and travel guidance." },
     ],
   }),
   component: AssistantPage,
@@ -74,7 +74,7 @@ function AssistantPage() {
   const transport = useMemo(() => new DefaultChatTransport({ api: "/api/chat" }), []);
 
   const { messages, sendMessage, status, setMessages, stop, error, regenerate } = useChat({
-    id: "visapilot-assistant",
+    id: "asvior-assistant",
     messages: initialMessages,
     transport,
     onError: (e) => toast.error(e.message || "AI request failed"),
@@ -196,7 +196,7 @@ function AssistantPage() {
                 <span className="absolute inset-0 animate-ping rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
               </span>
-              <h1 className="text-base font-semibold tracking-tight">VisaPilot AI</h1>
+              <h1 className="text-base font-semibold tracking-tight">Asvior AI</h1>
             </div>
             <p className="text-[11px] text-muted-foreground">Your premium travel concierge</p>
           </div>
@@ -326,7 +326,7 @@ function EmptyState({ onPick }: { onPick: (prompt: string) => void }) {
           </svg>
         </div>
         <h2 className="mt-4 bg-gradient-to-r from-foreground to-primary bg-clip-text text-2xl font-bold tracking-tight text-transparent">
-          Hi! I'm VisaPilot AI ✈️
+          Hi! I'm Asvior AI ✈️
         </h2>
         <p className="mx-auto mt-1 max-w-xs text-sm leading-relaxed text-muted-foreground">
           Tell me your nationality and destination and I'll guide you through the visa process

@@ -17,7 +17,7 @@ import {
 export const Route = createFileRoute("/checklist")({
   head: () => ({
     meta: [
-      { title: "Travel Checklist — VisaPilot" },
+      { title: "Travel Checklist — Asvior" },
       { name: "description", content: "Never forget a thing — your checklist saves automatically." },
     ],
   }),

@@ -48,9 +48,9 @@ export const Route = createFileRoute("/country/$code")({
     const name = loaderData?.name ?? "Country";
     return {
       meta: [
-        { title: `${name} Travel Guide — VisaPilot` },
+        { title: `${name} Travel Guide — Asvior` },
         { name: "description", content: `Visa rules, costs, attractions, and local tips for ${name}.` },
-        { property: "og:title", content: `${name} Travel Guide — VisaPilot` },
+        { property: "og:title", content: `${name} Travel Guide — Asvior` },
         { property: "og:description", content: `Visa rules, costs, attractions, and local tips for ${name}.` },
       ],
     };

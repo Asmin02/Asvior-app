@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/favorites")({
-  head: () => ({ meta: [{ title: "Favorite Destinations — VisaPilot" }] }),
+  head: () => ({ meta: [{ title: "Favorite Destinations — Asvior" }] }),
   component: FavoritesPage,
 });
 

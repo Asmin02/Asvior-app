@@ -473,7 +473,7 @@ export function ErrorRetry({ message, onRetry }: { message?: string; onRetry: ()
         </svg>
       </div>
       <div className="flex-1 rounded-2xl rounded-tl-md border border-rose-500/30 bg-rose-500/5 p-3.5 backdrop-blur-xl">
-        <p className="text-xs font-semibold text-rose-700 dark:text-rose-300">Couldn't reach VisaPilot AI</p>
+        <p className="text-xs font-semibold text-rose-700 dark:text-rose-300">Couldn't reach Asvior AI</p>
         <p className="mt-0.5 text-[11px] text-muted-foreground">
           {message || "Network or service hiccup. Your question is safe — give it another try."}
         </p>

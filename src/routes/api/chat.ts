@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 
-const SYSTEM_PROMPT = `You are VisaPilot AI, a world-class travel concierge inside the VisaPilot app. You help travelers with:
+const SYSTEM_PROMPT = `You are Asvior AI, a world-class travel concierge inside the Asvior app. You help travelers with:
 
 - Visa requirements, types (tourist, business, transit, eVisa, VoA), and processing times
 - Required documents and passport validity (typically 6 months beyond stay)
