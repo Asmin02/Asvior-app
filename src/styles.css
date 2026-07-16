@@ -328,19 +328,19 @@
   overflow: hidden;
   background: color-mix(in oklab, var(--muted) 80%, transparent);
   border-radius: 0.75rem;
-}
-@utility skeleton::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    color-mix(in oklab, var(--card) 60%, transparent) 50%,
-    transparent 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.6s infinite;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in oklab, var(--card) 60%, transparent) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.6s infinite;
+  }
 }
 
 /* Typing indicator dots */
@@ -364,10 +364,11 @@
 @utility scrollbar-hide {
   scrollbar-width: none;
   -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
-@utility scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
+
 
 
 /* ===== Mobile & accessibility polish ===== */
