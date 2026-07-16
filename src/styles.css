@@ -360,7 +360,15 @@
   isolation: isolate;
 }
 
-/* Stagger children by using inline delay */
+/* Hide horizontal scrollbar on carousels */
+@utility scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+@utility scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 
 /* ===== Mobile & accessibility polish ===== */
 html {
