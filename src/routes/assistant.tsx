@@ -384,8 +384,8 @@ function MessageBubble({
 
   if (isUser) {
     return (
-      <div className="flex justify-end animate-in fade-in slide-in-from-bottom-1 duration-200">
-        <div className="max-w-[85%] rounded-2xl rounded-tr-md bg-gradient-to-br from-primary to-travel-blue-dark px-4 py-2.5 text-sm text-primary-foreground shadow-md shadow-primary/20">
+      <div className="flex justify-end animate-bubble-in">
+        <div className="max-w-[85%] rounded-3xl rounded-tr-md bg-gradient-to-br from-primary to-royal-deep px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-float">
           {text}
         </div>
       </div>
@@ -399,9 +399,9 @@ function MessageBubble({
     .trim();
 
   return (
-    <div className="flex gap-2 animate-in fade-in slide-in-from-bottom-1 duration-200">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-travel-blue-dark text-primary-foreground shadow">
-        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+    <div className="flex gap-2 animate-bubble-in">
+      <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl gradient-primary text-primary-foreground shadow-float">
+        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l1.8 4.6L18 9.4l-4.2 1.8L12 15.8l-1.8-4.6L6 9.4l4.2-1.8L12 3z" />
         </svg>
       </div>

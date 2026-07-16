@@ -329,36 +329,34 @@ export function SuggestedQuestions({ data, onPick }: { data: SuggestionsData; on
 // ---------- Loading Skeleton ----------
 export function PremiumSkeleton() {
   return (
-    <div className="flex gap-2 animate-in fade-in duration-200">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-travel-blue-dark text-primary-foreground">
-        <span className="relative flex h-2 w-2">
-          <span className="absolute inset-0 animate-ping rounded-full bg-white opacity-75" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
-        </span>
+    <div className="flex gap-2 animate-bubble-in">
+      <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl gradient-primary text-primary-foreground shadow-float">
+        <span className="absolute inset-0 -z-10 rounded-2xl gradient-primary opacity-60 blur-md animate-thinking-pulse" />
+        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l1.8 4.6L18 9.4l-4.2 1.8L12 15.8l-1.8-4.6L6 9.4l4.2-1.8L12 3z" />
+        </svg>
       </div>
-      <div className="flex-1 space-y-2">
-        <div className="rounded-2xl rounded-tl-md border border-white/30 bg-card/70 p-4 ring-1 ring-border backdrop-blur-xl">
-          <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-            <span className="inline-flex gap-1">
-              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary [animation-delay:-0.3s]" />
-              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary [animation-delay:-0.15s]" />
-              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary" />
-            </span>
-            <span className="bg-gradient-to-r from-primary via-travel-blue to-primary bg-[length:200%_100%] bg-clip-text text-transparent [animation:shimmer_2s_linear_infinite]">
-              Consulting travel sources…
-            </span>
-          </div>
-          <div className="mt-3 space-y-2">
-            <div className="h-2 w-11/12 animate-pulse rounded bg-muted" />
-            <div className="h-2 w-9/12 animate-pulse rounded bg-muted" />
-            <div className="h-2 w-7/12 animate-pulse rounded bg-muted" />
-          </div>
+      <div className="flex-1">
+        <div className="glass inline-flex items-center gap-2.5 rounded-2xl rounded-tl-md px-4 py-3">
+          <span className="inline-flex items-end gap-1">
+            <span className="typing-dot" />
+            <span className="typing-dot" style={{ animationDelay: "0.15s" }} />
+            <span className="typing-dot" style={{ animationDelay: "0.3s" }} />
+          </span>
+          <span className="bg-gradient-to-r from-primary via-royal-deep to-emerald bg-[length:200%_100%] bg-clip-text text-xs font-semibold text-transparent animate-gradient-shift">
+            Asvior AI is thinking…
+          </span>
+        </div>
+        <div className="mt-2 space-y-2">
+          <div className="skeleton h-2.5 w-11/12" />
+          <div className="skeleton h-2.5 w-8/12" />
+          <div className="skeleton h-2.5 w-6/12" />
         </div>
       </div>
-      <style>{`@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }`}</style>
     </div>
   );
 }
+
 
 // ---------- Rating ----------
 const RATINGS_KEY = "vp_ai_ratings_v1";

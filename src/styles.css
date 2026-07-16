@@ -266,6 +266,35 @@
   from { opacity: 0; transform: scale(0.96); }
   to   { opacity: 1; transform: scale(1); }
 }
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes bubble-in {
+  0%   { opacity: 0; transform: translateY(8px) scale(0.96); }
+  60%  { opacity: 1; transform: translateY(-1px) scale(1.01); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes dot-bounce {
+  0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+  40%           { transform: translateY(-6px); opacity: 1; }
+}
+@keyframes thinking-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50%      { transform: scale(1.08); opacity: 1; }
+}
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+@keyframes ripple {
+  0%   { transform: scale(0); opacity: 0.5; }
+  100% { transform: scale(4); opacity: 0; }
+}
 
 @utility animate-float {
   animation: float-y 5s ease-in-out infinite;
@@ -276,6 +305,71 @@
 @utility animate-scale-in {
   animation: scale-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+@utility animate-slide-in-right {
+  animation: slide-in-right 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@utility animate-slide-in-left {
+  animation: slide-in-left 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@utility animate-bubble-in {
+  animation: bubble-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@utility animate-thinking-pulse {
+  animation: thinking-pulse 1.4s ease-in-out infinite;
+}
+@utility animate-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradient-shift 6s ease infinite;
+}
+
+/* Shimmer skeleton — apply to placeholder blocks */
+@utility skeleton {
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in oklab, var(--muted) 80%, transparent);
+  border-radius: 0.75rem;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in oklab, var(--card) 60%, transparent) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.6s infinite;
+  }
+}
+
+/* Typing indicator dots */
+@utility typing-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--primary) 85%, transparent);
+  animation: dot-bounce 1.2s infinite ease-in-out;
+}
+
+/* Ripple wrapper for tap feedback */
+@utility ripple {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Hide horizontal scrollbar on carousels */
+@utility scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+
 
 /* ===== Mobile & accessibility polish ===== */
 html {
