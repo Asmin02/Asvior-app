@@ -6,8 +6,8 @@ import { SUPPORT_EMAIL } from "@/lib/app-info";
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
-      { title: "Terms of Service — VisaPilot" },
-      { name: "description", content: "Terms of use for the VisaPilot travel and visa assistant." },
+      { title: "Terms of Service — Asvior" },
+      { name: "description", content: "Terms of use for the Asvior travel and visa assistant." },
     ],
   }),
   component: TermsPage,
@@ -18,11 +18,11 @@ function TermsPage() {
     <InfoPage
       badge={<><FileText className="h-3.5 w-3.5" /> The fine print, kept simple</>}
       title="Terms of Service"
-      subtitle="By using VisaPilot, you agree to these terms. We've kept them short and readable."
+      subtitle="By using Asvior, you agree to these terms. We've kept them short and readable."
     >
-      <InfoSection title="What VisaPilot is">
+      <InfoSection title="What Asvior is">
         <p>
-          VisaPilot is an informational travel-planning tool. It helps you understand visa
+          Asvior is an informational travel-planning tool. It helps you understand visa
           requirements, build checklists, estimate budgets, and get AI-powered travel guidance.
         </p>
       </InfoSection>
@@ -30,7 +30,7 @@ function TermsPage() {
       <InfoSection title="Not official advice">
         <p>
           Visa and entry requirements change frequently and can vary by individual
-          circumstances. Information in VisaPilot — including AI Assistant responses — is
+          circumstances. Information in Asvior — including AI Assistant responses — is
           provided for general guidance only and is <strong className="text-foreground">not legal or immigration advice</strong>.
         </p>
         <p>
@@ -56,7 +56,7 @@ function TermsPage() {
 
       <InfoSection title="Limitation of liability">
         <p>
-          VisaPilot is provided "as is". To the maximum extent permitted by law, we are not
+          Asvior is provided "as is". To the maximum extent permitted by law, we are not
           liable for losses arising from reliance on information in the app, including denied
           entry, visa refusals, or travel disruptions.
         </p>

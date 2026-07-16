@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 export const Route = createFileRoute("/budget-planner")({
   head: () => ({
     meta: [
-      { title: "Budget Planner — VisaPilot" },
+      { title: "Budget Planner — Asvior" },
       { name: "description", content: "Plan and track every dollar of your trip." },
     ],
   }),

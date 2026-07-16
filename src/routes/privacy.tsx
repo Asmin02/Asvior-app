@@ -6,8 +6,8 @@ import { SUPPORT_EMAIL } from "@/lib/app-info";
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
-      { title: "Privacy Policy — VisaPilot" },
-      { name: "description", content: "How VisaPilot collects, uses, and protects your data." },
+      { title: "Privacy Policy — Asvior" },
+      { name: "description", content: "How Asvior collects, uses, and protects your data." },
     ],
   }),
   component: PrivacyPage,
@@ -18,7 +18,7 @@ function PrivacyPage() {
     <InfoPage
       badge={<><ShieldCheck className="h-3.5 w-3.5" /> Your data, protected</>}
       title="Privacy Policy"
-      subtitle="This page is maintained by the VisaPilot team to explain how the app handles your information."
+      subtitle="This page is maintained by the Asvior team to explain how the app handles your information."
     >
       <InfoSection title="What we collect">
         <p>
@@ -34,7 +34,7 @@ function PrivacyPage() {
 
       <InfoSection title="How your data is used">
         <p>
-          Your data is used solely to power VisaPilot features: remembering your passport for
+          Your data is used solely to power Asvior features: remembering your passport for
           faster visa checks, syncing your trips and favorites across sessions, and warning you
           before your passport expires.
         </p>

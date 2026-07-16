@@ -6,8 +6,8 @@ import { APP_VERSION, SUPPORT_EMAIL } from "@/lib/app-info";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About VisaPilot — Premium Travel Assistant" },
-      { name: "description", content: "VisaPilot helps travelers check visa requirements across 199 countries, plan budgets, and get AI travel guidance." },
+      { title: "About Asvior — Premium Travel Assistant" },
+      { name: "description", content: "Asvior helps travelers check visa requirements across 199 countries, plan budgets, and get AI travel guidance." },
     ],
   }),
   component: AboutPage,
@@ -17,12 +17,12 @@ function AboutPage() {
   return (
     <InfoPage
       badge={<><Plane className="h-3.5 w-3.5" /> Version {APP_VERSION}</>}
-      title="About VisaPilot"
+      title="About Asvior"
       subtitle="Your premium travel companion — visas, checklists, budgets, and AI guidance in one app."
     >
       <InfoSection title="Our mission">
         <p>
-          International travel paperwork shouldn't be confusing. VisaPilot turns complex visa
+          International travel paperwork shouldn't be confusing. Asvior turns complex visa
           rules into clear, friendly answers so you can plan with confidence — whether you're
           booking a weekend getaway or a round-the-world trip.
         </p>

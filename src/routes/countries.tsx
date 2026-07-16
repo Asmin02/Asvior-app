@@ -9,9 +9,9 @@ import { REGION_META, REGION_ORDER, type Region } from "@/data/regions";
 export const Route = createFileRoute("/countries")({
   head: () => ({
     meta: [
-      { title: "Explore Countries — VisaPilot" },
+      { title: "Explore Countries — Asvior" },
       { name: "description", content: "Interactive travel guides for 199 countries: visas, costs, attractions, and local tips." },
-      { property: "og:title", content: "Explore Countries — VisaPilot" },
+      { property: "og:title", content: "Explore Countries — Asvior" },
       { property: "og:description", content: "Interactive travel guides for 199 countries." },
     ],
   }),

@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/history")({
-  head: () => ({ meta: [{ title: "Travel History — VisaPilot" }] }),
+  head: () => ({ meta: [{ title: "Travel History — Asvior" }] }),
   component: HistoryPage,
 });
 

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/trips")({
-  head: () => ({ meta: [{ title: "Saved Trips — VisaPilot" }] }),
+  head: () => ({ meta: [{ title: "Saved Trips — Asvior" }] }),
   component: TripsPage,
 });
 

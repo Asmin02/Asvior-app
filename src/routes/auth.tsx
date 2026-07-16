@@ -9,8 +9,8 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — VisaPilot" },
-      { name: "description", content: "Sign in or create your VisaPilot account." },
+      { title: "Sign in — Asvior" },
+      { name: "description", content: "Sign in or create your Asvior account." },
     ],
   }),
   component: AuthPage,
@@ -80,7 +80,7 @@ function AuthPage() {
             <Plane className="h-8 w-8 text-primary-foreground" strokeWidth={2.2} />
           </div>
           <h1 className="mt-5 text-display text-3xl text-foreground">
-            {mode === "signup" ? "Join VisaPilot" : mode === "forgot" ? "Reset password" : "Welcome back"}
+            {mode === "signup" ? "Join Asvior" : mode === "forgot" ? "Reset password" : "Welcome back"}
           </h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
             {mode === "signup"

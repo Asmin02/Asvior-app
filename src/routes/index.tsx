@@ -25,9 +25,9 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "VisaPilot — Premium Travel & Visa Assistant" },
+      { title: "Asvior — Premium Travel & Visa Assistant" },
       { name: "description", content: "Check visa requirements, plan smarter trips, and get AI-powered travel guidance — all in one beautiful app." },
-      { property: "og:title", content: "VisaPilot — Premium Travel & Visa Assistant" },
+      { property: "og:title", content: "Asvior — Premium Travel & Visa Assistant" },
       { property: "og:description", content: "Check visa requirements, plan smarter trips, and get AI-powered travel guidance." },
     ],
   }),
@@ -63,7 +63,7 @@ function HomePage() {
             <Plane className="h-5 w-5 text-primary-foreground" strokeWidth={2.4} />
           </div>
           <div>
-            <p className="text-display text-lg text-foreground">VisaPilot</p>
+            <p className="text-display text-lg text-foreground">Asvior</p>
             <p className="-mt-0.5 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Premium travel OS</p>
           </div>
         </div>
@@ -98,7 +98,7 @@ function HomePage() {
             className="group inline-flex items-center gap-2 rounded-2xl gradient-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-float transition-transform active:scale-95 hover:-translate-y-0.5"
           >
             <Sparkles className="h-4 w-4" />
-            Ask VisaPilot AI
+            Ask Asvior AI
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Link>
           <Link
@@ -265,7 +265,7 @@ function HomePage() {
             <Zap className="h-5 w-5" strokeWidth={2.4} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold">Try VisaPilot AI</p>
+            <p className="text-sm font-bold">Try Asvior AI</p>
             <p className="mt-0.5 text-[11px] text-white/70">Visas, budgets, itineraries — instantly</p>
           </div>
           <ArrowRight className="h-5 w-5 opacity-80" />

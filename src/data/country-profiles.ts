@@ -8989,7 +8989,7 @@ export function getCountryProfile(code: string, name: string): CountryProfile {
     code,
     region: "asia",
     capital: "\u2014",
-    intro: `${name} awaits \u2014 check entry rules and plan your trip with VisaPilot.`,
+    intro: `${name} awaits \u2014 check entry rules and plan your trip with Asvior.`,
     bestSeason: "Varies by region",
     currency: "Local currency",
     language: "Local language",

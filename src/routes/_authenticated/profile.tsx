@@ -19,7 +19,7 @@ import { VISA_CODES } from "@/data/visa-data";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/profile")({
-  head: () => ({ meta: [{ title: "My Profile — VisaPilot" }] }),
+  head: () => ({ meta: [{ title: "My Profile — Asvior" }] }),
   component: ProfilePage,
 });
 

@@ -34,7 +34,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
-      { title: "Settings — VisaPilot" },
+      { title: "Settings — Asvior" },
       { name: "description", content: "Theme, language, currency, notifications, privacy, and account options." },
     ],
   }),
@@ -133,7 +133,7 @@ function SettingsPage() {
           <Palette className="h-3.5 w-3.5" /> {userId ? "Synced to your account" : "Local device"}
         </div>
         <h1 className="mt-3 text-display text-3xl text-foreground">Settings</h1>
-        <p className="mt-1.5 text-sm text-muted-foreground">Personalize your VisaPilot experience.</p>
+        <p className="mt-1.5 text-sm text-muted-foreground">Personalize your Asvior experience.</p>
       </header>
 
       <section className="relative mt-6 space-y-3 px-6 pb-6">
@@ -167,11 +167,11 @@ function SettingsPage() {
 
         <SettingsCard icon={<Info className="h-4 w-4" />} title="Support & Legal">
           <div className="divide-y divide-border/60">
-            <LinkRow to="/about" icon={<Plane className="h-4 w-4" />} label="About VisaPilot" />
+            <LinkRow to="/about" icon={<Plane className="h-4 w-4" />} label="About Asvior" />
             <LinkRow to="/privacy" icon={<ShieldCheck className="h-4 w-4" />} label="Privacy Policy" />
             <LinkRow to="/terms" icon={<FileText className="h-4 w-4" />} label="Terms of Service" />
             <a
-              href={`mailto:${SUPPORT_EMAIL}?subject=VisaPilot%20Support`}
+              href={`mailto:${SUPPORT_EMAIL}?subject=Asvior%20Support`}
               className="flex min-h-11 items-center justify-between gap-3 py-3 text-sm font-semibold text-foreground transition-colors hover:text-primary"
             >
               <span className="flex items-center gap-2.5">
@@ -183,7 +183,7 @@ function SettingsPage() {
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </a>
           </div>
-          <p className="mt-3 text-[11px] text-muted-foreground">VisaPilot v{APP_VERSION} · Premium travel & visa assistant</p>
+          <p className="mt-3 text-[11px] text-muted-foreground">Asvior v{APP_VERSION} · Premium travel & visa assistant</p>
         </SettingsCard>
 
         {userId && (
