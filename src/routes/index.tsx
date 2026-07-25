@@ -36,7 +36,7 @@ export const Route = createFileRoute("/")({
       { title: "Asvior — Travel Smarter. Explore Further." },
       { name: "description", content: "The premium AI travel platform: instant visa checks across 199 countries, smart budgeting, packing lists, and a personal AI concierge." },
       { property: "og:title", content: "Asvior — Travel Smarter. Explore Further." },
-      { property: "og:description", content: "Instant visa checks, smart budgets, and a personal AI travel concierge." },
+      { property: "og:description", content: "The premium AI travel platform: instant visa checks across 199 countries, smart budgeting, packing lists, and a personal AI concierge." },
     ],
   }),
   component: HomePage,
