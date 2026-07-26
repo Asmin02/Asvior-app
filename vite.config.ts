@@ -1,20 +1,40 @@
-// @lovable.dev/vite-tanstack-config already includes the following — do NOT add them manually
-// or the app will break with duplicate plugins:
-//   - tanstackStart, viteReact, tailwindcss, tsConfigPaths, nitro (build-only using cloudflare as a default target),
-//     componentTagger (dev-only), VITE_* env injection, @ path alias, React/TanStack dedupe,
-//     error logger plugins, and sandbox detection (port/host/strictPort).
-// You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
-import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import { defineConfig } from "vite";
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import viteReact from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import tsconfigPaths from "vite-tsconfig-paths";
+import { nitro } from "nitro/vite";
+import path from "node:path";
 
-// Nitro deployment preset. Vercel is the canonical production target
-// (https://asvior.app). Override with NITRO_PRESET at build time to target
-// other providers (e.g. `cloudflare-module`, `node-server`).
+// Nitro deployment preset. `vercel` is the canonical production target
+// (https://asvior.app). Override with NITRO_PRESET (e.g. `node-server`,
+// `cloudflare-module`) at build time to target a different provider.
 const preset = process.env.NITRO_PRESET || "vercel";
 
 export default defineConfig({
-  tanstackStart: {
-    // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-    // nitro/vite builds from this
-    server: { entry: "server", preset },
+  plugins: [
+    tsconfigPaths(),
+    tailwindcss(),
+    tanstackStart({
+      // Point TanStack Start at src/server.ts (our SSR error wrapper).
+      server: { entry: "server" },
+    }),
+    nitro({ preset }),
+    viteReact(),
+  ],
+  resolve: {
+    alias: {
+      "@": path.resolve(process.cwd(), "src"),
+    },
+    dedupe: [
+      "react",
+      "react-dom",
+      "@tanstack/react-router",
+      "@tanstack/react-query",
+    ],
+  },
+  server: {
+    port: 3000,
+    host: true,
   },
 });

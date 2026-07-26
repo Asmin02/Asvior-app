@@ -89,14 +89,15 @@ export const Route = createFileRoute("/api/chat")({
           if (!Array.isArray(messages)) {
             return new Response("Messages are required", { status: 400 });
           }
-          const key = process.env.AI_GATEWAY_API_KEY || process.env.LOVABLE_API_KEY;
+          const key = process.env.AI_GATEWAY_API_KEY;
           if (!key) {
             return new Response("Missing AI_GATEWAY_API_KEY", { status: 500 });
           }
 
           const gateway = createAsviorAiGatewayProvider(key);
+          const model = process.env.AI_GATEWAY_MODEL || "google/gemini-3-flash-preview";
           const result = streamText({
-            model: gateway("google/gemini-3-flash-preview"),
+            model: gateway(model),
             system: SYSTEM_PROMPT,
             messages: await convertToModelMessages(messages),
           });
