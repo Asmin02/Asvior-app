@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
-import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import { createAsviorAiGatewayProvider } from "@/lib/ai-gateway.server";
 
 const SYSTEM_PROMPT = `You are Asvior AI, a world-class travel concierge inside the Asvior app. You help travelers with:
 
@@ -89,12 +89,12 @@ export const Route = createFileRoute("/api/chat")({
           if (!Array.isArray(messages)) {
             return new Response("Messages are required", { status: 400 });
           }
-          const key = process.env.LOVABLE_API_KEY;
+          const key = process.env.AI_GATEWAY_API_KEY || process.env.LOVABLE_API_KEY;
           if (!key) {
-            return new Response("Missing LOVABLE_API_KEY", { status: 500 });
+            return new Response("Missing AI_GATEWAY_API_KEY", { status: 500 });
           }
 
-          const gateway = createLovableAiGatewayProvider(key);
+          const gateway = createAsviorAiGatewayProvider(key);
           const result = streamText({
             model: gateway("google/gemini-3-flash-preview"),
             system: SYSTEM_PROMPT,

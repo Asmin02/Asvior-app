@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import {
   Camera,
   Luggage,
@@ -41,37 +41,113 @@ interface Profile {
   photo_url: string | null;
 }
 
+const EMPTY_PROFILE: Omit<Profile, "id" | "email"> = {
+  full_name: null,
+  nationality: null,
+  passport_country: null,
+  passport_number: null,
+  passport_expiry: null,
+  photo_url: null,
+};
+
 function ProfilePage() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [avatarSrc, setAvatarSrc] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { load(); }, []);
-
-  const load = async () => {
-    const { data: u } = await supabase.auth.getUser();
-    if (!u.user) return;
-    const { data } = await supabase.from("profiles").select("*").eq("id", u.user.id).maybeSingle();
-    if (data) {
-      setProfile(data as Profile);
-      if (data.photo_url) {
-        const { data: signed } = await supabase.storage.from("avatars").createSignedUrl(data.photo_url, 3600);
-        setAvatarSrc(signed?.signedUrl ?? null);
+  const load = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      if (userErr) throw userErr;
+      const user = userData.user;
+      if (!user) {
+        navigate({ to: "/auth" });
+        return;
       }
+
+      const { data: existing, error: fetchErr } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (fetchErr) throw fetchErr;
+
+      let row = existing as Profile | null;
+
+      // If no profile row exists yet (e.g. pre-trigger user, race, or bypass),
+      // create one on the fly. This matches the Android client behaviour and
+      // prevents the web UI from getting stuck on the skeleton.
+      if (!row) {
+        const meta = (user.user_metadata ?? {}) as { full_name?: string; name?: string };
+        const insertPayload = {
+          id: user.id,
+          email: user.email ?? null,
+          full_name: meta.full_name || meta.name || null,
+          ...EMPTY_PROFILE,
+        };
+        const { data: inserted, error: insertErr } = await supabase
+          .from("profiles")
+          .upsert(insertPayload, { onConflict: "id" })
+          .select("*")
+          .maybeSingle();
+        if (insertErr) {
+          // Fall back to a local in-memory profile so the UI is not blank.
+          row = insertPayload as Profile;
+        } else {
+          row = (inserted as Profile) ?? (insertPayload as Profile);
+        }
+      }
+
+      setProfile(row);
+
+      if (row?.photo_url) {
+        const { data: signed } = await supabase.storage
+          .from("avatars")
+          .createSignedUrl(row.photo_url, 3600);
+        setAvatarSrc(signed?.signedUrl ?? null);
+      } else {
+        setAvatarSrc(null);
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Could not load profile";
+      setLoadError(msg);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [navigate]);
+
+  useEffect(() => {
+    load();
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        setProfile(null);
+        navigate({ to: "/auth" });
+      }
+    });
+    return () => {
+      sub.subscription.unsubscribe();
+    };
+  }, [load, navigate]);
 
   const save = async () => {
     if (!profile) return;
     setBusy(true);
-    const { error } = await supabase.from("profiles").update({
-      full_name: profile.full_name, nationality: profile.nationality,
-      passport_country: profile.passport_country, passport_number: profile.passport_number,
+    const { error } = await supabase.from("profiles").upsert({
+      id: profile.id,
+      email: profile.email,
+      full_name: profile.full_name,
+      nationality: profile.nationality,
+      passport_country: profile.passport_country,
+      passport_number: profile.passport_number,
       passport_expiry: profile.passport_expiry,
-    }).eq("id", profile.id);
+    }, { onConflict: "id" });
     setBusy(false);
     if (error) toast.error(error.message); else toast.success("Profile saved");
   };
@@ -91,14 +167,36 @@ function ProfilePage() {
     toast.success("Photo updated");
   };
 
-  const signOut = async () => { await supabase.auth.signOut(); navigate({ to: "/" }); };
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    navigate({ to: "/" });
+  };
 
-  if (!profile) {
+  if (loading) {
     return (
-      <div className="animate-pulse space-y-4 px-6 pt-10">
+      <div data-testid="profile-loading" className="animate-pulse space-y-4 px-6 pt-10">
         <div className="h-48 rounded-3xl bg-muted" />
         <div className="h-24 rounded-3xl bg-muted" />
         <div className="h-40 rounded-3xl bg-muted" />
+      </div>
+    );
+  }
+
+  if (loadError || !profile) {
+    return (
+      <div data-testid="profile-error" className="px-6 pt-10 space-y-4">
+        <h1 className="text-xl font-bold text-foreground">Could not load profile</h1>
+        <p className="text-sm text-muted-foreground">
+          {loadError ?? "We couldn't find your profile. Try signing out and back in."}
+        </p>
+        <div className="flex gap-2">
+          <Button data-testid="profile-retry-btn" onClick={load} className="rounded-2xl">
+            Retry
+          </Button>
+          <Button data-testid="profile-signout-btn" variant="outline" onClick={signOut} className="rounded-2xl">
+            Sign out
+          </Button>
+        </div>
       </div>
     );
   }
@@ -108,7 +206,7 @@ function ProfilePage() {
   const expiryWarn = daysToExpiry !== null && daysToExpiry < 180;
 
   return (
-    <div className="relative pb-6">
+    <div data-testid="profile-page" className="relative pb-6">
       {/* Premium hero header */}
       <div className="relative overflow-hidden gradient-navy px-6 pb-20 pt-10 text-white">
         <div className="absolute -top-16 -right-10 h-52 w-52 rounded-full bg-primary/40 blur-3xl" />
@@ -118,6 +216,7 @@ function ProfilePage() {
         <div className="relative flex items-center justify-between">
           <p className="text-[11px] font-bold uppercase tracking-widest opacity-70">My Profile</p>
           <button
+            data-testid="profile-header-signout-btn"
             onClick={signOut}
             className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-[11px] font-semibold backdrop-blur-md transition-colors hover:bg-white/20"
           >
@@ -127,6 +226,7 @@ function ProfilePage() {
 
         <div className="relative mt-6 flex items-center gap-4">
           <button
+            data-testid="profile-avatar-btn"
             onClick={() => fileRef.current?.click()}
             aria-label="Change profile photo"
             className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-3xl ring-4 ring-white/25 transition-transform active:scale-95"
@@ -143,6 +243,7 @@ function ProfilePage() {
             </div>
           </button>
           <input
+            data-testid="profile-avatar-input"
             ref={fileRef} type="file" accept="image/*" className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadAvatar(f); }}
           />
@@ -157,9 +258,9 @@ function ProfilePage() {
       {/* Quick links floating over hero */}
       <div className="relative -mt-12 px-6">
         <div className="glass-strong grid grid-cols-3 gap-2 rounded-3xl p-2">
-          <QuickLink to="/trips" icon={<Luggage className="h-5 w-5" />} label="Trips" />
-          <QuickLink to="/favorites" icon={<Heart className="h-5 w-5" />} label="Favorites" />
-          <QuickLink to="/history" icon={<History className="h-5 w-5" />} label="History" />
+          <QuickLink to="/trips" icon={<Luggage className="h-5 w-5" />} label="Trips" testId="quicklink-trips" />
+          <QuickLink to="/favorites" icon={<Heart className="h-5 w-5" />} label="Favorites" testId="quicklink-favorites" />
+          <QuickLink to="/history" icon={<History className="h-5 w-5" />} label="History" testId="quicklink-history" />
         </div>
       </div>
 
@@ -176,11 +277,11 @@ function ProfilePage() {
             <BookUser className="h-3.5 w-3.5 text-primary" /> Account
           </p>
           <Field label="Full name">
-            <Input value={profile.full_name || ""} onChange={(e) => setProfile({ ...profile, full_name: e.target.value })} className="rounded-xl" />
+            <Input data-testid="profile-fullname-input" value={profile.full_name || ""} onChange={(e) => setProfile({ ...profile, full_name: e.target.value })} className="rounded-xl" />
           </Field>
           <div className="mt-3">
             <Field label="Email" icon={<Mail className="h-3.5 w-3.5" />}>
-              <Input value={profile.email || ""} disabled className="rounded-xl" />
+              <Input data-testid="profile-email-input" value={profile.email || ""} disabled className="rounded-xl" />
             </Field>
           </div>
         </div>
@@ -196,18 +297,18 @@ function ProfilePage() {
             <CountryCombobox value={profile.passport_country || ""} onChange={(v) => setProfile({ ...profile, passport_country: v })} options={COUNTRY_OPTIONS} placeholder="Select passport country..." />
           </Field>
           <Field label="Passport number (optional)">
-            <Input value={profile.passport_number || ""} onChange={(e) => setProfile({ ...profile, passport_number: e.target.value })} placeholder="••••••••" className="rounded-xl" />
+            <Input data-testid="profile-passport-number-input" value={profile.passport_number || ""} onChange={(e) => setProfile({ ...profile, passport_number: e.target.value })} placeholder="••••••••" className="rounded-xl" />
           </Field>
           <Field label="Passport expiry">
-            <Input type="date" value={profile.passport_expiry || ""} onChange={(e) => setProfile({ ...profile, passport_expiry: e.target.value })} className="rounded-xl" />
+            <Input data-testid="profile-passport-expiry-input" type="date" value={profile.passport_expiry || ""} onChange={(e) => setProfile({ ...profile, passport_expiry: e.target.value })} className="rounded-xl" />
           </Field>
         </div>
 
-        <Button onClick={save} disabled={busy} className="h-12 w-full rounded-2xl gradient-primary text-sm font-semibold shadow-float">
+        <Button data-testid="profile-save-btn" onClick={save} disabled={busy} className="h-12 w-full rounded-2xl gradient-primary text-sm font-semibold shadow-float">
           {busy ? "Saving…" : "Save profile"}
         </Button>
 
-        <Link to="/settings" className="glass flex items-center justify-between rounded-2xl p-4 text-sm font-semibold text-foreground transition-transform active:scale-[0.99]">
+        <Link data-testid="profile-settings-link" to="/settings" className="glass flex items-center justify-between rounded-2xl p-4 text-sm font-semibold text-foreground transition-transform active:scale-[0.99]">
           <span className="flex items-center gap-2">
             <SettingsIcon className="h-4 w-4 text-primary" /> Settings & notifications
           </span>
@@ -229,10 +330,11 @@ function Field({ label, icon, children }: { label: string; icon?: React.ReactNod
   );
 }
 
-function QuickLink({ to, icon, label }: { to: string; icon: React.ReactNode; label: string }) {
+function QuickLink({ to, icon, label, testId }: { to: string; icon: React.ReactNode; label: string; testId?: string }) {
   return (
     <Link
-      to={to as any}
+      to={to as never}
+      data-testid={testId}
       className="group flex flex-col items-center gap-1.5 rounded-2xl p-3 transition-all hover:bg-muted/60 active:scale-95"
     >
       <div className="flex h-11 w-11 items-center justify-center rounded-2xl gradient-primary text-primary-foreground shadow-soft transition-transform group-hover:-translate-y-0.5">

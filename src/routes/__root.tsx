@@ -11,7 +11,7 @@ import { useEffect, type ReactNode } from "react";
 import { Home, Plane, CheckSquare, Wallet, User } from "lucide-react";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
+import { reportError } from "../lib/error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { FloatingAIButton } from "@/components/FloatingAIButton";
 
@@ -39,7 +39,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
+    reportError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
   return (
@@ -86,8 +86,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:site", content: "@Asvior" },
       { name: "twitter:title", content: "Asvior — Travel Smarter. Explore Further." },
       { name: "twitter:description", content: "The premium AI travel platform: instant visa checks across 199 countries, smart budgeting, packing lists, and a personal AI concierge." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/46d94be8-e7fb-4622-870c-3dff2d42e1e2/id-preview-a23bc0f5--49a46d89-3e8f-4307-898b-82f217970154.lovable.app-1784982499438.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/46d94be8-e7fb-4622-870c-3dff2d42e1e2/id-preview-a23bc0f5--49a46d89-3e8f-4307-898b-82f217970154.lovable.app-1784982499438.png" },
+      { property: "og:url", content: "https://asvior.app" },
+      { property: "og:image", content: "https://asvior.app/og-image.png" },
+      { name: "twitter:image", content: "https://asvior.app/og-image.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

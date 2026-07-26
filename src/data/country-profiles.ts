@@ -1,5 +1,5 @@
-// AUTO-GENERATED country travel profiles (curated via Lovable AI, Jul 2026).
-// Edit with care — regenerate rather than hand-editing bulk data.
+// AUTO-GENERATED country travel profiles. Edit with care — regenerate rather
+// than hand-editing bulk data.
 import type { Region } from "@/data/regions";
 
 export interface CountryAttraction {

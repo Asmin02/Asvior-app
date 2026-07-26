@@ -1,10 +1,10 @@
-<!-- LOVABLE:BEGIN -->
-> [!IMPORTANT]
-> This project is connected to [Lovable](https://lovable.dev). Avoid rewriting
-> published git history — force pushing, or rebasing/amending/squashing commits
-> that are already pushed — as it rewrites history on Lovable's side and the
-> user will likely lose their project history.
->
-> Commits you push to the connected branch sync back to Lovable and show up in
-> the editor, so keep the branch in a working state.
-<!-- LOVABLE:END -->
+# Asvior — Contributor Guide
+
+Asvior is a React 19 + TanStack Start application deployed at
+[asvior.app](https://asvior.app). Please keep the `main` branch in a
+working state — every commit is deployed to production via Vercel.
+
+- Do not force-push, rebase, or amend commits that are already on `main`.
+- Use `bun install` (or `npm install`) for dependencies.
+- Use `npm run build` locally before opening a PR.
+- Environment variables live in `.env` and Vercel Project Settings.
