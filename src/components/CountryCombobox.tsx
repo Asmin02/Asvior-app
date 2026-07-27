@@ -166,7 +166,7 @@ export function CountryCombobox({
             ref={menuRef}
             data-country-combobox-menu
             style={menuStyle}
-            className="z-50 flex overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-xl"
+            className="z-[70] flex flex-col overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-xl"
           >
             <div className="shrink-0 border-b border-border p-2">
               <input
