@@ -6,7 +6,31 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", ".output", ".vinxi"] },
+  {
+    ignores: [
+      "dist",
+      "dist/**",
+      ".output",
+      ".output/**",
+      ".vinxi",
+      ".vinxi/**",
+      ".vercel",
+      ".vercel/**",
+      "node_modules/.nitro",
+      "node_modules/.nitro/**",
+      "Asvior-app-main",
+      "Asvior-app-main/**",
+      "lint-report.txt",
+      "typecheck-report.txt",
+      "build-report.txt",
+      "test-report.txt",
+      "lint-report-2.txt",
+      "typecheck-report-2.txt",
+      "build-report-2.txt",
+      "test-report-2.txt",
+      "tsc-report.txt",
+    ],
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],

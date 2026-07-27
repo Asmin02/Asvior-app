@@ -9,11 +9,31 @@ export const Route = createFileRoute("/_authenticated/history")({
   component: HistoryPage,
 });
 
-function getCountryName(code: string) { try { return new Intl.DisplayNames(["en"], { type: "region" }).of(code) || code; } catch { return code; } }
-function flag(code: string) { if (code.length !== 2) return ""; return String.fromCodePoint(...[...code.toUpperCase()].map((c) => 0x1f1a5 + c.charCodeAt(0))); }
+function getCountryName(code: string) {
+  try {
+    return new Intl.DisplayNames(["en"], { type: "region" }).of(code) || code;
+  } catch {
+    return code;
+  }
+}
+function flag(code: string) {
+  if (code.length !== 2) return "";
+  return String.fromCodePoint(...[...code.toUpperCase()].map((c) => 0x1f1a5 + c.charCodeAt(0)));
+}
 
-interface HistoryRow { id: string; passport_code: string; destination_code: string; status: string; created_at: string; }
-interface TripRow { id: string; name: string; destination_code: string | null; created_at: string; }
+interface HistoryRow {
+  id: string;
+  passport_code: string;
+  destination_code: string;
+  status: string;
+  created_at: string;
+}
+interface TripRow {
+  id: string;
+  name: string;
+  destination_code: string | null;
+  created_at: string;
+}
 
 function HistoryPage() {
   const [checks, setChecks] = useState<HistoryRow[]>([]);
@@ -22,14 +42,23 @@ function HistoryPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
   const load = async () => {
     setLoadError(false);
     const [checksRes, tripsRes] = await Promise.all([
       supabase.from("visa_history").select("*").order("created_at", { ascending: false }).limit(50),
-      supabase.from("saved_trips").select("id, name, destination_code, created_at").order("created_at", { ascending: false }),
+      supabase
+        .from("saved_trips")
+        .select("id, name, destination_code, created_at")
+        .order("created_at", { ascending: false }),
     ]);
-    if (checksRes.error || tripsRes.error) { setLoadError(true); setLoading(false); return; }
+    if (checksRes.error || tripsRes.error) {
+      setLoadError(true);
+      setLoading(false);
+      return;
+    }
     setChecks((checksRes.data as HistoryRow[]) || []);
     setTrips((tripsRes.data as TripRow[]) || []);
     setLoading(false);
@@ -38,11 +67,31 @@ function HistoryPage() {
   return (
     <div className="px-5 pt-8 pb-6">
       <h1 className="text-2xl font-bold text-foreground">Travel History</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Your visa checks and saved trips, all in one timeline.</p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Your visa checks and saved trips, all in one timeline.
+      </p>
 
-      <div className="mt-5 grid grid-cols-2 gap-2 rounded-xl bg-muted p-1" role="tablist" aria-label="History type">
-        <button role="tab" aria-selected={tab === "visa"} onClick={() => setTab("visa")} className={`rounded-lg py-2 text-xs font-semibold transition-colors ${tab === "visa" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}>Visa Checks</button>
-        <button role="tab" aria-selected={tab === "trips"} onClick={() => setTab("trips")} className={`rounded-lg py-2 text-xs font-semibold transition-colors ${tab === "trips" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}>Trip Plans</button>
+      <div
+        className="mt-5 grid grid-cols-2 gap-2 rounded-xl bg-muted p-1"
+        role="tablist"
+        aria-label="History type"
+      >
+        <button
+          role="tab"
+          aria-selected={tab === "visa"}
+          onClick={() => setTab("visa")}
+          className={`rounded-lg py-2 text-xs font-semibold transition-colors ${tab === "visa" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
+        >
+          Visa Checks
+        </button>
+        <button
+          role="tab"
+          aria-selected={tab === "trips"}
+          onClick={() => setTab("trips")}
+          className={`rounded-lg py-2 text-xs font-semibold transition-colors ${tab === "trips" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
+        >
+          Trip Plans
+        </button>
       </div>
 
       <div className="mt-4 space-y-2">
@@ -55,51 +104,85 @@ function HistoryPage() {
         ) : loadError ? (
           <Card className="ring-1 ring-border">
             <CardContent className="p-8 text-center">
-              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10 text-2xl">📡</div>
+              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10 text-2xl">
+                📡
+              </div>
               <p className="text-sm font-semibold text-foreground">Couldn't load your history.</p>
-              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Check your connection and try again.</p>
-              <Button variant="outline" size="sm" className="mt-4" onClick={() => { setLoading(true); load(); }}>Retry</Button>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                Check your connection and try again.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-4"
+                onClick={() => {
+                  setLoading(true);
+                  load();
+                }}
+              >
+                Retry
+              </Button>
             </CardContent>
           </Card>
         ) : tab === "visa" ? (
           checks.length === 0 ? (
             <Card className="ring-1 ring-border">
               <CardContent className="p-8 text-center">
-                <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-travel-sky text-2xl">🛂</div>
-                <p className="text-sm font-semibold text-foreground">No visa checks yet.</p>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Run your first visa search and it will appear here.</p>
-              </CardContent>
-            </Card>
-          ) :
-          checks.map((c) => (
-            <Card key={c.id} className="ring-1 ring-border animate-fade-in">
-              <CardContent className="flex items-center gap-3 p-3">
-                <div className="text-xl">{flag(c.passport_code)}→{flag(c.destination_code)}</div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{getCountryName(c.passport_code)} → {getCountryName(c.destination_code)}</p>
-                  <p className="text-[11px] text-muted-foreground">{new Date(c.created_at).toLocaleDateString()}</p>
+                <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-travel-sky text-2xl">
+                  🛂
                 </div>
-                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">{c.status}</span>
+                <p className="text-sm font-semibold text-foreground">No visa checks yet.</p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                  Run your first visa search and it will appear here.
+                </p>
               </CardContent>
             </Card>
-          ))
+          ) : (
+            checks.map((c) => (
+              <Card key={c.id} className="ring-1 ring-border animate-fade-in">
+                <CardContent className="flex items-center gap-3 p-3">
+                  <div className="text-xl">
+                    {flag(c.passport_code)}→{flag(c.destination_code)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold">
+                      {getCountryName(c.passport_code)} → {getCountryName(c.destination_code)}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {new Date(c.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                    {c.status}
+                  </span>
+                </CardContent>
+              </Card>
+            ))
+          )
+        ) : trips.length === 0 ? (
+          <Card className="ring-1 ring-border">
+            <CardContent className="p-8 text-center">
+              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-travel-sky text-2xl">
+                🧳
+              </div>
+              <p className="text-sm font-semibold text-foreground">No saved trips yet.</p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                Start planning your first adventure.
+              </p>
+            </CardContent>
+          </Card>
         ) : (
-          trips.length === 0 ? (
-            <Card className="ring-1 ring-border">
-              <CardContent className="p-8 text-center">
-                <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-travel-sky text-2xl">🧳</div>
-                <p className="text-sm font-semibold text-foreground">No saved trips yet.</p>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Start planning your first adventure.</p>
-              </CardContent>
-            </Card>
-          ) :
           trips.map((t) => (
             <Card key={t.id} className="ring-1 ring-border animate-fade-in">
               <CardContent className="flex items-center gap-3 p-3">
-                <div className="text-2xl">{t.destination_code ? flag(t.destination_code) : "🧳"}</div>
+                <div className="text-2xl">
+                  {t.destination_code ? flag(t.destination_code) : "🧳"}
+                </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold">{t.name}</p>
-                  <p className="text-[11px] text-muted-foreground">{new Date(t.created_at).toLocaleDateString()}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {new Date(t.created_at).toLocaleDateString()}
+                  </p>
                 </div>
               </CardContent>
             </Card>

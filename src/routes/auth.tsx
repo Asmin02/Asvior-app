@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Plane, Mail, Lock, User as UserIcon, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { getSiteUrl } from "@/lib/app-info";
+import { getEmailVerificationRedirectUrl, getPasswordResetRedirectUrl } from "@/lib/auth-redirects";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -48,7 +48,6 @@ function AuthPage() {
     e.preventDefault();
     setBusy(true);
     try {
-      const site = getSiteUrl();
       if (mode === "signin") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -58,7 +57,10 @@ function AuthPage() {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: site, data: { full_name: fullName } },
+          options: {
+            emailRedirectTo: getEmailVerificationRedirectUrl(),
+            data: { full_name: fullName },
+          },
         });
         if (error) throw error;
         if (data.session) {
@@ -67,15 +69,13 @@ function AuthPage() {
           navigate({ to: "/profile" });
         } else {
           // Email confirmations enabled — wait for verification link.
-          toast.success(
-            "Account created — check your email to verify, then sign in.",
-          );
+          toast.success("Account created — check your email to verify, then sign in.");
           setMode("signin");
           setPassword("");
         }
       } else {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${site}/reset-password`,
+          redirectTo: getPasswordResetRedirectUrl(),
         });
         if (error) throw error;
         toast.success("Check your email for a reset link.");
@@ -92,11 +92,21 @@ function AuthPage() {
   return (
     <div data-testid="auth-page" className="relative min-h-dvh overflow-hidden">
       <div className="pointer-events-none absolute inset-0 gradient-hero-bg" aria-hidden />
-      <div className="pointer-events-none absolute -top-20 -right-16 h-72 w-72 rounded-full bg-primary/30 blur-3xl" aria-hidden />
-      <div className="pointer-events-none absolute -bottom-16 -left-16 h-72 w-72 rounded-full bg-emerald/25 blur-3xl" aria-hidden />
+      <div
+        className="pointer-events-none absolute -top-20 -right-16 h-72 w-72 rounded-full bg-primary/30 blur-3xl"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute -bottom-16 -left-16 h-72 w-72 rounded-full bg-emerald/25 blur-3xl"
+        aria-hidden
+      />
 
       <div className="relative px-6 pt-8">
-        <Link data-testid="auth-back-link" to="/" className="glass inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-foreground">
+        <Link
+          data-testid="auth-back-link"
+          to="/"
+          className="glass inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-foreground"
+        >
           <ArrowLeft className="h-3.5 w-3.5" /> Back
         </Link>
 
@@ -105,18 +115,26 @@ function AuthPage() {
             <Plane className="h-8 w-8 text-primary-foreground" strokeWidth={2.2} />
           </div>
           <h1 className="mt-5 text-display text-3xl text-foreground">
-            {mode === "signup" ? "Join Asvior" : mode === "forgot" ? "Reset password" : "Welcome back"}
+            {mode === "signup"
+              ? "Join Asvior"
+              : mode === "forgot"
+                ? "Reset password"
+                : "Welcome back"}
           </h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
             {mode === "signup"
               ? "Save trips, favorites, and travel profile."
               : mode === "forgot"
-              ? "We'll email you a reset link."
-              : "Sign in to sync your travel data."}
+                ? "We'll email you a reset link."
+                : "Sign in to sync your travel data."}
           </p>
         </div>
 
-        <form onSubmit={handle} className="mt-8 glass rounded-3xl p-5 space-y-3 animate-scale-in" data-testid="auth-form">
+        <form
+          onSubmit={handle}
+          className="mt-8 glass rounded-3xl p-5 space-y-3 animate-scale-in"
+          data-testid="auth-form"
+        >
           {mode === "signup" && (
             <Field label="Full name" icon={<UserIcon className="h-4 w-4" />}>
               <Input
@@ -173,19 +191,33 @@ function AuthPage() {
             disabled={busy}
             className="mt-2 h-12 w-full rounded-2xl gradient-primary text-sm font-semibold shadow-float"
           >
-            {busy ? "Please wait…" : mode === "signup" ? "Create account" : mode === "forgot" ? "Send reset link" : "Sign in"}
+            {busy
+              ? "Please wait…"
+              : mode === "signup"
+                ? "Create account"
+                : mode === "forgot"
+                  ? "Send reset link"
+                  : "Sign in"}
           </Button>
         </form>
 
         <div className="mt-5 space-y-2 text-center text-xs">
           {mode === "signin" && (
             <>
-              <button data-testid="auth-forgot-btn" onClick={() => setMode("forgot")} className="font-semibold text-primary hover:underline">
+              <button
+                data-testid="auth-forgot-btn"
+                onClick={() => setMode("forgot")}
+                className="font-semibold text-primary hover:underline"
+              >
                 Forgot password?
               </button>
               <p className="text-muted-foreground">
                 New here?{" "}
-                <button data-testid="auth-switch-signup-btn" onClick={() => setMode("signup")} className="font-bold text-primary hover:underline">
+                <button
+                  data-testid="auth-switch-signup-btn"
+                  onClick={() => setMode("signup")}
+                  className="font-bold text-primary hover:underline"
+                >
                   Create account
                 </button>
               </p>
@@ -194,13 +226,21 @@ function AuthPage() {
           {mode === "signup" && (
             <p className="text-muted-foreground">
               Already have an account?{" "}
-              <button data-testid="auth-switch-signin-btn" onClick={() => setMode("signin")} className="font-bold text-primary hover:underline">
+              <button
+                data-testid="auth-switch-signin-btn"
+                onClick={() => setMode("signin")}
+                className="font-bold text-primary hover:underline"
+              >
                 Sign in
               </button>
             </p>
           )}
           {mode === "forgot" && (
-            <button data-testid="auth-back-signin-btn" onClick={() => setMode("signin")} className="font-semibold text-primary hover:underline">
+            <button
+              data-testid="auth-back-signin-btn"
+              onClick={() => setMode("signin")}
+              className="font-semibold text-primary hover:underline"
+            >
               Back to sign in
             </button>
           )}
@@ -210,11 +250,20 @@ function AuthPage() {
   );
 }
 
-function Field({ label, icon, children }: { label: string; icon: React.ReactNode; children: React.ReactNode }) {
+function Field({
+  label,
+  icon,
+  children,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
     <div className="rounded-2xl border border-border bg-card/70 px-4 py-2.5 transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/30">
       <label className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-        <span className="text-primary">{icon}</span>{label}
+        <span className="text-primary">{icon}</span>
+        {label}
       </label>
       {children}
     </div>

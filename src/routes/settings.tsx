@@ -35,27 +35,46 @@ export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
       { title: "Settings — Asvior" },
-      { name: "description", content: "Theme, language, currency, notifications, privacy, and account options." },
+      {
+        name: "description",
+        content: "Theme, language, currency, notifications, privacy, and account options.",
+      },
     ],
   }),
   component: SettingsPage,
 });
 
 const LANGUAGES = [
-  { code: "en", label: "English" }, { code: "es", label: "Español" }, { code: "fr", label: "Français" },
-  { code: "de", label: "Deutsch" }, { code: "pt", label: "Português" }, { code: "ar", label: "العربية" },
-  { code: "hi", label: "हिन्दी" }, { code: "zh", label: "中文" }, { code: "ja", label: "日本語" },
+  { code: "en", label: "English" },
+  { code: "es", label: "Español" },
+  { code: "fr", label: "Français" },
+  { code: "de", label: "Deutsch" },
+  { code: "pt", label: "Português" },
+  { code: "ar", label: "العربية" },
+  { code: "hi", label: "हिन्दी" },
+  { code: "zh", label: "中文" },
+  { code: "ja", label: "日本語" },
 ];
 const CURRENCIES = ["USD", "EUR", "GBP", "JPY", "INR", "AED", "CNY", "BRL", "AUD", "CAD"];
 
 interface Settings {
-  dark_mode: boolean; language: string; currency: string;
-  notify_passport_expiry: boolean; notify_visa: boolean; notify_flight: boolean; notify_packing: boolean;
+  dark_mode: boolean;
+  language: string;
+  currency: string;
+  notify_passport_expiry: boolean;
+  notify_visa: boolean;
+  notify_flight: boolean;
+  notify_packing: boolean;
 }
 
 const DEFAULT: Settings = {
-  dark_mode: false, language: "en", currency: "USD",
-  notify_passport_expiry: true, notify_visa: true, notify_flight: true, notify_packing: true,
+  dark_mode: false,
+  language: "en",
+  currency: "USD",
+  notify_passport_expiry: true,
+  notify_visa: true,
+  notify_flight: true,
+  notify_packing: true,
 };
 
 function SettingsPage() {
@@ -70,12 +89,20 @@ function SettingsPage() {
       const uid = data.user?.id ?? null;
       setUserId(uid);
       if (uid) {
-        const { data: row } = await supabase.from("user_settings").select("*").eq("user_id", uid).maybeSingle();
+        const { data: row } = await supabase
+          .from("user_settings")
+          .select("*")
+          .eq("user_id", uid)
+          .maybeSingle();
         if (row) {
           setS({
-            dark_mode: row.dark_mode, language: row.language, currency: row.currency,
-            notify_passport_expiry: row.notify_passport_expiry, notify_visa: row.notify_visa,
-            notify_flight: row.notify_flight, notify_packing: row.notify_packing,
+            dark_mode: row.dark_mode,
+            language: row.language,
+            currency: row.currency,
+            notify_passport_expiry: row.notify_passport_expiry,
+            notify_visa: row.notify_visa,
+            notify_flight: row.notify_flight,
+            notify_packing: row.notify_packing,
           });
           document.documentElement.classList.toggle("dark", row.dark_mode);
           document.documentElement.setAttribute("lang", row.language);
@@ -114,11 +141,15 @@ function SettingsPage() {
       await supabase.auth.signOut();
       try {
         localStorage.removeItem("vp_ai_chat_v1");
-      } catch {}
+      } catch (error) {
+        void error;
+      }
       toast.success("Your account has been deleted");
       navigate({ to: "/" });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Couldn't delete your account. Please try again.");
+      toast.error(
+        e instanceof Error ? e.message : "Couldn't delete your account. Please try again.",
+      );
     } finally {
       setDeleting(false);
     }
@@ -126,7 +157,10 @@ function SettingsPage() {
 
   return (
     <div className="relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-64 gradient-hero-bg" aria-hidden />
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-64 gradient-hero-bg"
+        aria-hidden
+      />
 
       <header className="relative px-6 pt-10">
         <div className="glass inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold text-primary">
@@ -139,36 +173,73 @@ function SettingsPage() {
       <section className="relative mt-6 space-y-3 px-6 pb-6">
         <SettingsCard icon={<Moon className="h-4 w-4" />} title="Appearance">
           <Row label="Dark mode" hint="Easier on the eyes at night.">
-            <Switch checked={s.dark_mode} onCheckedChange={(v) => update({ dark_mode: v })} aria-label="Toggle dark mode" />
+            <Switch
+              checked={s.dark_mode}
+              onCheckedChange={(v) => update({ dark_mode: v })}
+              aria-label="Toggle dark mode"
+            />
           </Row>
         </SettingsCard>
 
         <SettingsCard icon={<Languages className="h-4 w-4" />} title="Preferences">
-          <Select label="Language" value={s.language} onChange={(v) => update({ language: v })} options={LANGUAGES.map((l) => [l.code, l.label] as const)} />
+          <Select
+            label="Language"
+            value={s.language}
+            onChange={(v) => update({ language: v })}
+            options={LANGUAGES.map((l) => [l.code, l.label] as const)}
+          />
           <div className="mt-3">
-            <Select label="Currency" icon={<DollarSign className="h-3.5 w-3.5" />} value={s.currency} onChange={(v) => update({ currency: v })} options={CURRENCIES.map((c) => [c, c] as const)} />
+            <Select
+              label="Currency"
+              icon={<DollarSign className="h-3.5 w-3.5" />}
+              value={s.currency}
+              onChange={(v) => update({ currency: v })}
+              options={CURRENCIES.map((c) => [c, c] as const)}
+            />
           </div>
         </SettingsCard>
 
         <SettingsCard icon={<Bell className="h-4 w-4" />} title="Notifications">
           <Row label="Passport expiry" hint="Warn me before my passport expires.">
-            <Switch checked={s.notify_passport_expiry} onCheckedChange={(v) => update({ notify_passport_expiry: v })} aria-label="Toggle passport expiry notifications" />
+            <Switch
+              checked={s.notify_passport_expiry}
+              onCheckedChange={(v) => update({ notify_passport_expiry: v })}
+              aria-label="Toggle passport expiry notifications"
+            />
           </Row>
           <Row label="Visa updates" hint="Application status reminders.">
-            <Switch checked={s.notify_visa} onCheckedChange={(v) => update({ notify_visa: v })} aria-label="Toggle visa update notifications" />
+            <Switch
+              checked={s.notify_visa}
+              onCheckedChange={(v) => update({ notify_visa: v })}
+              aria-label="Toggle visa update notifications"
+            />
           </Row>
           <Row label="Flights" hint="Heads-up before departure.">
-            <Switch checked={s.notify_flight} onCheckedChange={(v) => update({ notify_flight: v })} aria-label="Toggle flight notifications" />
+            <Switch
+              checked={s.notify_flight}
+              onCheckedChange={(v) => update({ notify_flight: v })}
+              aria-label="Toggle flight notifications"
+            />
           </Row>
           <Row label="Packing" hint="Finish your checklist on time.">
-            <Switch checked={s.notify_packing} onCheckedChange={(v) => update({ notify_packing: v })} aria-label="Toggle packing notifications" />
+            <Switch
+              checked={s.notify_packing}
+              onCheckedChange={(v) => update({ notify_packing: v })}
+              aria-label="Toggle packing notifications"
+            />
           </Row>
         </SettingsCard>
 
         <SettingsCard icon={<Info className="h-4 w-4" />} title="Support & Legal">
           <div className="divide-y divide-border/60">
             <LinkRow to="/about" icon={<Plane className="h-4 w-4" />} label="About Asvior" />
-            <LinkRow to="/privacy" icon={<ShieldCheck className="h-4 w-4" />} label="Privacy Policy" />
+            <LinkRow to="/contact" icon={<Mail className="h-4 w-4" />} label="Contact" />
+            <LinkRow to="/support" icon={<Info className="h-4 w-4" />} label="Support" />
+            <LinkRow
+              to="/privacy"
+              icon={<ShieldCheck className="h-4 w-4" />}
+              label="Privacy Policy"
+            />
             <LinkRow to="/terms" icon={<FileText className="h-4 w-4" />} label="Terms of Service" />
             <a
               href={`mailto:${SUPPORT_EMAIL}?subject=Asvior%20Support`}
@@ -183,13 +254,16 @@ function SettingsPage() {
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </a>
           </div>
-          <p className="mt-3 text-[11px] text-muted-foreground">Asvior v{APP_VERSION} · Travel Smarter. Explore Further.</p>
+          <p className="mt-3 text-[11px] text-muted-foreground">
+            Asvior v{APP_VERSION} · Travel Smarter. Explore Further.
+          </p>
         </SettingsCard>
 
         {userId && (
           <SettingsCard icon={<Trash2 className="h-4 w-4" />} title="Account">
             <p className="text-xs leading-relaxed text-muted-foreground">
-              Permanently delete your account, profile, trips, favorites, and search history. This cannot be undone.
+              Permanently delete your account, profile, trips, favorites, and search history. This
+              cannot be undone.
             </p>
             <AlertDialog>
               <AlertDialogTrigger asChild>
@@ -205,8 +279,8 @@ function SettingsPage() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete your account?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This permanently removes your profile, saved trips, favorites, visa history, and settings.
-                    This action cannot be undone.
+                    This permanently removes your profile, saved trips, favorites, visa history, and
+                    settings. This action cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -227,11 +301,21 @@ function SettingsPage() {
   );
 }
 
-function SettingsCard({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
+function SettingsCard({
+  icon,
+  title,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="glass rounded-3xl p-5">
       <p className="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-        <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/10 text-primary">{icon}</span>
+        <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          {icon}
+        </span>
         {title}
       </p>
       {children}
@@ -239,7 +323,15 @@ function SettingsCard({ icon, title, children }: { icon: React.ReactNode; title:
   );
 }
 
-function Row({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+function Row({
+  label,
+  hint,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex min-h-11 items-center justify-between gap-3 py-2.5">
       <div className="min-w-0">
@@ -258,7 +350,9 @@ function LinkRow({ to, icon, label }: { to: string; icon: React.ReactNode; label
       className="flex min-h-11 items-center justify-between gap-3 py-3 text-sm font-semibold text-foreground transition-colors hover:text-primary"
     >
       <span className="flex items-center gap-2.5">
-        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">{icon}</span>
+        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          {icon}
+        </span>
         {label}
       </span>
       <ChevronRight className="h-4 w-4 text-muted-foreground" />
@@ -266,12 +360,28 @@ function LinkRow({ to, icon, label }: { to: string; icon: React.ReactNode; label
   );
 }
 
-function Select({ label, value, onChange, options, icon }: { label: string; value: string; onChange: (v: string) => void; options: ReadonlyArray<readonly [string, string]>; icon?: React.ReactNode }) {
+function Select({
+  label,
+  value,
+  onChange,
+  options,
+  icon,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: ReadonlyArray<readonly [string, string]>;
+  icon?: React.ReactNode;
+}) {
   const id = useId();
   return (
     <div>
-      <label htmlFor={id} className="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-        {icon}{label}
+      <label
+        htmlFor={id}
+        className="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground"
+      >
+        {icon}
+        {label}
       </label>
       <select
         id={id}
@@ -279,7 +389,11 @@ function Select({ label, value, onChange, options, icon }: { label: string; valu
         onChange={(e) => onChange(e.target.value)}
         className="min-h-11 w-full rounded-2xl border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground outline-none transition-all focus:ring-2 focus:ring-primary/40"
       >
-        {options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+        {options.map(([v, l]) => (
+          <option key={v} value={v}>
+            {l}
+          </option>
+        ))}
       </select>
     </div>
   );

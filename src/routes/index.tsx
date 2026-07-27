@@ -824,6 +824,18 @@ function HomePage() {
             <Link to="/contact" className="hover:text-foreground">
               Contact
             </Link>
+            <span aria-hidden>·</span>
+            <Link to="/support" className="hover:text-foreground">
+              Support
+            </Link>
+            <span aria-hidden>·</span>
+            <a href="mailto:hello@asvior.app" className="hover:text-foreground">
+              hello@asvior.app
+            </a>
+            <span aria-hidden>·</span>
+            <a href="mailto:support@asvior.app" className="hover:text-foreground">
+              support@asvior.app
+            </a>
           </nav>
         </footer>
       </section>

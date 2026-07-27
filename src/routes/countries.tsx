@@ -10,7 +10,11 @@ export const Route = createFileRoute("/countries")({
   head: () => ({
     meta: [
       { title: "Explore Countries — Asvior" },
-      { name: "description", content: "Interactive travel guides for 199 countries: visas, costs, attractions, and local tips." },
+      {
+        name: "description",
+        content:
+          "Interactive travel guides for 199 countries: visas, costs, attractions, and local tips.",
+      },
       { property: "og:title", content: "Explore Countries — Asvior" },
       { property: "og:description", content: "Interactive travel guides for 199 countries." },
     ],
@@ -55,8 +59,14 @@ function CountriesPage() {
 
   return (
     <div className="relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 gradient-hero-bg" aria-hidden />
-      <div className="pointer-events-none absolute -top-16 -left-12 h-56 w-56 rounded-full bg-emerald/20 blur-3xl" aria-hidden />
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-72 gradient-hero-bg"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute -top-16 -left-12 h-56 w-56 rounded-full bg-emerald/20 blur-3xl"
+        aria-hidden
+      />
 
       <header className="relative px-6 pt-10">
         <div className="glass inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold text-primary">
@@ -84,7 +94,12 @@ function CountriesPage() {
         <div className="-mx-6 mt-3 flex gap-2 overflow-x-auto px-6 pb-1 [scrollbar-width:none]">
           <RegionChip active={region === "all"} onClick={() => setRegion("all")} label="All" />
           {REGION_ORDER.map((r) => (
-            <RegionChip key={r} active={region === r} onClick={() => setRegion(r)} label={REGION_META[r].label} />
+            <RegionChip
+              key={r}
+              active={region === r}
+              onClick={() => setRegion(r)}
+              label={REGION_META[r].label}
+            />
           ))}
         </div>
       </div>
@@ -119,7 +134,9 @@ function CountriesPage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-navy/90 via-navy/25 to-transparent" />
                   <div className="absolute inset-x-0 bottom-0 p-3">
                     <span className="text-2xl drop-shadow">{flagEmoji(code)}</span>
-                    <p className="mt-0.5 text-[13px] font-bold leading-tight text-white">{getCountryName(code)}</p>
+                    <p className="mt-0.5 text-[13px] font-bold leading-tight text-white">
+                      {getCountryName(code)}
+                    </p>
                     {p && <p className="text-[10px] font-medium text-white/70">{p.capital}</p>}
                   </div>
                 </Link>
@@ -133,7 +150,9 @@ function CountriesPage() {
       <section className="relative mt-6 px-6 pb-6">
         <div className="mb-3 flex items-center justify-between">
           <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-            {query || region !== "all" ? `${filtered.length} result${filtered.length === 1 ? "" : "s"}` : "All countries"}
+            {query || region !== "all"
+              ? `${filtered.length} result${filtered.length === 1 ? "" : "s"}`
+              : "All countries"}
           </p>
           <Sparkles className="h-3.5 w-3.5 text-primary" />
         </div>
@@ -160,7 +179,9 @@ function CountriesPage() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-foreground">{c.name}</p>
                     <p className="truncate text-[11px] text-muted-foreground">
-                      {p ? `${p.capital} · ${REGION_META[p.region as Region]?.label ?? ""}` : c.code}
+                      {p
+                        ? `${p.capital} · ${REGION_META[p.region as Region]?.label ?? ""}`
+                        : c.code}
                     </p>
                   </div>
                   <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -174,12 +195,22 @@ function CountriesPage() {
   );
 }
 
-function RegionChip({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
+function RegionChip({
+  active,
+  onClick,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+}) {
   return (
     <button
       onClick={onClick}
       className={`shrink-0 rounded-full px-3.5 py-1.5 text-[11px] font-bold transition-all active:scale-95 ${
-        active ? "gradient-primary text-primary-foreground shadow-soft" : "glass text-muted-foreground"
+        active
+          ? "gradient-primary text-primary-foreground shadow-soft"
+          : "glass text-muted-foreground"
       }`}
     >
       {label}

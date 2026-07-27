@@ -26,12 +26,7 @@ export default defineConfig({
     alias: {
       "@": path.resolve(process.cwd(), "src"),
     },
-    dedupe: [
-      "react",
-      "react-dom",
-      "@tanstack/react-router",
-      "@tanstack/react-query",
-    ],
+    dedupe: ["react", "react-dom", "@tanstack/react-router", "@tanstack/react-query"],
   },
   server: {
     port: 3000,

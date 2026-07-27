@@ -3,7 +3,11 @@ import { Sparkles } from "lucide-react";
 
 export function FloatingAIButton() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  if (pathname.startsWith("/assistant") || pathname.startsWith("/auth") || pathname.startsWith("/reset-password")) {
+  if (
+    pathname.startsWith("/assistant") ||
+    pathname.startsWith("/auth") ||
+    pathname.startsWith("/reset-password")
+  ) {
     return null;
   }
 

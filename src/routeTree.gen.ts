@@ -16,11 +16,13 @@ import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BudgetPlannerRouteImport } from './routes/budget-planner'
 import { Route as ChecklistRouteImport } from './routes/checklist'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CountriesRouteImport } from './routes/countries'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SummaryRouteImport } from './routes/summary'
+import { Route as SupportRouteImport } from './routes/support'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as VisaCheckRouteImport } from './routes/visa-check'
 import { Route as AuthenticatedFavoritesRouteImport } from './routes/_authenticated/favorites'
@@ -28,6 +30,7 @@ import { Route as AuthenticatedHistoryRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedTripsRouteImport } from './routes/_authenticated/trips'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as CountryCodeRouteImport } from './routes/country.$code'
 
 const IndexRoute = IndexRouteImport.update({
@@ -64,6 +67,11 @@ const ChecklistRoute = ChecklistRouteImport.update({
   path: '/checklist',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CountriesRoute = CountriesRouteImport.update({
   id: '/countries',
   path: '/countries',
@@ -87,6 +95,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const SummaryRoute = SummaryRouteImport.update({
   id: '/summary',
   path: '/summary',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -124,6 +137,11 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CountryCodeRoute = CountryCodeRouteImport.update({
   id: '/country/$code',
   path: '/country/$code',
@@ -137,11 +155,13 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/budget-planner': typeof BudgetPlannerRoute
   '/checklist': typeof ChecklistRoute
+  '/contact': typeof ContactRoute
   '/countries': typeof CountriesRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/summary': typeof SummaryRoute
+  '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/visa-check': typeof VisaCheckRoute
   '/favorites': typeof AuthenticatedFavoritesRoute
@@ -149,6 +169,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/trips': typeof AuthenticatedTripsRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/health': typeof ApiHealthRoute
   '/country/$code': typeof CountryCodeRoute
 }
 export interface FileRoutesByTo {
@@ -158,11 +179,13 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/budget-planner': typeof BudgetPlannerRoute
   '/checklist': typeof ChecklistRoute
+  '/contact': typeof ContactRoute
   '/countries': typeof CountriesRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/summary': typeof SummaryRoute
+  '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/visa-check': typeof VisaCheckRoute
   '/favorites': typeof AuthenticatedFavoritesRoute
@@ -170,6 +193,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/trips': typeof AuthenticatedTripsRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/health': typeof ApiHealthRoute
   '/country/$code': typeof CountryCodeRoute
 }
 export interface FileRoutesById {
@@ -181,11 +205,13 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/budget-planner': typeof BudgetPlannerRoute
   '/checklist': typeof ChecklistRoute
+  '/contact': typeof ContactRoute
   '/countries': typeof CountriesRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/summary': typeof SummaryRoute
+  '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/visa-check': typeof VisaCheckRoute
   '/_authenticated/favorites': typeof AuthenticatedFavoritesRoute
@@ -193,6 +219,7 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/trips': typeof AuthenticatedTripsRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/health': typeof ApiHealthRoute
   '/country/$code': typeof CountryCodeRoute
 }
 export interface FileRouteTypes {
@@ -204,11 +231,13 @@ export interface FileRouteTypes {
     | '/auth'
     | '/budget-planner'
     | '/checklist'
+    | '/contact'
     | '/countries'
     | '/privacy'
     | '/reset-password'
     | '/settings'
     | '/summary'
+    | '/support'
     | '/terms'
     | '/visa-check'
     | '/favorites'
@@ -216,6 +245,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/trips'
     | '/api/chat'
+    | '/api/health'
     | '/country/$code'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -225,11 +255,13 @@ export interface FileRouteTypes {
     | '/auth'
     | '/budget-planner'
     | '/checklist'
+    | '/contact'
     | '/countries'
     | '/privacy'
     | '/reset-password'
     | '/settings'
     | '/summary'
+    | '/support'
     | '/terms'
     | '/visa-check'
     | '/favorites'
@@ -237,6 +269,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/trips'
     | '/api/chat'
+    | '/api/health'
     | '/country/$code'
   id:
     | '__root__'
@@ -247,11 +280,13 @@ export interface FileRouteTypes {
     | '/auth'
     | '/budget-planner'
     | '/checklist'
+    | '/contact'
     | '/countries'
     | '/privacy'
     | '/reset-password'
     | '/settings'
     | '/summary'
+    | '/support'
     | '/terms'
     | '/visa-check'
     | '/_authenticated/favorites'
@@ -259,6 +294,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/trips'
     | '/api/chat'
+    | '/api/health'
     | '/country/$code'
   fileRoutesById: FileRoutesById
 }
@@ -270,14 +306,17 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BudgetPlannerRoute: typeof BudgetPlannerRoute
   ChecklistRoute: typeof ChecklistRoute
+  ContactRoute: typeof ContactRoute
   CountriesRoute: typeof CountriesRoute
   PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SettingsRoute: typeof SettingsRoute
   SummaryRoute: typeof SummaryRoute
+  SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
   VisaCheckRoute: typeof VisaCheckRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiHealthRoute: typeof ApiHealthRoute
   CountryCodeRoute: typeof CountryCodeRoute
 }
 
@@ -332,6 +371,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChecklistRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/countries': {
       id: '/countries'
       path: '/countries'
@@ -365,6 +411,13 @@ declare module '@tanstack/react-router' {
       path: '/summary'
       fullPath: '/summary'
       preLoaderRoute: typeof SummaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -416,6 +469,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/country/$code': {
       id: '/country/$code'
       path: '/country/$code'
@@ -451,14 +511,17 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   BudgetPlannerRoute: BudgetPlannerRoute,
   ChecklistRoute: ChecklistRoute,
+  ContactRoute: ContactRoute,
   CountriesRoute: CountriesRoute,
   PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SettingsRoute: SettingsRoute,
   SummaryRoute: SummaryRoute,
+  SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
   VisaCheckRoute: VisaCheckRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiHealthRoute: ApiHealthRoute,
   CountryCodeRoute: CountryCodeRoute,
 }
 export const routeTree = rootRouteImport

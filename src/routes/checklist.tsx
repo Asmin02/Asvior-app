@@ -18,7 +18,10 @@ export const Route = createFileRoute("/checklist")({
   head: () => ({
     meta: [
       { title: "Travel Checklist — Asvior" },
-      { name: "description", content: "Never forget a thing — your checklist saves automatically." },
+      {
+        name: "description",
+        content: "Never forget a thing — your checklist saves automatically.",
+      },
     ],
   }),
   component: ChecklistPage,
@@ -32,13 +35,48 @@ interface CheckItem {
 }
 
 const defaultItems: CheckItem[] = [
-  { id: "passport",  label: "Passport",         description: "Valid 6+ months beyond travel dates",  icon: <BookOpen className="h-4 w-4" /> },
-  { id: "flight",    label: "Flight Ticket",    description: "Confirmed round-trip or onward ticket", icon: <Plane className="h-4 w-4" /> },
-  { id: "hotel",     label: "Hotel Booking",    description: "Confirmed accommodation reservation",   icon: <Building2 className="h-4 w-4" /> },
-  { id: "insurance", label: "Travel Insurance", description: "Covers medical + trip cancellation",    icon: <ShieldCheck className="h-4 w-4" /> },
-  { id: "money",     label: "Money & Cards",    description: "Local currency, cards, backup cash",    icon: <CreditCard className="h-4 w-4" /> },
-  { id: "charger",   label: "Charger & Adapter",description: "Power bank + correct plug adapter",     icon: <Plug className="h-4 w-4" /> },
-  { id: "clothes",   label: "Clothes",          description: "Weather-appropriate outfits & shoes",   icon: <Shirt className="h-4 w-4" /> },
+  {
+    id: "passport",
+    label: "Passport",
+    description: "Valid 6+ months beyond travel dates",
+    icon: <BookOpen className="h-4 w-4" />,
+  },
+  {
+    id: "flight",
+    label: "Flight Ticket",
+    description: "Confirmed round-trip or onward ticket",
+    icon: <Plane className="h-4 w-4" />,
+  },
+  {
+    id: "hotel",
+    label: "Hotel Booking",
+    description: "Confirmed accommodation reservation",
+    icon: <Building2 className="h-4 w-4" />,
+  },
+  {
+    id: "insurance",
+    label: "Travel Insurance",
+    description: "Covers medical + trip cancellation",
+    icon: <ShieldCheck className="h-4 w-4" />,
+  },
+  {
+    id: "money",
+    label: "Money & Cards",
+    description: "Local currency, cards, backup cash",
+    icon: <CreditCard className="h-4 w-4" />,
+  },
+  {
+    id: "charger",
+    label: "Charger & Adapter",
+    description: "Power bank + correct plug adapter",
+    icon: <Plug className="h-4 w-4" />,
+  },
+  {
+    id: "clothes",
+    label: "Clothes",
+    description: "Weather-appropriate outfits & shoes",
+    icon: <Shirt className="h-4 w-4" />,
+  },
 ];
 
 const STORAGE_KEY = "vp_checklist";
@@ -54,7 +92,9 @@ function ChecklistPage() {
         const arr = JSON.parse(raw) as string[];
         if (Array.isArray(arr)) setChecked(new Set(arr));
       }
-    } catch {}
+    } catch (error) {
+      void error;
+    }
     setLoaded(true);
   }, []);
 
@@ -66,7 +106,8 @@ function ChecklistPage() {
   const toggleItem = (id: string) => {
     setChecked((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   };
@@ -75,8 +116,14 @@ function ChecklistPage() {
 
   return (
     <div className="relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 gradient-hero-bg" aria-hidden />
-      <div className="pointer-events-none absolute -top-10 -right-10 h-52 w-52 rounded-full bg-emerald/25 blur-3xl" aria-hidden />
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-72 gradient-hero-bg"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute -top-10 -right-10 h-52 w-52 rounded-full bg-emerald/25 blur-3xl"
+        aria-hidden
+      />
 
       <header className="relative flex items-start justify-between px-6 pt-10">
         <div>
@@ -84,7 +131,9 @@ function ChecklistPage() {
             <CheckCircle2 className="h-3.5 w-3.5" /> Autosaved
           </div>
           <h1 className="mt-3 text-display text-3xl text-foreground">Checklist</h1>
-          <p className="mt-1.5 text-sm text-muted-foreground">Everything you need before takeoff.</p>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            Everything you need before takeoff.
+          </p>
         </div>
         {checked.size > 0 && (
           <button
@@ -101,9 +150,23 @@ function ChecklistPage() {
         <div className="glass flex items-center gap-4 rounded-3xl p-5">
           <div className="relative flex h-20 w-20 shrink-0 items-center justify-center">
             <svg className="absolute inset-0 -rotate-90" viewBox="0 0 80 80">
-              <circle cx="40" cy="40" r="34" fill="none" stroke="currentColor" strokeWidth="7" className="text-muted" />
               <circle
-                cx="40" cy="40" r="34" fill="none" stroke="url(#grad)" strokeWidth="7" strokeLinecap="round"
+                cx="40"
+                cy="40"
+                r="34"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="7"
+                className="text-muted"
+              />
+              <circle
+                cx="40"
+                cy="40"
+                r="34"
+                fill="none"
+                stroke="url(#grad)"
+                strokeWidth="7"
+                strokeLinecap="round"
                 strokeDasharray={`${(progress / 100) * 213.6} 213.6`}
                 className="transition-all duration-500"
               />
@@ -117,7 +180,9 @@ function ChecklistPage() {
             <span className="text-display text-lg text-foreground">{progress}%</span>
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold text-foreground">{checked.size} of {defaultItems.length} packed</p>
+            <p className="text-sm font-bold text-foreground">
+              {checked.size} of {defaultItems.length} packed
+            </p>
             <p className="mt-0.5 text-xs text-muted-foreground">
               {progress === 100 ? "You're ready to fly!" : "Keep going — you're almost there."}
             </p>
@@ -137,13 +202,17 @@ function ChecklistPage() {
                 isChecked ? "opacity-70" : ""
               }`}
             >
-              <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition-all ${
-                isChecked ? "gradient-emerald text-white shadow-soft" : "bg-muted text-primary"
-              }`}>
+              <div
+                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition-all ${
+                  isChecked ? "gradient-emerald text-white shadow-soft" : "bg-muted text-primary"
+                }`}
+              >
                 {isChecked ? <CheckCircle2 className="h-5 w-5" /> : item.icon}
               </div>
               <div className="min-w-0 flex-1">
-                <p className={`text-sm font-bold ${isChecked ? "text-muted-foreground line-through" : "text-foreground"}`}>
+                <p
+                  className={`text-sm font-bold ${isChecked ? "text-muted-foreground line-through" : "text-foreground"}`}
+                >
                   {item.label}
                 </p>
                 <p className="mt-0.5 text-[11px] text-muted-foreground">{item.description}</p>

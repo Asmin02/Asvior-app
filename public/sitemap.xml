@@ -7,6 +7,8 @@
   <url><loc>https://asvior.app/budget-planner</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://asvior.app/assistant</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://asvior.app/about</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://asvior.app/contact</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://asvior.app/support</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://asvior.app/privacy</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://asvior.app/terms</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://asvior.app/auth</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>

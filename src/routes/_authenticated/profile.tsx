@@ -24,11 +24,16 @@ export const Route = createFileRoute("/_authenticated/profile")({
 });
 
 function getCountryName(code: string): string {
-  try { return new Intl.DisplayNames(["en"], { type: "region" }).of(code) || code; } catch { return code; }
+  try {
+    return new Intl.DisplayNames(["en"], { type: "region" }).of(code) || code;
+  } catch {
+    return code;
+  }
 }
-const COUNTRY_OPTIONS: CountryOption[] = VISA_CODES
-  .map((c) => ({ code: c, name: getCountryName(c) }))
-  .sort((a, b) => a.name.localeCompare(b.name));
+const COUNTRY_OPTIONS: CountryOption[] = VISA_CODES.map((c) => ({
+  code: c,
+  name: getCountryName(c),
+})).sort((a, b) => a.name.localeCompare(b.name));
 
 interface Profile {
   id: string;
@@ -89,8 +94,8 @@ function ProfilePage() {
         const insertPayload = {
           id: user.id,
           email: user.email ?? null,
-          full_name: meta.full_name || meta.name || null,
           ...EMPTY_PROFILE,
+          full_name: meta.full_name || meta.name || null,
         };
         const { data: inserted, error: insertErr } = await supabase
           .from("profiles")
@@ -139,17 +144,21 @@ function ProfilePage() {
   const save = async () => {
     if (!profile) return;
     setBusy(true);
-    const { error } = await supabase.from("profiles").upsert({
-      id: profile.id,
-      email: profile.email,
-      full_name: profile.full_name,
-      nationality: profile.nationality,
-      passport_country: profile.passport_country,
-      passport_number: profile.passport_number,
-      passport_expiry: profile.passport_expiry,
-    }, { onConflict: "id" });
+    const { error } = await supabase.from("profiles").upsert(
+      {
+        id: profile.id,
+        email: profile.email,
+        full_name: profile.full_name,
+        nationality: profile.nationality,
+        passport_country: profile.passport_country,
+        passport_number: profile.passport_number,
+        passport_expiry: profile.passport_expiry,
+      },
+      { onConflict: "id" },
+    );
     setBusy(false);
-    if (error) toast.error(error.message); else toast.success("Profile saved");
+    if (error) toast.error(error.message);
+    else toast.success("Profile saved");
   };
 
   const uploadAvatar = async (file: File) => {
@@ -157,8 +166,14 @@ function ProfilePage() {
     setUploading(true);
     const ext = file.name.split(".").pop() || "jpg";
     const path = `${profile.id}/avatar.${ext}`;
-    const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
-    if (upErr) { toast.error(upErr.message); setUploading(false); return; }
+    const { error: upErr } = await supabase.storage
+      .from("avatars")
+      .upload(path, file, { upsert: true, contentType: file.type });
+    if (upErr) {
+      toast.error(upErr.message);
+      setUploading(false);
+      return;
+    }
     await supabase.from("profiles").update({ photo_url: path }).eq("id", profile.id);
     const { data: signed } = await supabase.storage.from("avatars").createSignedUrl(path, 3600);
     setAvatarSrc(signed?.signedUrl ?? null);
@@ -193,7 +208,12 @@ function ProfilePage() {
           <Button data-testid="profile-retry-btn" onClick={load} className="rounded-2xl">
             Retry
           </Button>
-          <Button data-testid="profile-signout-btn" variant="outline" onClick={signOut} className="rounded-2xl">
+          <Button
+            data-testid="profile-signout-btn"
+            variant="outline"
+            onClick={signOut}
+            className="rounded-2xl"
+          >
             Sign out
           </Button>
         </div>
@@ -202,7 +222,9 @@ function ProfilePage() {
   }
 
   const expiryDate = profile.passport_expiry ? new Date(profile.passport_expiry) : null;
-  const daysToExpiry = expiryDate ? Math.ceil((expiryDate.getTime() - Date.now()) / 86400000) : null;
+  const daysToExpiry = expiryDate
+    ? Math.ceil((expiryDate.getTime() - Date.now()) / 86400000)
+    : null;
   const expiryWarn = daysToExpiry !== null && daysToExpiry < 180;
 
   return (
@@ -244,8 +266,14 @@ function ProfilePage() {
           </button>
           <input
             data-testid="profile-avatar-input"
-            ref={fileRef} type="file" accept="image/*" className="hidden"
-            onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadAvatar(f); }}
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) uploadAvatar(f);
+            }}
           />
           <div className="min-w-0 flex-1">
             <p className="truncate text-display text-2xl">{profile.full_name || "Add your name"}</p>
@@ -258,9 +286,24 @@ function ProfilePage() {
       {/* Quick links floating over hero */}
       <div className="relative -mt-12 px-6">
         <div className="glass-strong grid grid-cols-3 gap-2 rounded-3xl p-2">
-          <QuickLink to="/trips" icon={<Luggage className="h-5 w-5" />} label="Trips" testId="quicklink-trips" />
-          <QuickLink to="/favorites" icon={<Heart className="h-5 w-5" />} label="Favorites" testId="quicklink-favorites" />
-          <QuickLink to="/history" icon={<History className="h-5 w-5" />} label="History" testId="quicklink-history" />
+          <QuickLink
+            to="/trips"
+            icon={<Luggage className="h-5 w-5" />}
+            label="Trips"
+            testId="quicklink-trips"
+          />
+          <QuickLink
+            to="/favorites"
+            icon={<Heart className="h-5 w-5" />}
+            label="Favorites"
+            testId="quicklink-favorites"
+          />
+          <QuickLink
+            to="/history"
+            icon={<History className="h-5 w-5" />}
+            label="History"
+            testId="quicklink-history"
+          />
         </div>
       </div>
 
@@ -277,11 +320,21 @@ function ProfilePage() {
             <BookUser className="h-3.5 w-3.5 text-primary" /> Account
           </p>
           <Field label="Full name">
-            <Input data-testid="profile-fullname-input" value={profile.full_name || ""} onChange={(e) => setProfile({ ...profile, full_name: e.target.value })} className="rounded-xl" />
+            <Input
+              data-testid="profile-fullname-input"
+              value={profile.full_name || ""}
+              onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
+              className="rounded-xl"
+            />
           </Field>
           <div className="mt-3">
             <Field label="Email" icon={<Mail className="h-3.5 w-3.5" />}>
-              <Input data-testid="profile-email-input" value={profile.email || ""} disabled className="rounded-xl" />
+              <Input
+                data-testid="profile-email-input"
+                value={profile.email || ""}
+                disabled
+                className="rounded-xl"
+              />
             </Field>
           </div>
         </div>
@@ -291,24 +344,55 @@ function ProfilePage() {
             <BookUser className="h-3.5 w-3.5 text-emerald" /> Passport
           </p>
           <Field label="Nationality">
-            <CountryCombobox value={profile.nationality || ""} onChange={(v) => setProfile({ ...profile, nationality: v })} options={COUNTRY_OPTIONS} placeholder="Select nationality..." />
+            <CountryCombobox
+              value={profile.nationality || ""}
+              onChange={(v) => setProfile({ ...profile, nationality: v })}
+              options={COUNTRY_OPTIONS}
+              placeholder="Select nationality..."
+            />
           </Field>
           <Field label="Passport country">
-            <CountryCombobox value={profile.passport_country || ""} onChange={(v) => setProfile({ ...profile, passport_country: v })} options={COUNTRY_OPTIONS} placeholder="Select passport country..." />
+            <CountryCombobox
+              value={profile.passport_country || ""}
+              onChange={(v) => setProfile({ ...profile, passport_country: v })}
+              options={COUNTRY_OPTIONS}
+              placeholder="Select passport country..."
+            />
           </Field>
           <Field label="Passport number (optional)">
-            <Input data-testid="profile-passport-number-input" value={profile.passport_number || ""} onChange={(e) => setProfile({ ...profile, passport_number: e.target.value })} placeholder="••••••••" className="rounded-xl" />
+            <Input
+              data-testid="profile-passport-number-input"
+              value={profile.passport_number || ""}
+              onChange={(e) => setProfile({ ...profile, passport_number: e.target.value })}
+              placeholder="••••••••"
+              className="rounded-xl"
+            />
           </Field>
           <Field label="Passport expiry">
-            <Input data-testid="profile-passport-expiry-input" type="date" value={profile.passport_expiry || ""} onChange={(e) => setProfile({ ...profile, passport_expiry: e.target.value })} className="rounded-xl" />
+            <Input
+              data-testid="profile-passport-expiry-input"
+              type="date"
+              value={profile.passport_expiry || ""}
+              onChange={(e) => setProfile({ ...profile, passport_expiry: e.target.value })}
+              className="rounded-xl"
+            />
           </Field>
         </div>
 
-        <Button data-testid="profile-save-btn" onClick={save} disabled={busy} className="h-12 w-full rounded-2xl gradient-primary text-sm font-semibold shadow-float">
+        <Button
+          data-testid="profile-save-btn"
+          onClick={save}
+          disabled={busy}
+          className="h-12 w-full rounded-2xl gradient-primary text-sm font-semibold shadow-float"
+        >
           {busy ? "Saving…" : "Save profile"}
         </Button>
 
-        <Link data-testid="profile-settings-link" to="/settings" className="glass flex items-center justify-between rounded-2xl p-4 text-sm font-semibold text-foreground transition-transform active:scale-[0.99]">
+        <Link
+          data-testid="profile-settings-link"
+          to="/settings"
+          className="glass flex items-center justify-between rounded-2xl p-4 text-sm font-semibold text-foreground transition-transform active:scale-[0.99]"
+        >
           <span className="flex items-center gap-2">
             <SettingsIcon className="h-4 w-4 text-primary" /> Settings & notifications
           </span>
@@ -319,18 +403,37 @@ function ProfilePage() {
   );
 }
 
-function Field({ label, icon, children }: { label: string; icon?: React.ReactNode; children: React.ReactNode }) {
+function Field({
+  label,
+  icon,
+  children,
+}: {
+  label: string;
+  icon?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
     <div>
       <label className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-        {icon}{label}
+        {icon}
+        {label}
       </label>
       {children}
     </div>
   );
 }
 
-function QuickLink({ to, icon, label, testId }: { to: string; icon: React.ReactNode; label: string; testId?: string }) {
+function QuickLink({
+  to,
+  icon,
+  label,
+  testId,
+}: {
+  to: string;
+  icon: React.ReactNode;
+  label: string;
+  testId?: string;
+}) {
   return (
     <Link
       to={to as never}

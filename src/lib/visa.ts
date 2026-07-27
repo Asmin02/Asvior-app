@@ -2,12 +2,7 @@
 import { VISA_DATA } from "@/data/visa-data";
 
 export type VisaStatus =
-  | "Visa Free"
-  | "Visa on Arrival"
-  | "ETA"
-  | "eVisa"
-  | "Visa Required"
-  | "No Admission";
+  "Visa Free" | "Visa on Arrival" | "ETA" | "eVisa" | "Visa Required" | "No Admission";
 
 export interface VisaResult {
   status: VisaStatus;
@@ -100,20 +95,127 @@ export function getVisaRequirement(passport: string, destination: string): VisaR
   const officialUrl = officialUrlFor(destination, passport);
 
   if (passport === destination) {
-    return { status: "Visa Free", explanation: "You don't need a visa to enter your own country.", maxStay: "Unlimited", documents: ["National ID or passport"], processingTime: "—", officialUrl, source: "passport-index-dataset" };
+    return {
+      status: "Visa Free",
+      explanation: "You don't need a visa to enter your own country.",
+      maxStay: "Unlimited",
+      documents: ["National ID or passport"],
+      processingTime: "—",
+      officialUrl,
+      source: "passport-index-dataset",
+    };
   }
   const code = VISA_DATA[passport]?.[destination];
   if (!code) {
-    return { status: "Visa Required", explanation: `No data available for ${passportName} → ${destName}. Confirm directly with the embassy.`, maxStay: "Varies", documents: ["Valid passport"], processingTime: "Varies", officialUrl, source: "fallback" };
+    return {
+      status: "Visa Required",
+      explanation: `No data available for ${passportName} → ${destName}. Confirm directly with the embassy.`,
+      maxStay: "Varies",
+      documents: ["Valid passport"],
+      processingTime: "Varies",
+      officialUrl,
+      source: "fallback",
+    };
   }
   const days = parseDays(code);
-  if (code === "S") return { status: "Visa Free", explanation: "Domestic travel — no visa required.", maxStay: "Unlimited", documents: ["National ID or passport"], processingTime: "—", officialUrl, source: "passport-index-dataset" };
-  if (code === "F" || days !== null) return { status: "Visa Free", explanation: `Citizens of ${passportName} can enter ${destName} visa-free${days ? ` for stays up to ${days} days` : ""}.`, maxStay: days ? `${days} days per entry` : "Varies (visa-free)", documents: ["Valid passport (6+ months recommended)", "Return or onward ticket", "Proof of accommodation", "Proof of sufficient funds"], processingTime: "No application required", officialUrl, source: "passport-index-dataset" };
-  if (code === "A") return { status: "Visa on Arrival", explanation: `Citizens of ${passportName} can obtain a visa on arrival in ${destName}.`, maxStay: "Typically 15–30 days", documents: ["Valid passport (6+ months)", "Passport-sized photo", "Visa fee (cash, often USD)", "Proof of onward travel", "Proof of accommodation"], processingTime: "Issued at the border (15–60 minutes)", officialUrl, source: "passport-index-dataset" };
-  if (code === "E") return { status: "eVisa", explanation: `Citizens of ${passportName} must apply online for an eVisa before travelling to ${destName}.`, maxStay: "Usually 30–90 days", documents: ["Valid passport (6+ months)", "Digital passport photo", "Completed online application", "Credit/debit card for visa fee", "Travel itinerary"], processingTime: "24–72 hours, up to 2 weeks", officialUrl, source: "passport-index-dataset" };
-  if (code === "T") return { status: "ETA", explanation: `Citizens of ${passportName} need an Electronic Travel Authorization before flying to ${destName}.`, maxStay: "Up to 90 days per entry", documents: ["Valid passport", "Online ETA application", "Email address", "Credit/debit card for fee"], processingTime: "Minutes to 72 hours", officialUrl, source: "passport-index-dataset" };
-  if (code === "X") return { status: "No Admission", explanation: `${destName} does not admit holders of ${passportName} passports.`, maxStay: "Not permitted", documents: ["Special authorization (if any)"], processingTime: "—", officialUrl, source: "passport-index-dataset" };
-  return { status: "Visa Required", explanation: `Citizens of ${passportName} must obtain a visa in advance before travelling to ${destName}.`, maxStay: "Varies by visa type (typically 30–90 days)", documents: ["Valid passport (6+ months)", "Completed visa application form", "Recent passport photos", "Proof of accommodation & itinerary", "Bank statements / proof of funds", "Invitation letter (if applicable)"], processingTime: "Typically 2–6 weeks", officialUrl, source: "passport-index-dataset" };
+  if (code === "S")
+    return {
+      status: "Visa Free",
+      explanation: "Domestic travel — no visa required.",
+      maxStay: "Unlimited",
+      documents: ["National ID or passport"],
+      processingTime: "—",
+      officialUrl,
+      source: "passport-index-dataset",
+    };
+  if (code === "F" || days !== null)
+    return {
+      status: "Visa Free",
+      explanation: `Citizens of ${passportName} can enter ${destName} visa-free${days ? ` for stays up to ${days} days` : ""}.`,
+      maxStay: days ? `${days} days per entry` : "Varies (visa-free)",
+      documents: [
+        "Valid passport (6+ months recommended)",
+        "Return or onward ticket",
+        "Proof of accommodation",
+        "Proof of sufficient funds",
+      ],
+      processingTime: "No application required",
+      officialUrl,
+      source: "passport-index-dataset",
+    };
+  if (code === "A")
+    return {
+      status: "Visa on Arrival",
+      explanation: `Citizens of ${passportName} can obtain a visa on arrival in ${destName}.`,
+      maxStay: "Typically 15–30 days",
+      documents: [
+        "Valid passport (6+ months)",
+        "Passport-sized photo",
+        "Visa fee (cash, often USD)",
+        "Proof of onward travel",
+        "Proof of accommodation",
+      ],
+      processingTime: "Issued at the border (15–60 minutes)",
+      officialUrl,
+      source: "passport-index-dataset",
+    };
+  if (code === "E")
+    return {
+      status: "eVisa",
+      explanation: `Citizens of ${passportName} must apply online for an eVisa before travelling to ${destName}.`,
+      maxStay: "Usually 30–90 days",
+      documents: [
+        "Valid passport (6+ months)",
+        "Digital passport photo",
+        "Completed online application",
+        "Credit/debit card for visa fee",
+        "Travel itinerary",
+      ],
+      processingTime: "24–72 hours, up to 2 weeks",
+      officialUrl,
+      source: "passport-index-dataset",
+    };
+  if (code === "T")
+    return {
+      status: "ETA",
+      explanation: `Citizens of ${passportName} need an Electronic Travel Authorization before flying to ${destName}.`,
+      maxStay: "Up to 90 days per entry",
+      documents: [
+        "Valid passport",
+        "Online ETA application",
+        "Email address",
+        "Credit/debit card for fee",
+      ],
+      processingTime: "Minutes to 72 hours",
+      officialUrl,
+      source: "passport-index-dataset",
+    };
+  if (code === "X")
+    return {
+      status: "No Admission",
+      explanation: `${destName} does not admit holders of ${passportName} passports.`,
+      maxStay: "Not permitted",
+      documents: ["Special authorization (if any)"],
+      processingTime: "—",
+      officialUrl,
+      source: "passport-index-dataset",
+    };
+  return {
+    status: "Visa Required",
+    explanation: `Citizens of ${passportName} must obtain a visa in advance before travelling to ${destName}.`,
+    maxStay: "Varies by visa type (typically 30–90 days)",
+    documents: [
+      "Valid passport (6+ months)",
+      "Completed visa application form",
+      "Recent passport photos",
+      "Proof of accommodation & itinerary",
+      "Bank statements / proof of funds",
+      "Invitation letter (if applicable)",
+    ],
+    processingTime: "Typically 2–6 weeks",
+    officialUrl,
+    source: "passport-index-dataset",
+  };
 }
 
 const PASSPORT_KEY = "vp_passport_code";
@@ -138,16 +240,23 @@ export function loadSavedPassport(): string {
 export function savePassport(code: string) {
   try {
     localStorage.setItem(PASSPORT_KEY, code);
-  } catch {}
+  } catch (error) {
+    void error;
+  }
 }
 
 export function saveRecentSearch(search: RecentSearch) {
   try {
     const raw = localStorage.getItem(RECENT_KEY);
     const arr: RecentSearch[] = raw ? JSON.parse(raw) : [];
-    const next = [search, ...arr.filter((s) => s.passport !== search.passport || s.destination !== search.destination)].slice(0, 6);
+    const next = [
+      search,
+      ...arr.filter((s) => s.passport !== search.passport || s.destination !== search.destination),
+    ].slice(0, 6);
     localStorage.setItem(RECENT_KEY, JSON.stringify(next));
-  } catch {}
+  } catch (error) {
+    void error;
+  }
 }
 
 export function loadRecentSearches(): RecentSearch[] {

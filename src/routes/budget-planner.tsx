@@ -22,18 +22,52 @@ interface Category {
 }
 
 const categories: Category[] = [
-  { key: "flight",    label: "Flight",    gradient: "gradient-primary text-primary-foreground",           bar: "bg-primary",       icon: <Plane className="h-4 w-4" /> },
-  { key: "hotel",     label: "Hotel",     gradient: "gradient-emerald text-white",                        bar: "bg-emerald",       icon: <Building2 className="h-4 w-4" /> },
-  { key: "food",      label: "Food",      gradient: "gradient-navy text-white",                           bar: "bg-navy",          icon: <UtensilsCrossed className="h-4 w-4" /> },
-  { key: "transport", label: "Transport", gradient: "bg-amber-500 text-white",                            bar: "bg-amber-500",     icon: <Car className="h-4 w-4" /> },
-  { key: "other",     label: "Other",     gradient: "bg-fuchsia-500 text-white",                          bar: "bg-fuchsia-500",   icon: <Gift className="h-4 w-4" /> },
+  {
+    key: "flight",
+    label: "Flight",
+    gradient: "gradient-primary text-primary-foreground",
+    bar: "bg-primary",
+    icon: <Plane className="h-4 w-4" />,
+  },
+  {
+    key: "hotel",
+    label: "Hotel",
+    gradient: "gradient-emerald text-white",
+    bar: "bg-emerald",
+    icon: <Building2 className="h-4 w-4" />,
+  },
+  {
+    key: "food",
+    label: "Food",
+    gradient: "gradient-navy text-white",
+    bar: "bg-navy",
+    icon: <UtensilsCrossed className="h-4 w-4" />,
+  },
+  {
+    key: "transport",
+    label: "Transport",
+    gradient: "bg-amber-500 text-white",
+    bar: "bg-amber-500",
+    icon: <Car className="h-4 w-4" />,
+  },
+  {
+    key: "other",
+    label: "Other",
+    gradient: "bg-fuchsia-500 text-white",
+    bar: "bg-fuchsia-500",
+    icon: <Gift className="h-4 w-4" />,
+  },
 ];
 
 const BUDGET_STORAGE_KEY = "vp_budget";
 
 function BudgetPlannerPage() {
   const [values, setValues] = useState<Record<string, string>>({
-    flight: "", hotel: "", food: "", transport: "", other: "",
+    flight: "",
+    hotel: "",
+    food: "",
+    transport: "",
+    other: "",
   });
   const [loaded, setLoaded] = useState(false);
 
@@ -44,7 +78,9 @@ function BudgetPlannerPage() {
         const parsed = JSON.parse(raw);
         if (parsed && typeof parsed === "object") setValues((v) => ({ ...v, ...parsed }));
       }
-    } catch {}
+    } catch (error) {
+      void error;
+    }
     setLoaded(true);
   }, []);
 
@@ -60,12 +96,19 @@ function BudgetPlannerPage() {
   }, [values]);
 
   const total = useMemo(() => categories.reduce((s, c) => s + numbers[c.key], 0), [numbers]);
-  const fmt = (n: number) => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt = (n: number) =>
+    n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   return (
     <div className="relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 gradient-hero-bg" aria-hidden />
-      <div className="pointer-events-none absolute -top-16 -left-10 h-52 w-52 rounded-full bg-emerald/20 blur-3xl" aria-hidden />
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-72 gradient-hero-bg"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute -top-16 -left-10 h-52 w-52 rounded-full bg-emerald/20 blur-3xl"
+        aria-hidden
+      />
 
       <header className="relative px-6 pt-10">
         <div className="glass inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold text-emerald">
@@ -82,7 +125,9 @@ function BudgetPlannerPage() {
         <div className="relative overflow-hidden rounded-3xl gradient-navy p-6 text-white shadow-float">
           <div className="absolute -top-16 -right-10 h-40 w-40 rounded-full bg-primary/30 blur-3xl" />
           <div className="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-emerald/25 blur-3xl" />
-          <p className="relative text-[11px] font-bold uppercase tracking-widest opacity-70">Total trip budget</p>
+          <p className="relative text-[11px] font-bold uppercase tracking-widest opacity-70">
+            Total trip budget
+          </p>
           <p className="relative mt-2 text-display text-5xl">${fmt(total)}</p>
           {total > 0 ? (
             <div className="relative mt-4 flex h-2.5 w-full overflow-hidden rounded-full bg-white/15">
@@ -90,12 +135,19 @@ function BudgetPlannerPage() {
                 const pct = (numbers[c.key] / total) * 100;
                 if (pct <= 0) return null;
                 return (
-                  <div key={c.key} className={c.bar} style={{ width: `${pct}%` }} title={`${c.label}: ${pct.toFixed(0)}%`} />
+                  <div
+                    key={c.key}
+                    className={c.bar}
+                    style={{ width: `${pct}%` }}
+                    title={`${c.label}: ${pct.toFixed(0)}%`}
+                  />
                 );
               })}
             </div>
           ) : (
-            <p className="relative mt-4 text-xs opacity-70">Add costs below to see your breakdown.</p>
+            <p className="relative mt-4 text-xs opacity-70">
+              Add costs below to see your breakdown.
+            </p>
           )}
         </div>
       </section>
@@ -108,13 +160,19 @@ function BudgetPlannerPage() {
             className="glass flex items-center gap-3 rounded-2xl p-3 animate-fade-up"
             style={{ animationDelay: `${i * 40}ms` }}
           >
-            <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl shadow-soft ${c.gradient}`}>
+            <div
+              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl shadow-soft ${c.gradient}`}
+            >
               {c.icon}
             </div>
             <div className="flex-1">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{c.label}</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                {c.label}
+              </label>
               <div className="relative">
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">$</span>
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">
+                  $
+                </span>
                 <Input
                   type="number"
                   inputMode="decimal"

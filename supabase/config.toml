@@ -9,6 +9,8 @@ additional_redirect_urls = [
   "https://asvior.app",
   "https://asvior.app/*",
   "https://asvior.app/reset-password",
+  "https://asvior.app/auth",
+  "https://asvior.app/auth/*",
 ]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true

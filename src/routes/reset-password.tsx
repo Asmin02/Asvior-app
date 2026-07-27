@@ -61,7 +61,12 @@ function ResetPasswordPage() {
             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         </div>
-        <Button data-testid="reset-password-submit-btn" type="submit" disabled={busy} className="w-full py-5 font-semibold">
+        <Button
+          data-testid="reset-password-submit-btn"
+          type="submit"
+          disabled={busy}
+          className="w-full py-5 font-semibold"
+        >
           {busy ? "Updating…" : "Update password"}
         </Button>
       </form>

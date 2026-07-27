@@ -43,8 +43,13 @@ function SummaryPage() {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(CHECKLIST_KEY);
-      if (raw) { const arr = JSON.parse(raw); if (Array.isArray(arr)) setChecked(new Set(arr)); }
-    } catch {}
+      if (raw) {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr)) setChecked(new Set(arr));
+      }
+    } catch (error) {
+      void error;
+    }
     try {
       const raw = localStorage.getItem(BUDGET_KEY);
       if (raw) {
@@ -53,16 +58,27 @@ function SummaryPage() {
         for (const c of budgetCategories) nums[c.key] = parseFloat(obj?.[c.key]) || 0;
         setBudget(nums);
       }
-    } catch {}
+    } catch (error) {
+      void error;
+    }
   }, []);
 
-  const total = useMemo(() => budgetCategories.reduce((s, c) => s + (budget[c.key] || 0), 0), [budget]);
-  const fmt = (n: number) => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const today = new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+  const total = useMemo(
+    () => budgetCategories.reduce((s, c) => s + (budget[c.key] || 0), 0),
+    [budget],
+  );
+  const fmt = (n: number) =>
+    n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const today = new Date().toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 
   const buildShareText = () => {
     const lines = ["✈️ My Asvior Trip Summary", today, "", "📋 Checklist:"];
-    for (const item of checklistItems) lines.push(`  ${checked.has(item.id) ? "✅" : "⬜"} ${item.label}`);
+    for (const item of checklistItems)
+      lines.push(`  ${checked.has(item.id) ? "✅" : "⬜"} ${item.label}`);
     lines.push("", "💰 Budget:");
     for (const c of budgetCategories) {
       const v = budget[c.key] || 0;
@@ -75,14 +91,20 @@ function SummaryPage() {
   const handleShare = async () => {
     const text = buildShareText();
     try {
-      if (typeof navigator !== "undefined" && (navigator as any).share) {
-        await (navigator as any).share({ title: "My Asvior Trip Summary", text });
+      const shareNavigator = navigator as Navigator & {
+        share?: (data: { title: string; text: string }) => Promise<void>;
+      };
+      if (typeof navigator !== "undefined" && shareNavigator.share) {
+        await shareNavigator.share({ title: "My Asvior Trip Summary", text });
         setShareMsg("Shared!");
       } else if (navigator?.clipboard) {
         await navigator.clipboard.writeText(text);
         setShareMsg("Copied to clipboard");
       } else setShareMsg("Sharing not supported");
-    } catch { setShareMsg(null); }
+    } catch (error) {
+      void error;
+      setShareMsg(null);
+    }
     setTimeout(() => setShareMsg(null), 2500);
   };
 
@@ -92,20 +114,27 @@ function SummaryPage() {
     <div className="relative overflow-hidden">
       <style>{`@media print { nav, .no-print { display: none !important; } body { background: white !important; } }`}</style>
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-64 gradient-hero-bg" aria-hidden />
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-64 gradient-hero-bg"
+        aria-hidden
+      />
 
       <header className="relative px-6 pt-10 no-print">
         <div className="glass inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold text-primary">
           <FileText className="h-3.5 w-3.5" /> Ready to share
         </div>
         <h1 className="mt-3 text-display text-3xl text-foreground">Trip Summary</h1>
-        <p className="mt-1.5 text-sm text-muted-foreground">Share with your travel buddies or save as PDF.</p>
+        <p className="mt-1.5 text-sm text-muted-foreground">
+          Share with your travel buddies or save as PDF.
+        </p>
       </header>
 
       <div id="summary-printable" className="relative mt-6 space-y-4 px-6">
         <div className="relative overflow-hidden rounded-3xl gradient-navy p-6 text-white shadow-float">
           <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-primary/30 blur-3xl" />
-          <p className="relative text-[11px] font-bold uppercase tracking-widest opacity-70">Asvior Trip Summary</p>
+          <p className="relative text-[11px] font-bold uppercase tracking-widest opacity-70">
+            Asvior Trip Summary
+          </p>
           <p className="relative mt-2 text-display text-2xl">{today}</p>
           <p className="relative mt-3 text-xs opacity-80">
             {packed} of {checklistItems.length} items packed · ${fmt(total)} budget
@@ -121,10 +150,18 @@ function SummaryPage() {
               const isChecked = checked.has(item.id);
               return (
                 <li key={item.id} className="flex items-center gap-2.5 text-sm">
-                  {isChecked
-                    ? <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald" />
-                    : <Circle className="h-5 w-5 shrink-0 text-muted-foreground" strokeWidth={1.5} />}
-                  <span className={isChecked ? "text-muted-foreground line-through" : "font-medium text-foreground"}>
+                  {isChecked ? (
+                    <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald" />
+                  ) : (
+                    <Circle className="h-5 w-5 shrink-0 text-muted-foreground" strokeWidth={1.5} />
+                  )}
+                  <span
+                    className={
+                      isChecked
+                        ? "text-muted-foreground line-through"
+                        : "font-medium text-foreground"
+                    }
+                  >
                     {item.label}
                   </span>
                 </li>
@@ -140,7 +177,10 @@ function SummaryPage() {
           {total === 0 ? (
             <p className="mt-3 text-sm text-muted-foreground">
               No budget entered yet.{" "}
-              <Link to="/budget-planner" className="font-semibold text-primary underline no-print">Add costs</Link>.
+              <Link to="/budget-planner" className="font-semibold text-primary underline no-print">
+                Add costs
+              </Link>
+              .
             </p>
           ) : (
             <>
@@ -175,11 +215,17 @@ function SummaryPage() {
         <button
           onClick={async () => {
             const { data } = await supabase.auth.getUser();
-            if (!data.user) { toast.error("Sign in to save trips"); return; }
+            if (!data.user) {
+              toast.error("Sign in to save trips");
+              return;
+            }
             const name = prompt("Name this trip:", `Trip · ${today}`);
             if (!name) return;
             const { error } = await supabase.from("saved_trips").insert({
-              user_id: data.user.id, name, budget, checklist: Array.from(checked),
+              user_id: data.user.id,
+              name,
+              budget,
+              checklist: Array.from(checked),
             });
             if (error) toast.error(error.message);
             else toast.success("Trip saved to your account");

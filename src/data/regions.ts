@@ -16,4 +16,11 @@ export const REGION_META: Record<Region, { label: string; image: string }> = {
   "middle-east": { label: "Middle East", image: middleEastImg },
 };
 
-export const REGION_ORDER: Region[] = ["europe", "asia", "americas", "middle-east", "africa", "oceania"];
+export const REGION_ORDER: Region[] = [
+  "europe",
+  "asia",
+  "americas",
+  "middle-east",
+  "africa",
+  "oceania",
+];

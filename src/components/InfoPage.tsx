@@ -15,7 +15,10 @@ export function InfoPage({
 }) {
   return (
     <div className="relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-64 gradient-hero-bg" aria-hidden />
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-64 gradient-hero-bg"
+        aria-hidden
+      />
       <header className="relative px-6 pt-10">
         <Link
           to="/settings"

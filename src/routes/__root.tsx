@@ -21,9 +21,7 @@ function NotFoundComponent() {
       <div className="glass max-w-md rounded-3xl p-8 text-center">
         <h1 className="text-display text-7xl text-foreground">404</h1>
         <h2 className="mt-3 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          That destination isn't on our map.
-        </p>
+        <p className="mt-2 text-sm text-muted-foreground">That destination isn't on our map.</p>
         <Link
           to="/"
           className="mt-6 inline-flex items-center justify-center rounded-2xl gradient-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-float transition-transform active:scale-95"
@@ -53,7 +51,10 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
-            onClick={() => { router.invalidate(); reset(); }}
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
             className="rounded-2xl gradient-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-float"
           >
             Try again
@@ -77,15 +78,27 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "theme-color", content: "#0F172A" },
       { title: "Asvior — Travel Smarter. Explore Further." },
-      { name: "description", content: "The premium AI travel platform: instant visa checks across 199 countries, smart budgeting, packing lists, and a personal AI concierge." },
+      {
+        name: "description",
+        content:
+          "The premium AI travel platform: instant visa checks across 199 countries, smart budgeting, packing lists, and a personal AI concierge.",
+      },
       { name: "author", content: "Asvior" },
       { property: "og:title", content: "Asvior — Travel Smarter. Explore Further." },
-      { property: "og:description", content: "The premium AI travel platform: instant visa checks across 199 countries, smart budgeting, packing lists, and a personal AI concierge." },
+      {
+        property: "og:description",
+        content:
+          "The premium AI travel platform: instant visa checks across 199 countries, smart budgeting, packing lists, and a personal AI concierge.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Asvior" },
       { name: "twitter:title", content: "Asvior — Travel Smarter. Explore Further." },
-      { name: "twitter:description", content: "The premium AI travel platform: instant visa checks across 199 countries, smart budgeting, packing lists, and a personal AI concierge." },
+      {
+        name: "twitter:description",
+        content:
+          "The premium AI travel platform: instant visa checks across 199 countries, smart budgeting, packing lists, and a personal AI concierge.",
+      },
       { property: "og:url", content: "https://asvior.app" },
       { property: "og:site_name", content: "Asvior" },
       { property: "og:image", content: "https://asvior.app/og-image.svg" },
@@ -124,7 +137,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <head><HeadContent /></head>
+      <head>
+        <HeadContent />
+      </head>
       <body>
         {children}
         <Scripts />
@@ -161,16 +176,20 @@ function MobileNav() {
               aria-current={isActive ? "page" : undefined}
               className="group relative flex flex-1 flex-col items-center gap-0.5 rounded-2xl py-1.5 transition-all"
             >
-              <div className={`flex h-9 w-9 items-center justify-center rounded-2xl transition-all ${
-                isActive
-                  ? "gradient-primary text-primary-foreground shadow-float"
-                  : "text-muted-foreground group-hover:text-foreground"
-              }`}>
+              <div
+                className={`flex h-9 w-9 items-center justify-center rounded-2xl transition-all ${
+                  isActive
+                    ? "gradient-primary text-primary-foreground shadow-float"
+                    : "text-muted-foreground group-hover:text-foreground"
+                }`}
+              >
                 <Icon className="h-[18px] w-[18px]" strokeWidth={isActive ? 2.4 : 2} />
               </div>
-              <span className={`text-[10px] font-semibold tracking-tight ${
-                isActive ? "text-foreground" : "text-muted-foreground"
-              }`}>
+              <span
+                className={`text-[10px] font-semibold tracking-tight ${
+                  isActive ? "text-foreground" : "text-muted-foreground"
+                }`}
+              >
                 {item.label}
               </span>
             </Link>

@@ -26,7 +26,11 @@ export const Route = createFileRoute("/assistant")({
   head: () => ({
     meta: [
       { title: "AI Travel Assistant — Asvior" },
-      { name: "description", content: "Chat with Asvior AI for instant visa, document, budget, weather, and travel guidance." },
+      {
+        name: "description",
+        content:
+          "Chat with Asvior AI for instant visa, document, budget, weather, and travel guidance.",
+      },
     ],
   }),
   component: AssistantPage,
@@ -35,12 +39,38 @@ export const Route = createFileRoute("/assistant")({
 const STORAGE_KEY = "vp_ai_chat_v1";
 
 const QUICK_ACTIONS = [
-  { label: "Check Visa", icon: "🛂", prompt: "Help me check if I need a visa. Ask me my passport country and destination." },
-  { label: "Required Documents", icon: "📄", prompt: "What documents do I typically need for an international trip? Walk me through a checklist." },
-  { label: "Travel Checklist", icon: "✅", prompt: "Build me a smart pre-departure travel checklist." },
-  { label: "Budget Planner", icon: "💰", prompt: "Help me estimate a realistic travel budget. Ask me destination, duration, and travel style." },
-  { label: "Embassy Finder", icon: "🏛️", prompt: "How do I find the nearest embassy or consulate for a country I'm visiting?" },
-  { label: "Travel Tips", icon: "🌍", prompt: "Give me your top 10 smart travel tips for international travelers." },
+  {
+    label: "Check Visa",
+    icon: "🛂",
+    prompt: "Help me check if I need a visa. Ask me my passport country and destination.",
+  },
+  {
+    label: "Required Documents",
+    icon: "📄",
+    prompt:
+      "What documents do I typically need for an international trip? Walk me through a checklist.",
+  },
+  {
+    label: "Travel Checklist",
+    icon: "✅",
+    prompt: "Build me a smart pre-departure travel checklist.",
+  },
+  {
+    label: "Budget Planner",
+    icon: "💰",
+    prompt:
+      "Help me estimate a realistic travel budget. Ask me destination, duration, and travel style.",
+  },
+  {
+    label: "Embassy Finder",
+    icon: "🏛️",
+    prompt: "How do I find the nearest embassy or consulate for a country I'm visiting?",
+  },
+  {
+    label: "Travel Tips",
+    icon: "🌍",
+    prompt: "Give me your top 10 smart travel tips for international travelers.",
+  },
 ];
 
 const SUGGESTIONS = [
@@ -90,7 +120,9 @@ function AssistantPage() {
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-    } catch {}
+    } catch (error) {
+      void error;
+    }
   }, [messages]);
 
   useEffect(() => {
@@ -131,7 +163,11 @@ function AssistantPage() {
 
   const clearChat = () => {
     setMessages([]);
-    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (error) {
+      void error;
+    }
     toast.success("Chat cleared");
   };
 
@@ -152,7 +188,11 @@ function AssistantPage() {
     const firstUser = messages.find((m) => m.role === "user");
     const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
     const title = firstUser ? getText(firstUser).slice(0, 60) : "Travel chat";
-    const preview = lastAssistant ? getText(lastAssistant).replace(/```[\s\S]*?```/g, "").slice(0, 120) : "";
+    const preview = lastAssistant
+      ? getText(lastAssistant)
+          .replace(/```[\s\S]*?```/g, "")
+          .slice(0, 120)
+      : "";
     saveBookmark({
       id: `bm_${Date.now()}`,
       title,
@@ -185,8 +225,18 @@ function AssistantPage() {
 
       <header className="sticky top-0 z-20 border-b border-white/20 bg-background/60 px-4 py-3 backdrop-blur-xl">
         <div className="flex items-center gap-2">
-          <Link to="/" aria-label="Back to home" className="flex h-9 w-9 items-center justify-center rounded-full bg-card/70 ring-1 ring-border">
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+          <Link
+            to="/"
+            aria-label="Back to home"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-card/70 ring-1 ring-border"
+          >
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </Link>
@@ -205,8 +255,18 @@ function AssistantPage() {
             className="flex h-9 w-9 items-center justify-center rounded-full bg-card/70 ring-1 ring-border hover:bg-accent"
             aria-label="Bookmarks"
           >
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"
+              />
             </svg>
           </button>
           {messages.length > 0 && (
@@ -239,7 +299,9 @@ function AssistantPage() {
                 message={m}
                 onCopy={copyText}
                 onSuggestionPick={(q) => handleSend(q)}
-                isStreaming={isLoading && m.id === messages[messages.length - 1]?.id && m.role === "assistant"}
+                isStreaming={
+                  isLoading && m.id === messages[messages.length - 1]?.id && m.role === "assistant"
+                }
               />
             ))}
             {lastIsUserOrSubmitted && <PremiumSkeleton />}
@@ -267,8 +329,18 @@ function AssistantPage() {
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground hover:bg-accent/80"
               aria-label="Voice input"
             >
-              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
+              <svg
+                className="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"
+                />
               </svg>
             </button>
             <textarea
@@ -291,7 +363,9 @@ function AssistantPage() {
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-destructive text-destructive-foreground"
                 aria-label="Stop"
               >
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="6" y="6" width="12" height="12" rx="2" />
+                </svg>
               </button>
             ) : (
               <button
@@ -300,8 +374,18 @@ function AssistantPage() {
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-travel-blue-dark text-primary-foreground shadow-lg shadow-primary/30 disabled:opacity-40"
                 aria-label="Send"
               >
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                <svg
+                  className="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"
+                  />
                 </svg>
               </button>
             )}
@@ -320,21 +404,37 @@ function EmptyState({ onPick }: { onPick: (prompt: string) => void }) {
     <div className="animate-in fade-in-50 slide-in-from-bottom-2 duration-500">
       <div className="mb-6 mt-4 text-center">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-primary via-travel-blue to-travel-blue-dark text-primary-foreground shadow-xl shadow-primary/40">
-          <svg className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l1.8 4.6L18 9.4l-4.2 1.8L12 15.8l-1.8-4.6L6 9.4l4.2-1.8L12 3z" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l.9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9L19 14z" />
+          <svg
+            className="h-8 w-8"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 3l1.8 4.6L18 9.4l-4.2 1.8L12 15.8l-1.8-4.6L6 9.4l4.2-1.8L12 3z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M19 14l.9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9L19 14z"
+            />
           </svg>
         </div>
         <h2 className="mt-4 bg-gradient-to-r from-foreground to-primary bg-clip-text text-2xl font-bold tracking-tight text-transparent">
           Hi! I'm Asvior AI ✈️
         </h2>
         <p className="mx-auto mt-1 max-w-xs text-sm leading-relaxed text-muted-foreground">
-          Tell me your nationality and destination and I'll guide you through the visa process
-          step by step.
+          Tell me your nationality and destination and I'll guide you through the visa process step
+          by step.
         </p>
       </div>
 
-      <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Quick actions</p>
+      <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        Quick actions
+      </p>
       <div className="grid grid-cols-2 gap-2">
         {QUICK_ACTIONS.map((a) => (
           <button
@@ -348,7 +448,9 @@ function EmptyState({ onPick }: { onPick: (prompt: string) => void }) {
         ))}
       </div>
 
-      <p className="mb-2 mt-6 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Try asking</p>
+      <p className="mb-2 mt-6 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        Try asking
+      </p>
       <div className="space-y-2">
         {SUGGESTIONS.map((s) => (
           <button
@@ -357,7 +459,13 @@ function EmptyState({ onPick }: { onPick: (prompt: string) => void }) {
             className="flex w-full items-center justify-between gap-2 rounded-xl bg-card/60 p-3 text-left text-sm ring-1 ring-border backdrop-blur-xl transition-colors hover:bg-accent"
           >
             <span className="line-clamp-2">{s}</span>
-            <svg className="h-4 w-4 shrink-0 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <svg
+              className="h-4 w-4 shrink-0 text-muted-foreground"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -401,12 +509,23 @@ function MessageBubble({
   return (
     <div className="flex gap-2 animate-bubble-in">
       <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl gradient-primary text-primary-foreground shadow-float">
-        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l1.8 4.6L18 9.4l-4.2 1.8L12 15.8l-1.8-4.6L6 9.4l4.2-1.8L12 3z" />
+        <svg
+          className="h-4 w-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2.2}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 3l1.8 4.6L18 9.4l-4.2 1.8L12 15.8l-1.8-4.6L6 9.4l4.2-1.8L12 3z"
+          />
         </svg>
       </div>
       <div className="flex-1 space-y-2">
-        {segments.length === 0 || (segments.length === 1 && segments[0].kind === "text" && !segments[0].content.trim()) ? (
+        {segments.length === 0 ||
+        (segments.length === 1 && segments[0].kind === "text" && !segments[0].content.trim()) ? (
           <div className="rounded-2xl rounded-tl-md border border-white/30 bg-card/70 px-4 py-3 text-sm ring-1 ring-border backdrop-blur-xl">
             <span className="text-muted-foreground">…</span>
           </div>
@@ -427,7 +546,8 @@ function MessageBubble({
             if (seg.kind === "visa") return <VisaSummaryCard key={i} data={seg.data} />;
             if (seg.kind === "checklist") return <DocChecklistCard key={i} data={seg.data} />;
             if (seg.kind === "budget") return <BudgetCard key={i} data={seg.data} />;
-            if (seg.kind === "suggestions") return <SuggestedQuestions key={i} data={seg.data} onPick={onSuggestionPick} />;
+            if (seg.kind === "suggestions")
+              return <SuggestedQuestions key={i} data={seg.data} onPick={onSuggestionPick} />;
             return null;
           })
         )}
@@ -438,8 +558,18 @@ function MessageBubble({
               onClick={() => onCopy(textOnlyForCopy)}
               className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] text-muted-foreground hover:bg-accent hover:text-foreground"
             >
-              <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              <svg
+                className="h-3 w-3"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                />
               </svg>
               Copy
             </button>
@@ -463,7 +593,10 @@ function BookmarksSheet({
   onDelete: (id: string) => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center sm:justify-center" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center sm:justify-center"
+      onClick={onClose}
+    >
       <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
       <div
         className="relative max-h-[80vh] w-full overflow-y-auto rounded-t-3xl border border-white/30 bg-card/95 p-4 shadow-2xl ring-1 ring-border backdrop-blur-2xl sm:max-w-md sm:rounded-3xl"
@@ -471,14 +604,26 @@ function BookmarksSheet({
       >
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-base font-semibold">Saved conversations</h2>
-          <button onClick={onClose} className="rounded-full p-1.5 hover:bg-accent" aria-label="Close">
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+          <button
+            onClick={onClose}
+            className="rounded-full p-1.5 hover:bg-accent"
+            aria-label="Close"
+          >
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
         {bookmarks.length === 0 ? (
-          <p className="py-10 text-center text-sm text-muted-foreground">No saved conversations yet.</p>
+          <p className="py-10 text-center text-sm text-muted-foreground">
+            No saved conversations yet.
+          </p>
         ) : (
           <ul className="space-y-2">
             {bookmarks.map((b) => (
@@ -486,7 +631,9 @@ function BookmarksSheet({
                 <div className="flex items-start gap-2">
                   <button onClick={() => onRestore(b)} className="flex-1 text-left">
                     <div className="line-clamp-1 text-sm font-semibold">{b.title}</div>
-                    <div className="mt-0.5 line-clamp-2 text-[11px] text-muted-foreground">{b.preview}</div>
+                    <div className="mt-0.5 line-clamp-2 text-[11px] text-muted-foreground">
+                      {b.preview}
+                    </div>
                     <div className="mt-1 text-[10px] text-muted-foreground">
                       {new Date(b.createdAt).toLocaleString()}
                     </div>
@@ -496,8 +643,18 @@ function BookmarksSheet({
                     className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                     aria-label="Delete"
                   >
-                    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                    <svg
+                      className="h-3.5 w-3.5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                      />
                     </svg>
                   </button>
                 </div>

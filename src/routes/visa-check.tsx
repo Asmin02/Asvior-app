@@ -39,17 +39,42 @@ export const Route = createFileRoute("/visa-check")({
   component: VisaCheckPage,
 });
 
-const COUNTRY_OPTIONS: CountryOption[] = VISA_CODES
-  .map((code) => ({ code, name: getCountryName(code) }))
-  .sort((a, b) => a.name.localeCompare(b.name));
+const COUNTRY_OPTIONS: CountryOption[] = VISA_CODES.map((code) => ({
+  code,
+  name: getCountryName(code),
+})).sort((a, b) => a.name.localeCompare(b.name));
 
 const statusMeta: Record<VisaStatus, { tone: string; icon: React.ReactNode; label: string }> = {
-  "Visa Free":       { tone: "gradient-emerald text-white",                icon: <ShieldCheck className="h-4 w-4" />, label: "Visa Free" },
-  "Visa on Arrival": { tone: "bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200", icon: <Clock className="h-4 w-4" />, label: "Visa on Arrival" },
-  ETA:               { tone: "bg-primary/10 text-primary",                 icon: <Globe2 className="h-4 w-4" />, label: "ETA Required" },
-  eVisa:             { tone: "gradient-primary text-primary-foreground",    icon: <Globe2 className="h-4 w-4" />, label: "eVisa" },
-  "Visa Required":   { tone: "bg-destructive/10 text-destructive",         icon: <X className="h-4 w-4" />, label: "Visa Required" },
-  "No Admission":    { tone: "gradient-navy text-white",                    icon: <X className="h-4 w-4" />, label: "No Admission" },
+  "Visa Free": {
+    tone: "gradient-emerald text-white",
+    icon: <ShieldCheck className="h-4 w-4" />,
+    label: "Visa Free",
+  },
+  "Visa on Arrival": {
+    tone: "bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200",
+    icon: <Clock className="h-4 w-4" />,
+    label: "Visa on Arrival",
+  },
+  ETA: {
+    tone: "bg-primary/10 text-primary",
+    icon: <Globe2 className="h-4 w-4" />,
+    label: "ETA Required",
+  },
+  eVisa: {
+    tone: "gradient-primary text-primary-foreground",
+    icon: <Globe2 className="h-4 w-4" />,
+    label: "eVisa",
+  },
+  "Visa Required": {
+    tone: "bg-destructive/10 text-destructive",
+    icon: <X className="h-4 w-4" />,
+    label: "Visa Required",
+  },
+  "No Admission": {
+    tone: "gradient-navy text-white",
+    icon: <X className="h-4 w-4" />,
+    label: "No Admission",
+  },
 };
 
 const LOADING_STEPS = [
@@ -73,8 +98,15 @@ function VisaCheckPage() {
   }, []);
 
   useEffect(() => {
-    if (!userId || !destination) { setIsFav(false); return; }
-    supabase.from("favorite_destinations").select("id").eq("country_code", destination).maybeSingle()
+    if (!userId || !destination) {
+      setIsFav(false);
+      return;
+    }
+    supabase
+      .from("favorite_destinations")
+      .select("id")
+      .eq("country_code", destination)
+      .maybeSingle()
       .then(({ data }) => setIsFav(!!data));
   }, [userId, destination]);
 
@@ -103,26 +135,42 @@ function VisaCheckPage() {
     }
     if (userId && r) {
       await supabase.from("visa_history").insert({
-        user_id: userId, passport_code: passport, destination_code: destination, status: r.status,
+        user_id: userId,
+        passport_code: passport,
+        destination_code: destination,
+        status: r.status,
       });
     }
   };
 
   const toggleFav = async () => {
-    if (!userId) { toast.error("Sign in to save favorites"); return; }
+    if (!userId) {
+      toast.error("Sign in to save favorites");
+      return;
+    }
     if (isFav) {
       await supabase.from("favorite_destinations").delete().eq("country_code", destination);
-      setIsFav(false); toast.success("Removed from favorites");
+      setIsFav(false);
+      toast.success("Removed from favorites");
     } else {
-      await supabase.from("favorite_destinations").insert({ user_id: userId, country_code: destination });
-      setIsFav(true); toast.success("Added to favorites");
+      await supabase
+        .from("favorite_destinations")
+        .insert({ user_id: userId, country_code: destination });
+      setIsFav(true);
+      toast.success("Added to favorites");
     }
   };
 
   return (
-    <div className="relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 gradient-hero-bg" aria-hidden />
-      <div className="pointer-events-none absolute -top-16 -right-10 h-52 w-52 rounded-full bg-primary/25 blur-3xl" aria-hidden />
+    <div className="relative overflow-x-hidden">
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-72 gradient-hero-bg"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute -top-16 -right-10 h-52 w-52 rounded-full bg-primary/25 blur-3xl"
+        aria-hidden
+      />
 
       <header className="relative px-6 pt-10">
         <div className="glass inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold text-primary">
@@ -142,7 +190,11 @@ function VisaCheckPage() {
             </label>
             <CountryCombobox
               value={passport}
-              onChange={(v) => { setPassport(v); savePassport(v); setResult(null); }}
+              onChange={(v) => {
+                setPassport(v);
+                savePassport(v);
+                setResult(null);
+              }}
               options={options}
               placeholder="Search passport country..."
             />
@@ -160,7 +212,10 @@ function VisaCheckPage() {
             </label>
             <CountryCombobox
               value={destination}
-              onChange={(v) => { setDestination(v); setResult(null); }}
+              onChange={(v) => {
+                setDestination(v);
+                setResult(null);
+              }}
               options={options}
               placeholder="Search destination..."
             />
@@ -171,7 +226,11 @@ function VisaCheckPage() {
             disabled={!passport || !destination || checking}
             className="mt-2 h-12 w-full rounded-2xl gradient-primary text-sm font-semibold shadow-float transition-transform active:scale-[0.98] hover:shadow-float"
           >
-            {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+            {checking ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <ShieldCheck className="h-4 w-4" />
+            )}
             {checking ? "Checking..." : "Check requirements"}
           </Button>
         </div>
@@ -184,7 +243,10 @@ function VisaCheckPage() {
               <Loader2 className="h-5 w-5 animate-spin" />
             </div>
             <div className="min-w-0 flex-1">
-              <p key={loadingStep} className="animate-fade-up text-sm font-semibold text-foreground">
+              <p
+                key={loadingStep}
+                className="animate-fade-up text-sm font-semibold text-foreground"
+              >
                 {LOADING_STEPS[loadingStep]}
               </p>
               <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-muted">
@@ -228,8 +290,16 @@ function VisaCheckPage() {
               <p className="text-sm leading-relaxed text-foreground">{result.explanation}</p>
 
               <div className="grid grid-cols-2 gap-3">
-                <InfoTile icon={<Clock className="h-4 w-4" />} label="Max stay" value={result.maxStay} />
-                <InfoTile icon={<Globe2 className="h-4 w-4" />} label="Processing" value={result.processingTime} />
+                <InfoTile
+                  icon={<Clock className="h-4 w-4" />}
+                  label="Max stay"
+                  value={result.maxStay}
+                />
+                <InfoTile
+                  icon={<Globe2 className="h-4 w-4" />}
+                  label="Processing"
+                  value={result.processingTime}
+                />
               </div>
 
               <div className="rounded-2xl bg-muted/60 p-4">
@@ -270,9 +340,9 @@ function VisaCheckPage() {
               </Link>
 
               <p className="rounded-2xl bg-muted/60 p-3 text-center text-[10px] leading-relaxed text-muted-foreground">
-                Visa requirements may change at any time. Always verify the latest information
-                with the official embassy, immigration authority or government before making
-                travel arrangements. Source: Passport Index.
+                Visa requirements may change at any time. Always verify the latest information with
+                the official embassy, immigration authority or government before making travel
+                arrangements. Source: Passport Index.
               </p>
             </div>
           </div>
