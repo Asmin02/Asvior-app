@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { computeComboboxViewport } from "@/lib/combobox-viewport";
 
@@ -35,10 +35,11 @@ export function CountryCombobox({
   const [query, setQuery] = useState("");
   const [menuStyle, setMenuStyle] = useState<Record<string, string | number>>({});
   const ref = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const updateMenuPlacement = () => {
+  const updateMenuPlacement = useCallback(() => {
     if (!open || !triggerRef.current || typeof window === "undefined") return;
     const rect = triggerRef.current.getBoundingClientRect();
     const viewport = window.visualViewport;
@@ -62,6 +63,7 @@ export function CountryCombobox({
         top: computed.top + viewportOffsetTop,
         left: computed.left + viewportOffsetLeft,
         width: computed.width,
+        height: computed.maxHeight,
         maxHeight: computed.maxHeight,
         transform: "translateY(calc(-100% - 8px))",
       });
@@ -73,16 +75,17 @@ export function CountryCombobox({
       top: computed.top + viewportOffsetTop,
       left: computed.left + viewportOffsetLeft,
       width: computed.width,
+      height: computed.maxHeight,
       maxHeight: computed.maxHeight,
       transform: "translateY(0)",
     });
-  };
+  }, [open]);
 
   useEffect(() => {
     const onPointerDown = (e: MouseEvent | TouchEvent) => {
       const target = e.target as Node;
       if (ref.current?.contains(target)) return;
-      if (inputRef.current?.closest("[data-country-combobox-menu]")?.contains(target)) return;
+      if (menuRef.current?.contains(target)) return;
       setOpen(false);
     };
     document.addEventListener("mousedown", onPointerDown);
@@ -160,11 +163,12 @@ export function CountryCombobox({
         typeof document !== "undefined" &&
         createPortal(
           <div
+            ref={menuRef}
             data-country-combobox-menu
             style={menuStyle}
-            className="z-50 overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-xl"
+            className="z-50 flex overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-xl"
           >
-            <div className="border-b border-border p-2">
+            <div className="shrink-0 border-b border-border p-2">
               <input
                 ref={inputRef}
                 value={query}
@@ -174,8 +178,12 @@ export function CountryCombobox({
               />
             </div>
             <ul
-              className="overflow-y-auto py-1"
-              style={{ maxHeight: "calc(100% - 44px)", WebkitOverflowScrolling: "touch" }}
+              className="min-h-0 flex-1 overflow-y-auto py-1"
+              style={{
+                WebkitOverflowScrolling: "touch",
+                overscrollBehavior: "contain",
+                touchAction: "pan-y",
+              }}
             >
               {filtered.length === 0 && (
                 <li className="px-3 py-2 text-sm text-muted-foreground">No country found</li>
