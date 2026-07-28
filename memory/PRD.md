@@ -1,5 +1,12 @@
 # Asvior — Audit + Capacitor Android Scaffold
 
+## Session 3 — In-app Play Store review on 3rd visa check
+
+- Added `@capacitor-community/in-app-review@8.0.0` (`npx cap sync android` now reports 6 plugins).
+- **NEW** `src/lib/in-app-review.ts` — counter in `@capacitor/preferences` (native) or `localStorage` (web); on the 3rd success under Capacitor Android it lazy-imports the plugin and calls `InAppReview.requestReview()`; silent no-op on the web and when Play's quota is exhausted; sets a "prompted" flag so the sheet is never re-requested by us.
+- `src/routes/visa-check.tsx` — one-line fire-and-forget call to `recordVisaCheckSuccess()` after a successful `getVisaRequirement` (fires whether or not the user is signed in; positioned after the Supabase `visa_history` insert so we don't wait on network).
+- Regression: `typecheck` 0, `lint` 0, `vitest` 5/5, `build` PASS, `/visa-check` still 200. Web experience unchanged (counter bumps silently in localStorage; no UI change).
+
 ## Session 2 — Capacitor Android added
 
 Original brief: "add Capacitor Android support, fix the previous Android login

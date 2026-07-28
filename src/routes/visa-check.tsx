@@ -27,6 +27,7 @@ import {
   type VisaStatus,
 } from "@/lib/visa";
 import { supabase } from "@/integrations/supabase/client";
+import { recordVisaCheckSuccess } from "@/lib/in-app-review";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/visa-check")({
@@ -140,6 +141,11 @@ function VisaCheckPage() {
         destination_code: destination,
         status: r.status,
       });
+    }
+    if (r) {
+      // Fire-and-forget: bumps the success counter and, on the 3rd hit while
+      // running under Capacitor Android, opens the Play in-app review sheet.
+      recordVisaCheckSuccess().catch(() => undefined);
     }
   };
 
