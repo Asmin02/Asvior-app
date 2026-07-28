@@ -1,4 +1,11 @@
 import { APP_URL, getSiteUrl } from "@/lib/app-info";
+import { isNative } from "@/lib/capacitor-env";
+
+// The custom URL scheme registered by the Android app in
+// android/app/src/main/AndroidManifest.xml. Supabase will redirect email
+// links to this scheme, and MainActivity dispatches them via the
+// `appUrlOpen` listener in `native-init.ts`.
+const NATIVE_APP_URL = "asvior://asvior.app";
 
 function trimTrailingSlashes(value: string): string {
   return value.replace(/\/+$/, "");
@@ -14,6 +21,12 @@ function toSafeUrl(input: string): string {
 }
 
 export function getAuthSiteUrl(): string {
+  // When running inside the Capacitor Android/iOS shell we must return a
+  // redirect URL that will re-open THIS app (via the asvior:// scheme or an
+  // App Link to https://asvior.app). Otherwise Supabase emails send the user
+  // into the mobile browser and the newly-issued session never reaches the
+  // installed app.
+  if (isNative()) return NATIVE_APP_URL;
   return toSafeUrl(getSiteUrl());
 }
 

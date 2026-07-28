@@ -20,6 +20,8 @@ export default tseslint.config(
       "node_modules/.nitro/**",
       "Asvior-app-main",
       "Asvior-app-main/**",
+      "android",
+      "android/**",
       "lint-report.txt",
       "typecheck-report.txt",
       "build-report.txt",

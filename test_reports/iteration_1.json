@@ -1,0 +1,37 @@
+{
+  "summary": "Web-layer regression check after Capacitor Android scaffolding. All web routes (/,  /auth, /reset-password, /visa-check, /countries) render HTTP 200 with zero JS console errors. Unknown routes return 404. /api/health returns 503 with the exact documented JSON shape (AI_GATEWAY_API_KEY:false, AI_GATEWAY_BASE_URL:false, SUPABASE_URL:true, SUPABASE_PUBLISHABLE_KEY:true). /api/chat returns 400 for missing messages and 500 'Missing AI_GATEWAY_API_KEY' for a valid messages array — both matching designed behaviour. All 5 vitest tests across 3 files (auth-redirects, combobox-viewport, runtime-health) pass. Capacitor config, Android build.gradle, AndroidManifest.xml deep-link intent filters, and .gitignore entries all verified.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "endpoint_verification": {
+    "GET /": "200",
+    "GET /auth": "200 (renders sign-in form, email input present, title='Sign in — Asvior')",
+    "GET /reset-password": "200 (title='Reset password — Asvior')",
+    "GET /visa-check": "200 (title='Visa Check — Asvior')",
+    "GET /countries": "200 (title='Explore Countries — Asvior')",
+    "GET /does-not-exist": "404",
+    "GET /api/health": "503 with {ok:false, required:{AI_GATEWAY_API_KEY:false, AI_GATEWAY_BASE_URL:false, SUPABASE_URL:true, SUPABASE_PUBLISHABLE_KEY:true}} — MATCH",
+    "POST /api/chat {}": "400 'Messages are required' — MATCH",
+    "POST /api/chat {messages:[...]}": "500 'Missing AI_GATEWAY_API_KEY' — MATCH (designed behaviour when AI env absent)"
+  },
+  "capacitor_config_verification": {
+    "capacitor.config.ts": "appId=com.asvior.app, appName=Asvior, webDir=dist — OK",
+    "android/app/build.gradle": "applicationId 'com.asvior.app', versionCode 1, versionName '1.0' — OK",
+    "AndroidManifest.xml": "Both intent-filters present: (a) android:scheme='asvior' with autoVerify='false'; (b) autoVerify='true' with data android:scheme='https' android:host='asvior.app' — OK",
+    ".gitignore": "Contains android/local.properties, android/keystore.properties, android/**/*.jks, android/**/*.keystore, android/**/build/, android/app/src/main/assets/public/ — OK"
+  },
+  "vitest_results": "3 files, 5 tests, all passed (auth-redirects, combobox-viewport, runtime-health)",
+  "browser_console_check": "0 JS errors across /, /auth, /reset-password, /visa-check, /countries — Supabase client's isNative branching to localStorage on web is functioning (no 'window is not defined' crashes)",
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Capacitor server.url points to https://asvior.app (production) — so the packaged Android app is a WebView wrapper around prod. This means local dev changes won't appear in the Android build until re-deployed. This is intentional per config comment but should be documented for future contributors.",
+    "detectSessionInUrl=!isNative on native is correct for PKCE deep-link flow; native-init.ts exchange must be robust to double-invocation (App.appUrlOpen can fire on cold-start and warm resume) — recommend guarding with a processed-code set. (Not a regression, forward-looking.)"
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100% (web-layer regression scope only)"},
+  "test_credentials": "N/A — no auth flows exercised per request",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Web dev server started via `cd /app && (nohup npm run dev > /tmp/asvior-dev.log 2>&1 &)` on port 3000. TanStack Start app (not FastAPI). Vitest runs via `npm run test:run`. Android runtime verification is out-of-scope (no SDK/emulator in this container) — the user has been told those are manual. Do NOT sign up real Supabase users."
+}

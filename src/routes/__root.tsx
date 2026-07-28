@@ -12,6 +12,7 @@ import { Home, Plane, CheckSquare, Wallet, User } from "lucide-react";
 
 import appCss from "../styles.css?url";
 import { reportError } from "../lib/error-reporting";
+import { installNativeShell } from "../lib/native-init";
 import { Toaster } from "@/components/ui/sonner";
 import { FloatingAIButton } from "@/components/FloatingAIButton";
 
@@ -202,13 +203,19 @@ function MobileNav() {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
 
   useEffect(() => {
     const theme = localStorage.getItem("vp_theme");
     if (theme === "dark") document.documentElement.classList.add("dark");
     const lang = localStorage.getItem("vp_lang");
     if (lang) document.documentElement.setAttribute("lang", lang);
-  }, []);
+
+    // No-op in the browser. On Capacitor Android/iOS this registers the
+    // appUrlOpen listener that exchanges the reset-password code from a deep
+    // link into a live Supabase session before navigating to /reset-password.
+    installNativeShell(router).catch(() => undefined);
+  }, [router]);
 
   return (
     <QueryClientProvider client={queryClient}>
