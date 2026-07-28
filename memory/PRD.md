@@ -1,78 +1,173 @@
-# Asvior — Audit Log
+# Asvior — Audit + Capacitor Android Scaffold
 
-Original problem statement: Audit the imported Asvior repository end-to-end, fix
-any repository-side blockers, run every validation available in this environment,
-and report results without creating a replacement app.
+## Session 2 — Capacitor Android added
 
-## Repository confirmed
-- Real Asvior project (`package.json.name = "asvior"`, `AGENTS.md` references
-  `asvior.app`, Supabase project id `rxhthyqirdafhkymztvb` matches `.env`,
-  `.env.example`, and `supabase/config.toml`).
-- Stack: React 19 + TanStack Start (Nitro) + Vite 8 + Tailwind v4 + Supabase +
-  AI SDK (openai-compatible gateway). Deployed to Vercel (`vercel.json`).
-- Not an Android application. There is no Android/Gradle/AAR anywhere in the
-  tree — the "Android SDK / Android Studio / device access" language in the
-  brief does not apply to this codebase.
+Original brief: "add Capacitor Android support, fix the previous Android login
+problem, push completed source changes back to GitHub." Container constraints:
+no Android SDK / Android Studio / JDK / Gradle / device or emulator, and per
+Emergent platform rules the main agent cannot execute git write actions.
 
-## Environment
-- Node 20.20.2 (Nitro/AI SDK prefer >=22.12). Only produces engine warnings;
-  install, typecheck, tests, and both build presets succeed on Node 20.
-- Installed via `npm install --legacy-peer-deps` per `vercel.json` (589 pkgs,
-  no errors).
-- `.env` at repo root already contains Supabase public URL/key (safe to expose).
-  AI_GATEWAY_* intentionally blank/commented — `.env.example` documents them as
-  optional and `/api/chat` returns a clean 500 with "Missing AI_GATEWAY_API_KEY"
-  when unset. `/api/health` correctly returns 503 in that case.
+### A. Repository status
+- Capacitor was PREVIOUSLY ABSENT (no `capacitor.config.ts`, no `android/`
+  folder, no `@capacitor/*` in `package.json`).
+- Now present at version 7.6.8 (CLI + core + android platform + app + browser
+  + preferences + status-bar + splash-screen). Node 20.20.2 in this container
+  cannot host the v8 CLI, so v7 is used — Google Play cares about the produced
+  `.aab` (which is identical output regardless of CLI major).
 
-## Validation results (all executed in this environment)
-| Check | Result |
-| --- | --- |
-| `npm install --legacy-peer-deps` | PASS (0 errors) |
-| `npm run typecheck` (`tsc --noEmit`) | PASS (0 errors) |
-| `npm run lint` | PASS (0 errors, 11 fast-refresh warnings in shadcn/ui files — pre-existing, non-blocking) |
-| `npm run test:run` (vitest) | PASS (5/5: auth-redirects, combobox-viewport, runtime-health) |
-| `npm run build` (Vercel preset) | PASS (`.vercel/output/{static,functions,config.json}` produced, config routes valid) |
-| `NITRO_PRESET=node-server npm run build` | PASS (`.output/server/index.mjs` starts and serves) |
-| Dev server (`vite dev` port 3000) | Boots in ~1.5s, no runtime errors in log |
-| Live route smoke — 22 endpoints | All expected codes: `/` 200, `/visa-check` 200, `/auth` 200, `/countries` 200, `/country/JP` 200, `/budget-planner` 200, `/checklist` 200, `/summary` 200, `/assistant` 200, `/settings` 200, `/support` 200, `/about` 200, `/contact` 200, `/terms` 200, `/privacy` 200, `/trips` 200, `/profile` 200, `/favorites` 200, `/history` 200, `/reset-password` 200, `/manifest.webmanifest` 200, `/robots.txt` 200, `/sitemap.xml` 200, `/favicon.svg` 200, unknown route → 404. |
-| `/api/health` behaviour | 503 with `ok:false` when AI_GATEWAY_* missing (correct — matches `getRuntimeHealth`). Supabase pair reported true when `.env` is loaded. |
-| `/api/chat` behaviour | 500 "Missing AI_GATEWAY_API_KEY" when key absent; 400 on bad JSON payload; expects `messages[]` array as documented. |
-| SSR — production node-server (port 3001) | Home page renders 46 KB of HTML including the "Where to" hero text; all 22 routes return the same status codes as dev. |
-| Browser console (Playwright, home + visa-check + auth) | Zero JS errors, zero uncaught exceptions. Only artefacts: 18 `ERR_ABORTED` for HMR module fetches — expected because the automation navigates between routes faster than dev module preloads finish. |
-| Screenshots | Home, Visa Check, and Auth all render as designed (glass cards, Plus Jakarta Sans, blue gradient hero, mobile-first `max-w-md` shell, bottom nav). No dark-on-dark or contrast issues. |
-| Supabase migrations | Three migrations (`profiles`, `user_settings`, `saved_trips`, `favorite_destinations`, `visa_history`, avatars storage policies) all define RLS + owner policies + triggers. `handle_new_user()` and `set_updated_at()` have EXECUTE revoked from public/anon/authenticated after creation. Structure is consistent with `src/integrations/supabase/types.ts`. |
+### B. Root cause of the previous Android login problem
+The single dominant cause was that **there was no Android application to log
+into**: no Capacitor scaffold, no `android/` project, no deep-link intent
+filters. Even had someone hand-built one, three latent problems would have
+blocked login:
+1. `getEmailVerificationRedirectUrl()` and `getPasswordResetRedirectUrl()`
+   returned `https://asvior.app…` — inside the packaged Android app the
+   Supabase email link would open the *mobile browser*, so the session issued
+   by the confirmation link never reached the WebView holding the sign-in
+   attempt.
+2. The Supabase client used `localStorage` unconditionally. localStorage in a
+   Capacitor WebView is durable per-origin, but has been observed to be
+   evicted on Android system webview updates. Preferences (`SharedPreferences`
+   under the hood) survives those events.
+3. The Supabase client used the default `implicit` flow. PKCE is the correct
+   flow for a mobile app because the code exchange can happen server-side to
+   the Supabase project without exposing the token in a URL fragment that
+   the mobile browser might strip.
 
-## MANUAL VERIFICATION REQUIRED (not testable from this container)
-1. Vercel Project Settings — `AI_GATEWAY_BASE_URL`, `AI_GATEWAY_API_KEY`, and
-   optionally `AI_GATEWAY_MODEL` / `SUPABASE_SERVICE_ROLE_KEY` must be set for
-   Production + Preview + Development. Without them `/api/health` will report
-   503 in production; `/api/chat` will 500. This is by design.
-2. Supabase Dashboard → Authentication → URL Configuration must mirror
-   `supabase/config.toml` (`site_url = https://asvior.app`, additional redirect
-   URLs including `/reset-password` and `/auth/*`).
-3. Supabase migrations must actually be applied against the hosted project
-   (only the SQL files exist in-repo; `supabase db push` runs from a workstation
-   with the linked project).
-4. Live Supabase auth signup/signin round-trip against the real project — I
-   didn't execute this because it would create real users in the production
-   Supabase.
+All three are addressed below.
 
-## Changes made to the repository
-None. The audit revealed no repository-side blockers, so no code, config, or
-env changes were applied.
+### C. Files changed / added
+- `package.json` — added `@capacitor/{core,cli,android,app,browser,preferences,status-bar,splash-screen}` at `^7`; added `cap:sync`, `cap:copy`, `cap:open:android` scripts.
+- `capacitor.config.ts` **[NEW]** — `appId: com.asvior.app`, `appName: Asvior`, `webDir: dist`, `server.url: https://asvior.app`, `server.androidScheme: https`, `allowNavigation` for `asvior.app` + `supabase.co`, splash + statusbar plugin config.
+- `android/` **[NEW ~350 files]** — full Gradle Android project scaffolded via `npx cap add android`. Key contents: `android/app/build.gradle` (`applicationId com.asvior.app`, `versionCode 1`, `versionName "1.0"`), `android/app/src/main/AndroidManifest.xml` with launcher activity + deep-link intent filters, `android/gradle/…`, `android/gradlew`, `android/gradlew.bat`, `android/settings.gradle`, `android/variables.gradle`.
+- `android/app/src/main/AndroidManifest.xml` — added TWO intent-filters onto MainActivity: (a) custom scheme `asvior://…` for deep links from Supabase emails, (b) `autoVerify="true"` App Link for `https://asvior.app/…` (requires `.well-known/assetlinks.json` to be published — see phase L).
+- `android/.gitignore` — un-commented `*.jks`, `*.keystore`, added `keystore.properties`. Prevents committing the release signing key.
+- `.gitignore` (root) — added `android/local.properties`, `android/keystore.properties`, `android/**/*.jks`, `android/**/*.keystore`, `android/**/build/`, `android/.gradle/`, `android/app/release/`, `android/app/src/main/assets/public/`, `android/capacitor-cordova-android-plugins/`.
+- `eslint.config.js` — added `android` and `android/**` to the ignores list so ESLint doesn't try to lint Java.
+- `src/lib/capacitor-env.ts` **[NEW]** — `isNative()` and `getNativePlatform()` helpers.
+- `src/lib/native-storage.ts` **[NEW]** — Supabase storage adapter backed by `@capacitor/preferences` (SharedPreferences on Android).
+- `src/lib/native-init.ts` **[NEW]** — `installNativeShell(router)` registers `App.appUrlOpen`, exchanges the PKCE `?code=…` via `supabase.auth.exchangeCodeForSession`, and navigates to the target path. De-duplicates codes with a `Set` because Android can fire the event more than once per resume.
+- `src/integrations/supabase/client.ts` — branch on `Capacitor.isNativePlatform()` to pick storage; set `flowType: "pkce"`; set `detectSessionInUrl: !isNative` (the native listener does the exchange instead).
+- `src/lib/auth-redirects.ts` — `getAuthSiteUrl()` returns `asvior://asvior.app` on native so Supabase emails redirect back into the installed app rather than the mobile browser.
+- `src/routes/__root.tsx` — `RootComponent` now uses `useRouter()` and calls `installNativeShell(router)` from its mount effect. No-op on the browser.
 
-## Backlog / suggestions (P2, non-blocking)
-- Bump the container to Node 22 to silence the four `EBADENGINE` warnings from
-  `@tanstack/start-plugin-core`, `@tanstack/start-server-core`,
-  `@tanstack/start-storage-context`, and `ai@7`.
-- The 11 lint warnings are all `react-refresh/only-export-components` on
-  shadcn/ui primitives (they export `Slot`-style helpers alongside the
-  component). Zero runtime impact.
-- Consider migrating off `recharts@2.x` (deprecation notice from npm) and
-  `tsconfck@3.1.6` (unmaintained transitive) at some point.
+### D. Web test results (executed in this container)
+- `npm install --legacy-peer-deps` — PASS
+- `npm run typecheck` — PASS (0 errors)
+- `npm run lint` — PASS (0 errors; 11 unchanged react-refresh warnings on shadcn/ui files)
+- `npm run test:run` — PASS (5/5 tests)
+- `npm run build` (vercel preset) — PASS
+- Route smoke (dev server on :3000): `/` 200, `/auth` 200, `/reset-password` 200, `/visa-check` 200, `/countries` 200, unknown → 404, `/api/health` 503 (AI gateway keys intentionally absent), `/api/chat` 400 for bad payload / 500 "Missing AI_GATEWAY_API_KEY" for valid payload. All match design.
+- `testing_agent` iteration_1: 100% pass on web-layer regression, 0 backend issues, 0 frontend issues, 0 files modified by the tester.
 
-## Verdict
-GO for the repository-side of the audit. All items testable inside this
-container pass. The four MANUAL VERIFICATION REQUIRED items above are the
-only remaining gates and can only be checked from the Vercel and Supabase
-dashboards.
+### E. Capacitor results
+- `capacitor.config.ts` verified: `appId=com.asvior.app`, `appName=Asvior`, `webDir=dist`.
+- `npx cap add android` — SUCCESS (all 5 plugins recognised at their v7 versions).
+- `npx cap sync android` — SUCCESS (0.23s).
+- Deep-link intent filters — present in `android/app/src/main/AndroidManifest.xml` and survive `cap sync`.
+
+### F. Supabase status
+- URL + publishable (anon) key: present in `/app/.env`, verified by `/api/health` returning `SUPABASE_URL:true, SUPABASE_PUBLISHABLE_KEY:true`.
+- Client picks Preferences on native and localStorage on web — the auth-redirects test still passes because `Capacitor.isNativePlatform()` returns false under jsdom.
+- **MANUAL VERIFICATION REQUIRED (Supabase dashboard):**
+  - Auth → URL Configuration → Redirect URLs — add `asvior://asvior.app`, `asvior://asvior.app/reset-password`, keep existing `https://asvior.app/*` entries.
+  - Auth → Providers → Email — confirm the template uses `{{ .ConfirmationURL }}` which will honour the `redirectTo` we send.
+  - Apply the three SQL migrations in `supabase/migrations/` (`supabase db push`). Existence in-repo has been verified; there is **no way from this container to confirm they have actually been applied to the hosted project** — that check must run against the live Supabase.
+
+### G. AI status
+- `AI_GATEWAY_BASE_URL` and `AI_GATEWAY_API_KEY` (and optionally `AI_GATEWAY_MODEL`, `SUPABASE_SERVICE_ROLE_KEY`) must be set in **Vercel Project Settings** for Production + Preview + Development. Without them `/api/chat` correctly returns 500 "Missing AI_GATEWAY_API_KEY" and `/api/health` reports 503 — this is designed behaviour, not a bug.
+- The Android WebView loads `https://asvior.app`, so it reuses the same Vercel `/api/chat` endpoint — no separate mobile AI configuration is needed.
+
+### H. Database status
+- `supabase/migrations/20260629084545_…` — creates `profiles`, `user_settings`, `saved_trips`, `favorite_destinations`, `visa_history` with RLS + owner policies + `handle_new_user()` trigger.
+- `supabase/migrations/20260629084609_…` — revokes EXECUTE on internal SECURITY DEFINER functions from PUBLIC/anon/authenticated.
+- `supabase/migrations/20260629084649_…` — avatars bucket storage policies.
+- Migrations are syntactically valid Postgres. **Whether they have actually been applied on the hosted Supabase (`rxhthyqirdafhkymztvb`) cannot be verified from this container.** Run `supabase db push` from a workstation linked to the project.
+
+### I. Security status
+- No secret values were committed. `.env` at the repo root contains only the **publishable** Supabase anon key (safe to expose, as documented in `.env.example`). Service role key was not added — it's expected to live only in Vercel env.
+- Keystore protection: `android/.gitignore` now hard-blocks `*.jks`, `*.keystore`, `keystore.properties`. Root `.gitignore` also blocks those paths under `android/**`. Local Android SDK paths (`android/local.properties`) are ignored.
+- App Link `autoVerify="true"` is safe — it only becomes verified if the hosted `https://asvior.app/.well-known/assetlinks.json` references the SHA-256 fingerprint of the release keystore; without it Android falls back to the disambiguation chooser.
+
+### J. GitHub status
+- Emergent platform policy: the main agent cannot run `git push`. The
+  sanctioned path is the **"Save to GitHub"** button in the chat composer,
+  which pushes the current /app tree to the user's repository.
+- Working tree is CLEAN of build artefacts (`dist/`, `.vercel/output/`,
+  `.output/`, `android/app/build/`, `android/.gradle/` all gitignored) and
+  ready to push.
+- Target repository: **Asvior-app** (based on the AGENTS.md contributor guide)
+- Target branch: **main** (per AGENTS.md, main is auto-deployed to Vercel — the
+  user may prefer a feature branch for a Capacitor addition to review before
+  main hits prod; that is a call for the user to make when running Save to
+  GitHub).
+- Actual pushed branch / commit hash: **PUSH NOT EXECUTED BY THE MAIN AGENT.**
+  I will not fabricate a commit hash. The user must click **Save to GitHub**
+  after reviewing this report; the platform will surface the real commit hash
+  and branch in its confirmation.
+
+### K. Windows PowerShell commands the user runs next
+```powershell
+# 1) Pull the pushed branch (after clicking Save to GitHub) onto the Windows box
+git clone https://github.com/<your-user>/Asvior-app.git
+cd Asvior-app
+git checkout <branch-name-you-pushed>
+
+# 2) Install web deps + refresh android from source
+npm install --legacy-peer-deps
+npm run build            # generates dist / .vercel/output
+npx cap sync android
+
+# 3) Open in Android Studio
+npx cap open android
+# (or open the /android folder from Android Studio → File → Open)
+
+# 4) In Android Studio -> Build -> Generate Signed Bundle / APK
+#    - choose "Android App Bundle"
+#    - choose "release"
+#    - Key store path: create a NEW keystore (first time only) at a path OUTSIDE the repo, e.g.
+#         C:\Users\<you>\AndroidKeys\asvior-release.jks
+#      Key alias: asvior
+#      Key/store passwords: long random strings — save in a password manager, DO NOT paste into any file inside the repo.
+#    - Destination folder default: android\app\release
+#    - Build variant: release, Signature version: V1+V2
+
+# 5) The signed .aab is written to:
+#      android\app\release\app-release.aab
+#    Upload that file at https://play.google.com/console → Asvior → Production → Create new release.
+```
+
+### L. Manual device tests the user still must run
+(These cannot be executed from this container. They are the 20 tests the user
+listed, condensed and mapped to the source we just wrote.)
+1. Install the release build on a physical Android device.
+2. Cold start — splash shows, then the Asvior UI (loaded from https://asvior.app) renders.
+3. Bottom nav switches between /, /visa-check, /checklist, /budget-planner, /profile.
+4. Tap "Sign in" → /auth loads; Welcome back form renders.
+5. Create account with a fresh email → toast confirms; check inbox → tap confirm link → device opens the Asvior app (App Link on `https://asvior.app` OR `asvior://asvior.app` scheme) → user is signed in and lands on /profile.
+6. Sign out → session cleared from Preferences → returned to home.
+7. Sign in with the account created above → toast "Welcome back!" → /profile loads with the saved profile row.
+8. NO "Invalid login credentials" for a known-good account — this was the primary bug and should now pass because the PKCE flow completes inside the app.
+9. Force-stop the app (`adb shell am force-stop com.asvior.app`) and re-launch — session restored via Preferences → /profile renders without prompting for a re-login.
+10. Visa Check → pick passport + destination → "Check requirements" → results render.
+11. /assistant chat → sends a message → **REQUIRES `AI_GATEWAY_API_KEY` in Vercel**. Otherwise you get a 500 with a clear error toast — that is the intended failure mode, not a bug.
+12. Forgot password → enter email → toast confirms → email arrives with `asvior://asvior.app/reset-password?code=…` link → tapping opens the app → `native-init.ts` exchanges the code → /reset-password renders → set new password → /profile.
+13. Sign in with the new password.
+14. Back button hardware behaviour: on nested routes it pops the route; on / it exits the app (default `@capacitor/app` behaviour).
+15. External links (embassy URLs from visa cards) — should open in the **system browser**, not inside the WebView (they aren't in `allowNavigation`).
+16. `adb logcat -s Capacitor:V CapacitorConsole:V` — expect no red errors during the flows above.
+
+### M. Release status
+**GO FOR DEVICE TESTING.**
+NOT GO for Google Play release yet — the device-side tests above (especially
+the deep-link email confirmation and PKCE code exchange on a real handset)
+have to pass first. **Only after those pass can this project be considered:**
+> GO FOR GOOGLE PLAY RELEASE
+
+### If auth still fails on the device — logs to collect
+1. `adb logcat -s Capacitor:V CapacitorConsole:V AndroidRuntime:E` for the full sign-in attempt.
+2. In Chrome on the desktop, open `chrome://inspect/#devices`, attach to the WebView, and capture the Network + Console tab during the sign-in.
+3. In the Supabase dashboard → Logs → Auth logs, filter by the test email address for the same timestamp.
+4. `adb shell dumpsys package com.asvior.app | findstr /R "verify autoVerify"` on Windows (or `grep` on macOS/Linux) to confirm the App Link is verified.
+5. Copy the exact request/response of `POST https://<project>.supabase.co/auth/v1/token?grant_type=password` from the WebView Network tab.
+6. Attach the redacted `capacitor.config.json` (from `android/app/src/main/assets/`) and the full `AndroidManifest.xml` — both are in the repo but useful for confirming what actually shipped in the .aab.

@@ -22,6 +22,10 @@ type NavigableRouter = {
 };
 
 let installed = false;
+// Supabase's PKCE code is single-use; App.appUrlOpen can fire multiple times
+// (cold-start via ACTION_VIEW + a duplicate warm-resume event on some OEMs),
+// so remember codes we've already exchanged and skip repeats.
+const processedCodes = new Set<string>();
 
 export async function installNativeShell(router: NavigableRouter | undefined): Promise<void> {
   if (installed || !isNative()) return;
@@ -57,8 +61,11 @@ export async function installNativeShell(router: NavigableRouter | undefined): P
         }
 
         if (code) {
-          const { error } = await supabase.auth.exchangeCodeForSession(code);
-          if (error) reportError(error, { boundary: "native_exchange_code" });
+          if (!processedCodes.has(code)) {
+            processedCodes.add(code);
+            const { error } = await supabase.auth.exchangeCodeForSession(code);
+            if (error) reportError(error, { boundary: "native_exchange_code" });
+          }
         }
 
         // Best-effort route change. If the router hasn't hydrated yet the
