@@ -42,3 +42,10 @@ android/.gradle/
 android/app/release/
 android/app/src/main/assets/public/
 android/capacitor-cordova-android-plugins/
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials

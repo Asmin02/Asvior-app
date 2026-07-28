@@ -7,6 +7,14 @@ import { isNative } from "@/lib/capacitor-env";
 // `appUrlOpen` listener in `native-init.ts`.
 const NATIVE_APP_URL = "asvior://asvior.app";
 
+// Canonical auth callback path. Both the web app and the Capacitor Android
+// deep-link handler resolve here first, exchange the PKCE code for a session,
+// then forward the user to /profile (or /reset-password for recovery links).
+// Consolidating on a single path means Supabase's redirect_to always lands
+// somewhere we control — even if a stale preview URL is still sitting in the
+// user's mobile browser history.
+export const AUTH_CALLBACK_PATH = "/auth/callback";
+
 function trimTrailingSlashes(value: string): string {
   return value.replace(/\/+$/, "");
 }
@@ -22,26 +30,25 @@ function toSafeUrl(input: string): string {
 
 export function getAuthSiteUrl(): string {
   // When running inside the Capacitor Android/iOS shell we must return a
-  // redirect URL that will re-open THIS app (via the asvior:// scheme or an
-  // App Link to https://asvior.app). Otherwise Supabase emails send the user
-  // into the mobile browser and the newly-issued session never reaches the
-  // installed app.
+  // redirect URL that will re-open THIS app (via the asvior:// scheme).
+  // Otherwise Supabase emails send the user into the mobile browser and the
+  // newly-issued session never reaches the installed app.
   if (isNative()) return NATIVE_APP_URL;
   return toSafeUrl(getSiteUrl());
 }
 
 export function getEmailVerificationRedirectUrl(): string {
-  return getAuthSiteUrl();
+  return `${getAuthSiteUrl()}${AUTH_CALLBACK_PATH}`;
 }
 
 export function getPasswordResetRedirectUrl(): string {
-  return `${getAuthSiteUrl()}/reset-password`;
+  return `${getAuthSiteUrl()}${AUTH_CALLBACK_PATH}?type=recovery`;
 }
 
 export function getMagicLinkRedirectUrl(): string {
-  return getAuthSiteUrl();
+  return `${getAuthSiteUrl()}${AUTH_CALLBACK_PATH}`;
 }
 
 export function getOAuthRedirectUrl(): string {
-  return `${getAuthSiteUrl()}/auth`;
+  return `${getAuthSiteUrl()}${AUTH_CALLBACK_PATH}`;
 }

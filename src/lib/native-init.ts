@@ -7,14 +7,12 @@
 //
 // What it wires up:
 // 1. appUrlOpen — catches deep links (asvior://... and App Links to
-//    https://asvior.app/...) so the Supabase session in a password-reset
-//    email can be applied inside the app rather than in the mobile browser.
-// 2. Session-token handoff — Supabase's PKCE reset link carries
-//    `?code=<code>` or a hash fragment. We exchange it via
-//    supabase.auth.exchangeCodeForSession, then route to /reset-password.
-// 3. StatusBar + SplashScreen niceties for a polished first paint.
+//    https://asvior.app/...) and forwards the path to the router. The heavy
+//    lifting (exchanging the Supabase PKCE code for a session) is done by
+//    the canonical `/auth/callback` route so we have one code path shared
+//    with the web.
+// 2. StatusBar + SplashScreen niceties for a polished first paint.
 import { isNative } from "@/lib/capacitor-env";
-import { supabase } from "@/integrations/supabase/client";
 import { reportError } from "@/lib/error-reporting";
 
 type NavigableRouter = {
@@ -22,10 +20,6 @@ type NavigableRouter = {
 };
 
 let installed = false;
-// Supabase's PKCE code is single-use; App.appUrlOpen can fire multiple times
-// (cold-start via ACTION_VIEW + a duplicate warm-resume event on some OEMs),
-// so remember codes we've already exchanged and skip repeats.
-const processedCodes = new Set<string>();
 
 export async function installNativeShell(router: NavigableRouter | undefined): Promise<void> {
   if (installed || !isNative()) return;
@@ -41,36 +35,20 @@ export async function installNativeShell(router: NavigableRouter | undefined): P
     await StatusBar.setStyle({ style: Style.Dark }).catch(() => undefined);
     await SplashScreen.hide().catch(() => undefined);
 
-    App.addListener("appUrlOpen", async (event) => {
+    App.addListener("appUrlOpen", (event) => {
       try {
         const rawUrl = event.url ?? "";
         if (!rawUrl) return;
 
-        // Both asvior://reset-password?code=... and
-        // https://asvior.app/reset-password?code=... need to end up on the
-        // in-app reset-password route with a live session applied.
+        // Accepts:
+        //   asvior://asvior.app/auth/callback?code=...
+        //   asvior:///auth/callback?code=...      (host optional)
+        //   https://asvior.app/auth/callback?code=...
+        // We only need the path/query part — the callback route does the
+        // Supabase code exchange itself.
         const url = new URL(rawUrl);
-        const code = url.searchParams.get("code");
-        const errorParam = url.searchParams.get("error_description");
         const path = `${url.pathname || "/"}${url.search || ""}${url.hash || ""}`;
 
-        if (errorParam) {
-          reportError(new Error(`Deep link error: ${errorParam}`), {
-            boundary: "native_app_url_open",
-          });
-        }
-
-        if (code) {
-          if (!processedCodes.has(code)) {
-            processedCodes.add(code);
-            const { error } = await supabase.auth.exchangeCodeForSession(code);
-            if (error) reportError(error, { boundary: "native_exchange_code" });
-          }
-        }
-
-        // Best-effort route change. If the router hasn't hydrated yet the
-        // WebView will already be loading the same URL from server.url so the
-        // client just no-ops.
         if (router?.navigate) {
           Promise.resolve(router.navigate({ to: path, replace: true })).catch(() => undefined);
         }

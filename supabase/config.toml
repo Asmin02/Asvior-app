@@ -8,9 +8,15 @@ site_url = "https://asvior.app"
 additional_redirect_urls = [
   "https://asvior.app",
   "https://asvior.app/*",
+  "https://asvior.app/auth/callback",
+  "https://asvior.app/auth/callback?type=recovery",
   "https://asvior.app/reset-password",
   "https://asvior.app/auth",
   "https://asvior.app/auth/*",
+  "asvior://asvior.app",
+  "asvior://asvior.app/*",
+  "asvior://asvior.app/auth/callback",
+  "asvior://asvior.app/auth/callback?type=recovery",
 ]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
