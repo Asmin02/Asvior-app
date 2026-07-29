@@ -1,4 +1,4 @@
-import { APP_URL, getSiteUrl } from "@/lib/app-info";
+import { APP_URL } from "@/lib/app-info";
 import { isNative } from "@/lib/capacitor-env";
 
 // The custom URL scheme registered by the Android app in
@@ -15,18 +15,12 @@ const NATIVE_APP_URL = "asvior://asvior.app";
 // user's mobile browser history.
 export const AUTH_CALLBACK_PATH = "/auth/callback";
 
-function trimTrailingSlashes(value: string): string {
-  return value.replace(/\/+$/, "");
-}
-
-function toSafeUrl(input: string): string {
-  try {
-    const parsed = new URL(input);
-    return trimTrailingSlashes(`${parsed.protocol}//${parsed.host}`);
-  } catch {
-    return APP_URL;
-  }
-}
+// Canonical web origin for ALL Supabase auth redirects. Hard-coded so that
+// no stale environment variable, no stale window.location.origin, and no
+// stale Vercel preview URL can ever cause a signup confirmation email to
+// land on the wrong deployment (e.g. an old Lovable preview). This is the
+// single source of truth for the URL Supabase emails send users back to.
+const AUTH_WEB_ORIGIN = APP_URL;
 
 export function getAuthSiteUrl(): string {
   // When running inside the Capacitor Android/iOS shell we must return a
@@ -34,7 +28,7 @@ export function getAuthSiteUrl(): string {
   // Otherwise Supabase emails send the user into the mobile browser and the
   // newly-issued session never reaches the installed app.
   if (isNative()) return NATIVE_APP_URL;
-  return toSafeUrl(getSiteUrl());
+  return AUTH_WEB_ORIGIN;
 }
 
 export function getEmailVerificationRedirectUrl(): string {

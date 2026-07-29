@@ -1,5 +1,69 @@
 # Asvior — Audit + Capacitor Android Scaffold
 
+## Session 4 — Final launch fix (auth redirect hardening)
+
+Reported bug (physical device test): tapping "Verify Email" in a Supabase
+signup confirmation opened an OLD Lovable-hosted version of Asvior instead
+of `https://asvior.app`.
+
+### Root cause
+The runtime auth-redirect code in this repo was **already** locked to
+`https://asvior.app`, but the previous helper resolved the web origin
+through `getSiteUrl()` — which consulted the `VITE_SITE_URL` env variable
+FIRST. If a Vercel env inherited from a previous deployment (or a stale
+preview build) had `VITE_SITE_URL` set to a Lovable/preview URL, that
+value would leak into every `emailRedirectTo` / `redirectTo` Supabase sent.
+Even without that env in play, the CURRENT Supabase Dashboard on the user's
+project only allow-listed `asvior://asvior.app` and
+`asvior://asvior.app/reset-password` — meaning the web callback URL
+`https://asvior.app/auth/callback` was NOT in the redirect allow-list and
+Supabase fell back to whatever Site URL/email template had been set
+(historically a Lovable-hosted URL, if the email template was ever
+customised on the dashboard).
+
+### Fixes shipped
+- `src/lib/auth-redirects.ts` — `getAuthSiteUrl()` now returns the
+  compile-time constant `APP_URL` (`https://asvior.app`) directly on web,
+  and `NATIVE_APP_URL` (`asvior://asvior.app`) directly on native. It no
+  longer reads `getSiteUrl()` or any env var, so a stale `VITE_SITE_URL`
+  (or a stale `window.location.origin` on a preview subdomain) cannot leak
+  into a Supabase confirmation link.
+- `src/lib/auth-redirects.test.ts` — added a second test case that
+  explicitly sets `process.env.VITE_SITE_URL = "https://legacy-lovable-preview.example.com"`
+  and asserts that every auth redirect still resolves to `https://asvior.app`.
+- `src/lib/app-info.ts` — updated the docstring on `getSiteUrl()` to state
+  that it is NOT used for auth redirects any more (only for og:image and
+  canonical link tags).
+- **NEW** `SUPABASE_SETUP.md` — checklist of the exact Supabase dashboard
+  values the user must set, including the 8 redirect URLs the code will
+  send (Site URL, `https://asvior.app/auth/callback`,
+  `https://asvior.app/auth/callback?type=recovery`, `https://asvior.app/reset-password`,
+  and the 4 corresponding `asvior://…` variants), plus a warning to reset
+  the "Confirm signup" and "Reset password" email templates to the default
+  `{{ .ConfirmationURL }}` placeholder in case a Lovable URL was
+  hard-coded.
+
+### Validation (this session)
+- `npm run typecheck` — PASS (0 errors)
+- `npm run lint` — PASS (0 errors; 11 pre-existing react-refresh warnings on
+  shadcn/ui files, unchanged)
+- `npm run test:run` — PASS (6/6 tests across 3 files, including the new
+  stale-env assertion)
+- `npm run build` — PASS (vercel preset, TanStack Start SSR bundle emitted)
+- `npx cap sync android` — PASS (6 plugins registered, `capacitor.config.json`
+  regenerated with `server.url=https://asvior.app`)
+
+### What remains manual (user)
+1. Supabase Dashboard → Auth → URL Configuration → **add all 8 redirect
+   URLs** listed in `SUPABASE_SETUP.md`.
+2. Supabase Dashboard → Auth → Email Templates → **Reset to default** for
+   "Confirm signup" and "Reset password" so the button uses
+   `{{ .ConfirmationURL }}` (guarantees no baked-in Lovable URL).
+3. Save to GitHub (Emergent chat composer button) to push `main`.
+4. Wait for Vercel to redeploy `https://asvior.app`.
+5. Fresh signup with a NEW email address — old confirmation links carry
+   the OLD redirect_to and cannot be used as a regression signal.
+
 ## Session 3 — In-app Play Store review on 3rd visa check
 
 - Added `@capacitor-community/in-app-review@8.0.0` (`npx cap sync android` now reports 6 plugins).

@@ -5,17 +5,17 @@ export const HELLO_EMAIL = "hello@asvior.app";
 export const SUPPORT_EMAIL = "support@asvior.app";
 
 /**
- * Returns the canonical site URL used for auth redirects, deep links, and
- * shared metadata. Priority:
- *   1. VITE_SITE_URL env (set explicitly in Vercel)
+ * Returns the canonical site URL used for deep links and shared metadata
+ * (og:image, canonical link tags, etc.). Priority:
+ *   1. VITE_SITE_URL env (set explicitly in Vercel for staging previews)
  *   2. APP_URL (compile-time constant — the source of truth)
  *   3. window.location.origin (last-resort fallback for local dev only)
  *
- * The reason APP_URL comes BEFORE window.location.origin is that we must
- * never construct a Supabase auth redirect that points at whatever URL the
- * user happens to have open — including stale preview builds, old CNAMEs
- * inherited from a previous hoster, or a Vercel preview subdomain. Auth
- * redirects always come home to https://asvior.app.
+ * NOTE: This is NOT used for Supabase auth redirects — those are locked to
+ * APP_URL directly in `src/lib/auth-redirects.ts` so that no environment
+ * mis-configuration (e.g. a stale VITE_SITE_URL inherited from a previous
+ * hoster like Lovable) can ever cause a confirmation email to point at the
+ * wrong deployment.
  */
 export function getSiteUrl(): string {
   const envUrl =
