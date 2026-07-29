@@ -117,7 +117,7 @@ Set for **Production**, **Preview**, **Development** (unless noted):
 | `SUPABASE_PUBLISHABLE_KEY` | same as `VITE_SUPABASE_PUBLISHABLE_KEY` | all |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Settings → API → `service_role` key | **Production only** |
 | `OPENROUTER_API_KEY` | your key from <https://openrouter.ai/keys> | all |
-| `OPENROUTER_MODEL` *(optional)* | e.g. `google/gemini-2.0-flash-001` (default), or `openai/gpt-4o-mini`, `anthropic/claude-3.5-sonnet` | all |
+| `OPENROUTER_MODEL` *(optional)* | e.g. `openrouter/free` (default — OpenRouter's free-tier auto-router), or `openai/gpt-4o-mini`, `anthropic/claude-3.5-sonnet` | all |
 | `OPENROUTER_SITE_URL` *(optional)* | `https://asvior.app` (used for OpenRouter attribution) | all |
 
 **Delete** the following stale Vercel envs if they exist — the code no

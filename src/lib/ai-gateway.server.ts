@@ -22,7 +22,12 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 
 const OPENROUTER_DEFAULT_BASE_URL = "https://openrouter.ai/api/v1";
-const OPENROUTER_DEFAULT_MODEL = "google/gemini-2.0-flash-001";
+// OpenRouter's free auto-router. Picks a working free-tier model at
+// request time so we do NOT hard-code a specific model id that OpenRouter
+// might retire (this was the cause of the production 404
+// "No endpoints found for google/gemini-2.0-flash-001"). Override with
+// OPENROUTER_MODEL in Vercel to target a specific paid model.
+const OPENROUTER_DEFAULT_MODEL = "openrouter/free";
 const OPENROUTER_DEFAULT_SITE = "https://asvior.app";
 const OPENROUTER_DEFAULT_APP_NAME = "Asvior";
 
@@ -42,7 +47,12 @@ export function getOpenRouterApiKey(): string | undefined {
 }
 
 export function getOpenRouterModel(): string {
-  return process.env.OPENROUTER_MODEL || process.env.AI_GATEWAY_MODEL || OPENROUTER_DEFAULT_MODEL;
+  // Trim so an accidental " openrouter/free" or trailing newline in Vercel
+  // env still resolves cleanly. Empty string is treated as "not set" so
+  // clearing the env var falls back to the default rather than sending an
+  // empty model id to OpenRouter.
+  const override = process.env.OPENROUTER_MODEL?.trim() || process.env.AI_GATEWAY_MODEL?.trim();
+  return override || OPENROUTER_DEFAULT_MODEL;
 }
 
 export function createAsviorAiGatewayProvider(apiKey: string) {
