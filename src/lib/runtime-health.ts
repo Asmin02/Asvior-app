@@ -3,8 +3,7 @@ export type RuntimeHealth = {
   service: string;
   environment: string;
   required: {
-    AI_GATEWAY_API_KEY: boolean;
-    AI_GATEWAY_BASE_URL: boolean;
+    OPENROUTER_API_KEY: boolean;
     SUPABASE_URL: boolean;
     SUPABASE_PUBLISHABLE_KEY: boolean;
   };
@@ -12,8 +11,9 @@ export type RuntimeHealth = {
 
 export function getRuntimeHealth(env: Record<string, string | undefined>): RuntimeHealth {
   const required = {
-    AI_GATEWAY_API_KEY: Boolean(env.AI_GATEWAY_API_KEY),
-    AI_GATEWAY_BASE_URL: Boolean(env.AI_GATEWAY_BASE_URL),
+    // Accept the OpenRouter-native name first, then the legacy AI_GATEWAY
+    // name so /api/health does not flap during a partial Vercel rollout.
+    OPENROUTER_API_KEY: Boolean(env.OPENROUTER_API_KEY || env.AI_GATEWAY_API_KEY),
     SUPABASE_URL: Boolean(env.SUPABASE_URL || env.VITE_SUPABASE_URL),
     SUPABASE_PUBLISHABLE_KEY: Boolean(
       env.SUPABASE_PUBLISHABLE_KEY || env.VITE_SUPABASE_PUBLISHABLE_KEY,
