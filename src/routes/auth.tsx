@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link, Outlet, useLocation } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Plane, Mail, Lock, User as UserIcon, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,9 +22,15 @@ export const Route = createFileRoute("/auth")({
 
 type Mode = "signin" | "signup" | "forgot";
 
+export function shouldBypassAuthPage(pathname: string): boolean {
+  return pathname !== "/auth" && pathname.startsWith("/auth/");
+}
+
 function AuthPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const search = Route.useSearch();
+  const shouldRenderChildRoute = shouldBypassAuthPage(location.pathname);
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,6 +39,8 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    if (shouldRenderChildRoute) return;
+
     let cancelled = false;
     supabase.auth.getSession().then(({ data }) => {
       if (cancelled) return;
@@ -46,13 +54,18 @@ function AuthPage() {
       cancelled = true;
       sub.subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, shouldRenderChildRoute]);
 
   useEffect(() => {
+    if (shouldRenderChildRoute) return;
     if (!search.message) return;
     toast.success(search.message);
     navigate({ to: "/auth", search: {}, replace: true });
-  }, [navigate, search.message]);
+  }, [navigate, search.message, shouldRenderChildRoute]);
+
+  if (shouldRenderChildRoute) {
+    return <Outlet />;
+  }
 
   const handle = async (e: React.FormEvent) => {
     e.preventDefault();

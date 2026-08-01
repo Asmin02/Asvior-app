@@ -66,10 +66,9 @@ function ResetPasswordPage() {
       if (typeof window !== "undefined") {
         sessionStorage.removeItem(RECOVERY_SESSION_FLAG);
       }
-      await supabase.auth.signOut();
+      toast.success("Password updated successfully.");
       navigate({
-        to: "/auth",
-        search: { message: "Password updated successfully" },
+        to: "/profile",
         replace: true,
       });
     } catch (err) {
