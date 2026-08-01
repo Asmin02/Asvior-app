@@ -8,6 +8,9 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (search: Record<string, unknown>): { message?: string } => ({
+    message: typeof search.message === "string" ? search.message : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Sign in — Asvior" },
@@ -21,6 +24,7 @@ type Mode = "signin" | "signup" | "forgot";
 
 function AuthPage() {
   const navigate = useNavigate();
+  const search = Route.useSearch();
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,6 +47,12 @@ function AuthPage() {
       sub.subscription.unsubscribe();
     };
   }, [navigate]);
+
+  useEffect(() => {
+    if (!search.message) return;
+    toast.success(search.message);
+    navigate({ to: "/auth", search: {}, replace: true });
+  }, [navigate, search.message]);
 
   const handle = async (e: React.FormEvent) => {
     e.preventDefault();

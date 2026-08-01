@@ -1,0 +1,1 @@
+var e=`/assets/region-europe-CZC2pahk.jpg`,t=`/assets/region-asia-DTz-RaOn.jpg`,n=`/assets/region-africa-BVKT-uIk.jpg`,r=`/assets/region-americas-CV8BLySF.jpg`,i=`/assets/region-oceania-DDDwRRIB.jpg`,a=`/assets/region-middle-east-C7MWVOFG.jpg`;export{t as a,n as i,i as n,e as o,r,a as t};

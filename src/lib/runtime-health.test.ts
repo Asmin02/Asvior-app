@@ -3,7 +3,7 @@ import { getRuntimeHealth } from "@/lib/runtime-health";
 describe("runtime health", () => {
   it("fails when the OpenRouter key is missing", () => {
     const health = getRuntimeHealth({
-      SUPABASE_URL: "https://rxhthyqirdafhkymztvb.supabase.co",
+      SUPABASE_URL: "https://ehfziddmhssffdvcxgzi.supabase.co",
       SUPABASE_PUBLISHABLE_KEY: "sb_publishable_x",
       NODE_ENV: "production",
     });
@@ -15,7 +15,7 @@ describe("runtime health", () => {
   it("passes when all production env vars are present", () => {
     const health = getRuntimeHealth({
       OPENROUTER_API_KEY: "secret",
-      SUPABASE_URL: "https://rxhthyqirdafhkymztvb.supabase.co",
+      SUPABASE_URL: "https://ehfziddmhssffdvcxgzi.supabase.co",
       SUPABASE_PUBLISHABLE_KEY: "sb_publishable_x",
       VERCEL_ENV: "production",
     });

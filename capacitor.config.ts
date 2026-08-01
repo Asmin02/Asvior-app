@@ -23,7 +23,6 @@ const config: CapacitorConfig = {
     allowNavigation: [
       "asvior.app",
       "*.asvior.app",
-      "rxhthyqirdafhkymztvb.supabase.co",
       "*.supabase.co",
     ],
   },

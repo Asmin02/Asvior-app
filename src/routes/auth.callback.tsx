@@ -5,6 +5,19 @@ import { Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+const RECOVERY_SESSION_FLAG = "asvior_recovery_in_progress";
+
+export function inferAuthFlowType(
+  searchType?: string,
+  hashFragment?: string,
+): "recovery" | "other" {
+  if (searchType === "recovery") return "recovery";
+  if (!hashFragment) return "other";
+  const hash = hashFragment.startsWith("#") ? hashFragment.slice(1) : hashFragment;
+  const hashParams = new URLSearchParams(hash);
+  return hashParams.get("type") === "recovery" ? "recovery" : "other";
+}
+
 // Canonical Supabase auth landing page.
 //
 // Supabase redirects here after email confirmation, magic-link click, OAuth
@@ -55,6 +68,11 @@ function AuthCallbackPage() {
 
     (async () => {
       try {
+        const flowType = inferAuthFlowType(
+          search.type,
+          typeof window !== "undefined" ? window.location.hash : undefined,
+        );
+
         // Explicit provider error takes precedence.
         if (search.error) {
           const desc = search.error_description || search.error;
@@ -94,7 +112,7 @@ function AuthCallbackPage() {
         const { data } = await supabase.auth.getSession();
         if (cancelled) return;
 
-        if (!data.session && !search.type) {
+        if (!data.session && flowType !== "recovery") {
           setStatus("error");
           setMessage("The confirmation link is invalid or has expired.");
           toast.error("Invalid or expired confirmation link.");
@@ -103,7 +121,10 @@ function AuthCallbackPage() {
         }
 
         setStatus("ok");
-        if (search.type === "recovery") {
+        if (flowType === "recovery") {
+          if (typeof window !== "undefined") {
+            sessionStorage.setItem(RECOVERY_SESSION_FLAG, "1");
+          }
           setMessage("Redirecting to password reset…");
           setTimeout(() => navigate({ to: "/reset-password", replace: true }), 400);
         } else {

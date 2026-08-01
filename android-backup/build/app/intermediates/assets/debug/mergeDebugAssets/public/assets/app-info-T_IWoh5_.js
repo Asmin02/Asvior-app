@@ -1,0 +1,1 @@
+var e=`3.0.0`,t=`support@asvior.app`,n=`Asvior`;export{e as n,t as r,n as t};

@@ -1,0 +1,10 @@
+{
+	"appId": "com.asvior.app",
+	"appName": "Asvior",
+	"webDir": "dist/client",
+	"plugins": {
+		"CapacitorHttp": {
+			"enabled": true
+		}
+	}
+}

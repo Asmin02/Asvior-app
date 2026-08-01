@@ -153,7 +153,7 @@ All three are addressed below.
 - `supabase/migrations/20260629084545_…` — creates `profiles`, `user_settings`, `saved_trips`, `favorite_destinations`, `visa_history` with RLS + owner policies + `handle_new_user()` trigger.
 - `supabase/migrations/20260629084609_…` — revokes EXECUTE on internal SECURITY DEFINER functions from PUBLIC/anon/authenticated.
 - `supabase/migrations/20260629084649_…` — avatars bucket storage policies.
-- Migrations are syntactically valid Postgres. **Whether they have actually been applied on the hosted Supabase (`rxhthyqirdafhkymztvb`) cannot be verified from this container.** Run `supabase db push` from a workstation linked to the project.
+- Migrations are syntactically valid Postgres. **Whether they have actually been applied on the hosted Supabase (`ehfziddmhssffdvcxgzi`) cannot be verified from this container.** Run `supabase db push` from a workstation linked to the project.
 
 ### I. Security status
 - No secret values were committed. `.env` at the repo root contains only the **publishable** Supabase anon key (safe to expose, as documented in `.env.example`). Service role key was not added — it's expected to live only in Vercel env.

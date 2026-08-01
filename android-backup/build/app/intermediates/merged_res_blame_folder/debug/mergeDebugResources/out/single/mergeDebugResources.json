@@ -1,0 +1,154 @@
+[
+    {
+        "merged": "com.asvior.app-debug-6:/drawable-v24_ic_launcher_foreground.xml.flat",
+        "source": "com.asvior.app-main-1:/drawable-v24/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\drawable-land-xxxhdpi_splash.png.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\drawable-land-xxxhdpi\\splash.png"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\mipmap-xxhdpi_ic_launcher.png.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\mipmap-xxhdpi\\ic_launcher.png"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\mipmap-xxxhdpi_ic_launcher_foreground.png.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\mipmap-xxxhdpi\\ic_launcher_foreground.png"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\mipmap-hdpi_ic_launcher.png.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\mipmap-hdpi\\ic_launcher.png"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\mipmap-xxxhdpi_ic_launcher.png.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\mipmap-xxxhdpi\\ic_launcher.png"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\mipmap-anydpi-v26\\ic_launcher.xml"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\mipmap-mdpi_ic_launcher_foreground.png.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\mipmap-mdpi\\ic_launcher_foreground.png"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\mipmap-xhdpi_ic_launcher_round.png.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\mipmap-xhdpi\\ic_launcher_round.png"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\mipmap-mdpi_ic_launcher_round.png.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\mipmap-mdpi\\ic_launcher_round.png"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\mipmap-xhdpi_ic_launcher_foreground.png.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\mipmap-xhdpi\\ic_launcher_foreground.png"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\drawable_ic_launcher_background.xml.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\drawable\\ic_launcher_background.xml"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\mipmap-anydpi-v26\\ic_launcher_round.xml"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\mipmap-xhdpi_ic_launcher.png.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\mipmap-xhdpi\\ic_launcher.png"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\mipmap-mdpi_ic_launcher.png.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\mipmap-mdpi\\ic_launcher.png"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\mipmap-xxxhdpi_ic_launcher_round.png.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\mipmap-xxxhdpi\\ic_launcher_round.png"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\mipmap-xxhdpi_ic_launcher_foreground.png.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\mipmap-xxhdpi\\ic_launcher_foreground.png"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\drawable-port-xhdpi_splash.png.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\drawable-port-xhdpi\\splash.png"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\drawable-port-xxhdpi_splash.png.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\drawable-port-xxhdpi\\splash.png"
+    },
+    {
+        "merged": "com.asvior.app-debug-6:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "com.asvior.app-main-1:/mipmap-anydpi-v26/ic_launcher.xml"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\drawable_splash.png.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\drawable\\splash.png"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\mipmap-hdpi_ic_launcher_round.png.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\mipmap-hdpi\\ic_launcher_round.png"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\drawable-port-xxxhdpi_splash.png.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\drawable-port-xxxhdpi\\splash.png"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\xml_file_paths.xml.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\xml\\file_paths.xml"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\drawable-land-xxhdpi_splash.png.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\drawable-land-xxhdpi\\splash.png"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\drawable-land-mdpi_splash.png.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\drawable-land-mdpi\\splash.png"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\drawable-port-hdpi_splash.png.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\drawable-port-hdpi\\splash.png"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\mipmap-hdpi_ic_launcher_foreground.png.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\mipmap-hdpi\\ic_launcher_foreground.png"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\mipmap-xxhdpi_ic_launcher_round.png.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\mipmap-xxhdpi\\ic_launcher_round.png"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\drawable-v24_ic_launcher_foreground.xml.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\drawable-v24\\ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\xml_config.xml.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\xml\\config.xml"
+    },
+    {
+        "merged": "com.asvior.app-debug-6:/drawable_ic_launcher_background.xml.flat",
+        "source": "com.asvior.app-main-1:/drawable/ic_launcher_background.xml"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\drawable-land-hdpi_splash.png.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\drawable-land-hdpi\\splash.png"
+    },
+    {
+        "merged": "com.asvior.app-debug-6:/layout_activity_main.xml.flat",
+        "source": "com.asvior.app-main-1:/layout/activity_main.xml"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\drawable-port-mdpi_splash.png.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\drawable-port-mdpi\\splash.png"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\drawable-land-xhdpi_splash.png.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\drawable-land-xhdpi\\splash.png"
+    },
+    {
+        "merged": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-debug-6:\\layout_activity_main.xml.flat",
+        "source": "C:\\Users\\ASN2\\.gradle\\daemon\\8.14.3\\com.asvior.app-main-1:\\layout\\activity_main.xml"
+    },
+    {
+        "merged": "com.asvior.app-debug-6:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "com.asvior.app-main-1:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    }
+]
