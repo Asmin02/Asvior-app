@@ -285,7 +285,7 @@ function AssistantPage() {
   const lastIsUserOrSubmitted = status === "submitted";
 
   return (
-    <div className="relative flex min-h-dvh flex-col">
+    <div className="relative flex h-dvh max-h-dvh flex-col overflow-hidden">
       <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-travel-sky/40 via-background to-background dark:from-travel-blue/10" />
       <div className="pointer-events-none fixed -top-32 -right-20 -z-10 h-72 w-72 rounded-full bg-primary/30 blur-3xl" />
       <div className="pointer-events-none fixed top-40 -left-20 -z-10 h-72 w-72 rounded-full bg-travel-blue-light/40 blur-3xl" />
@@ -355,7 +355,7 @@ function AssistantPage() {
         </div>
       </header>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 pb-40 pt-4">
+      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-4 pb-40 pt-4">
         {isEmpty ? (
           <EmptyState onPick={(p) => handleSend(p)} />
         ) : (
