@@ -28,6 +28,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { deleteAccount } from "@/lib/account.functions";
+import {
+  applyAppearancePreferences,
+  cacheAppearancePreferences,
+  DEFAULT_CURRENCY,
+  DEFAULT_LANGUAGE,
+} from "@/lib/app-session";
 import { APP_VERSION, SUPPORT_EMAIL } from "@/lib/app-info";
 import { toast } from "sonner";
 
@@ -85,9 +91,10 @@ function SettingsPage() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.auth.getUser();
-      const uid = data.user?.id ?? null;
+      const { data } = await supabase.auth.getSession();
+      const uid = data.session?.user?.id ?? null;
       setUserId(uid);
+
       if (uid) {
         const { data: row } = await supabase
           .from("user_settings")
@@ -104,34 +111,41 @@ function SettingsPage() {
             notify_flight: row.notify_flight,
             notify_packing: row.notify_packing,
           });
-          document.documentElement.classList.toggle("dark", row.dark_mode);
-          document.documentElement.setAttribute("lang", row.language);
-          localStorage.setItem("vp_theme", row.dark_mode ? "dark" : "light");
-          localStorage.setItem("vp_lang", row.language);
-          localStorage.setItem("vp_currency", row.currency);
+          const preferences = {
+            darkMode: row.dark_mode,
+            language: row.language,
+            currency: row.currency || DEFAULT_CURRENCY,
+          };
+          applyAppearancePreferences(preferences);
+          cacheAppearancePreferences(preferences);
+          return;
         }
-      } else {
-        const dark = localStorage.getItem("vp_theme") === "dark";
-        const lang = localStorage.getItem("vp_lang") || "en";
-        const ccy = localStorage.getItem("vp_currency") || "USD";
-        setS({ ...DEFAULT, dark_mode: dark, language: lang, currency: ccy });
       }
+
+      setS(DEFAULT);
+      applyAppearancePreferences({ darkMode: false, language: DEFAULT_LANGUAGE });
     })();
   }, []);
 
   const update = async (patch: Partial<Settings>) => {
     const next = { ...s, ...patch };
     setS(next);
+
     if ("dark_mode" in patch) {
-      document.documentElement.classList.toggle("dark", next.dark_mode);
-      localStorage.setItem("vp_theme", next.dark_mode ? "dark" : "light");
+      applyAppearancePreferences({ darkMode: next.dark_mode, language: next.language });
     }
     if ("language" in patch) {
-      document.documentElement.setAttribute("lang", next.language);
-      localStorage.setItem("vp_lang", next.language);
+      applyAppearancePreferences({ darkMode: next.dark_mode, language: next.language });
     }
-    if ("currency" in patch) localStorage.setItem("vp_currency", next.currency);
-    if (userId) await supabase.from("user_settings").upsert({ user_id: userId, ...next });
+
+    if (userId) {
+      cacheAppearancePreferences({
+        darkMode: next.dark_mode,
+        language: next.language,
+        currency: next.currency,
+      });
+      await supabase.from("user_settings").upsert({ user_id: userId, ...next });
+    }
   };
 
   const handleDeleteAccount = async () => {
@@ -139,11 +153,6 @@ function SettingsPage() {
     try {
       await deleteAccount();
       await supabase.auth.signOut();
-      try {
-        localStorage.removeItem("vp_ai_chat_v1");
-      } catch (error) {
-        void error;
-      }
       toast.success("Your account has been deleted");
       navigate({ to: "/" });
     } catch (e) {

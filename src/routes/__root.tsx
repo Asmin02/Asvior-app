@@ -13,6 +13,15 @@ import { Home, Plane, CheckSquare, Wallet, User } from "lucide-react";
 import appCss from "../styles.css?url";
 import { reportError } from "../lib/error-reporting";
 import { installNativeShell } from "../lib/native-init";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  applyAppearancePreferences,
+  cacheAppearancePreferences,
+  readCachedAppearancePreferences,
+  resetGuestAppearance,
+  clearSignedOutLocalState,
+  DEFAULT_CURRENCY,
+} from "@/lib/app-session";
 import { Toaster } from "@/components/ui/sonner";
 import { FloatingAIButton } from "@/components/FloatingAIButton";
 
@@ -206,15 +215,66 @@ function RootComponent() {
   const router = useRouter();
 
   useEffect(() => {
-    const theme = localStorage.getItem("vp_theme");
-    if (theme === "dark") document.documentElement.classList.add("dark");
-    const lang = localStorage.getItem("vp_lang");
-    if (lang) document.documentElement.setAttribute("lang", lang);
+    let cancelled = false;
+
+    const syncAppearanceForUser = async (userId: string) => {
+      const cached = readCachedAppearancePreferences();
+      if (cached) {
+        applyAppearancePreferences(cached);
+      }
+
+      const { data: row, error } = await supabase
+        .from("user_settings")
+        .select("dark_mode, language, currency")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (cancelled || error || !row) return;
+
+      const preferences = {
+        darkMode: row.dark_mode,
+        language: row.language,
+        currency: row.currency || DEFAULT_CURRENCY,
+      };
+
+      applyAppearancePreferences(preferences);
+      cacheAppearancePreferences(preferences);
+    };
+
+    const initialize = async () => {
+      resetGuestAppearance();
+
+      const { data } = await supabase.auth.getSession();
+      if (cancelled) return;
+
+      if (data.session?.user) {
+        await syncAppearanceForUser(data.session.user.id);
+      }
+    };
+
+    void initialize();
+
+    const { data: authSub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (cancelled) return;
+
+      if (event === "SIGNED_OUT" || !session?.user) {
+        clearSignedOutLocalState();
+        resetGuestAppearance();
+        return;
+      }
+
+      void syncAppearanceForUser(session.user.id);
+    });
 
     // No-op in the browser. On Capacitor Android/iOS this registers the
     // appUrlOpen listener that exchanges the reset-password code from a deep
     // link into a live Supabase session before navigating to /reset-password.
     installNativeShell(router).catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+      authSub.subscription.unsubscribe();
+    };
   }, [router]);
 
   return (

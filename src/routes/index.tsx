@@ -105,6 +105,7 @@ const TRENDING_IMAGES = [
   regionAfrica,
 ];
 const AI_BOOKMARKS_KEY = "vp_ai_bookmarks_v1";
+const HOME_REFERENCE_DATE = new Date("2026-01-01T00:00:00.000Z");
 
 function greetingFor(date = new Date()): string {
   const h = date.getHours();
@@ -290,9 +291,11 @@ function HomePage() {
   const [popularApi, setPopularApi] = useState<CarouselApi>();
   const [canScrollPopularPrev, setCanScrollPopularPrev] = useState(false);
   const [canScrollPopularNext, setCanScrollPopularNext] = useState(false);
-  const greeting = useMemo(() => greetingFor(), []);
-  const dailyTrending = useMemo(() => getDailyTrendingDestinations(new Date(), 6), []);
-  const visaUpdates = useMemo(() => getLatestVisaUpdates(new Date(), 8), []);
+  const [homeNow, setHomeNow] = useState<Date | null>(null);
+  const referenceDate = homeNow ?? HOME_REFERENCE_DATE;
+  const greeting = useMemo(() => (homeNow ? greetingFor(homeNow) : "Welcome"), [homeNow]);
+  const dailyTrending = useMemo(() => getDailyTrendingDestinations(referenceDate, 6), [referenceDate]);
+  const visaUpdates = useMemo(() => getLatestVisaUpdates(referenceDate, 8), [referenceDate]);
   const continueActivity = useMemo(
     () =>
       signedIn ? buildContinueActivity(recent, hasBudget, hasChecklist, latestAiBookmark) : null,
@@ -329,6 +332,10 @@ function HomePage() {
       setHasChecklist(false);
       setLatestAiBookmark(null);
     }
+  }, []);
+
+  useEffect(() => {
+    setHomeNow(new Date());
   }, []);
 
   useEffect(() => {
@@ -437,7 +444,7 @@ function HomePage() {
           </div>
         </div>
         <Link
-          to="/profile"
+          to={signedIn ? "/profile" : "/auth"}
           className="glass rounded-full px-3.5 py-2 text-[11px] font-semibold text-foreground transition-transform active:scale-95"
         >
           {signedIn ? "My profile" : "Sign in"}

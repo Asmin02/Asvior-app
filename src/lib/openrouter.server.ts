@@ -1,6 +1,7 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 
 const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
+const DEFAULT_OPENROUTER_MODEL = "openrouter/free";
 
 export class MissingOpenRouterConfigError extends Error {
   constructor() {
@@ -24,4 +25,9 @@ export function createOpenRouterProvider(apiKey: string) {
       "X-OpenRouter-Title": "Asvior",
     },
   });
+}
+
+export function getOpenRouterModel(): string {
+  const configured = process.env.OPENROUTER_MODEL?.trim() || process.env.AI_GATEWAY_MODEL?.trim();
+  return configured || DEFAULT_OPENROUTER_MODEL;
 }

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
-import { createOpenRouterProvider } from "@/lib/openrouter.server";
+import { createOpenRouterProvider, getOpenRouterModel } from "@/lib/openrouter.server";
 
 const SYSTEM_PROMPT = `You are Asvior AI, a world-class travel concierge inside the Asvior app. You help travelers with:
 
@@ -95,7 +95,7 @@ export const Route = createFileRoute("/api/chat")({
           }
 
           const openrouter = createOpenRouterProvider(key);
-          const model = process.env.OPENROUTER_MODEL || "openrouter/free";
+          const model = getOpenRouterModel();
           const result = streamText({
             model: openrouter(model),
             system: SYSTEM_PROMPT,

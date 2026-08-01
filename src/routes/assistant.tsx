@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
 import {
@@ -99,6 +99,14 @@ function getText(message: UIMessage): string {
   return message.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
 }
 
+type MessageScrollSnapshot = {
+  firstId: string | null;
+  lastId: string | null;
+  lastText: string;
+  count: number;
+  status: string;
+};
+
 function AssistantPage() {
   const [initialMessages] = useState<UIMessage[]>(() => loadInitialMessages());
   const transport = useMemo(() => new DefaultChatTransport({ api: "/api/chat" }), []);
@@ -114,8 +122,32 @@ function AssistantPage() {
   const [showBookmarks, setShowBookmarks] = useState(false);
   const [bookmarks, setBookmarks] = useState<BookmarkedConversation[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const scrollSnapshotRef = useRef<MessageScrollSnapshot>({
+    firstId: null,
+    lastId: null,
+    lastText: "",
+    count: 0,
+    status: "ready",
+  });
   const isLoading = status === "submitted" || status === "streaming";
+  const lastMessage = messages[messages.length - 1];
+  const lastMessageText = lastMessage ? getText(lastMessage) : "";
+
+  const scrollToBottom = useCallback((behavior: ScrollBehavior) => {
+    if (typeof window === "undefined") return;
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        bottomRef.current?.scrollIntoView({ block: "end", behavior });
+        const node = scrollRef.current;
+        if (node) {
+          node.scrollTop = node.scrollHeight;
+        }
+      });
+    });
+  }, []);
 
   useEffect(() => {
     try {
@@ -125,9 +157,40 @@ function AssistantPage() {
     }
   }, [messages]);
 
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages, status]);
+  useLayoutEffect(() => {
+    const previous = scrollSnapshotRef.current;
+    const next: MessageScrollSnapshot = {
+      firstId: messages[0]?.id ?? null,
+      lastId: lastMessage?.id ?? null,
+      lastText: lastMessageText,
+      count: messages.length,
+      status,
+    };
+
+    const initialRestore = previous.count === 0 && next.count > 0;
+    const clearedConversation = previous.count > 0 && next.count === 0;
+    const prependedHistory =
+      previous.count > 0 &&
+      next.count > previous.count &&
+      previous.lastId === next.lastId &&
+      previous.firstId !== next.firstId;
+    const appendedMessage = previous.lastId !== next.lastId || next.count < previous.count;
+    const streamedContentChanged = previous.lastText !== next.lastText;
+    const loadingStateChanged =
+      previous.status !== next.status &&
+      (next.status === "submitted" ||
+        next.status === "streaming" ||
+        previous.status === "streaming");
+
+    if (
+      !prependedHistory &&
+      (initialRestore || clearedConversation || appendedMessage || streamedContentChanged || loadingStateChanged)
+    ) {
+      scrollToBottom(initialRestore || !isLoading ? "auto" : "smooth");
+    }
+
+    scrollSnapshotRef.current = next;
+  }, [isLoading, lastMessage?.id, lastMessageText, messages, scrollToBottom, status]);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -308,6 +371,7 @@ function AssistantPage() {
             {error && !isLoading && (
               <ErrorRetry message={error.message} onRetry={() => regenerate()} />
             )}
+            <div ref={bottomRef} aria-hidden className="h-px" />
           </div>
         )}
       </div>

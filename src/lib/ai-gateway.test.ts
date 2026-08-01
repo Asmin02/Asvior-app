@@ -1,4 +1,4 @@
-import { getOpenRouterModel } from "@/lib/ai-gateway.server";
+import { getOpenRouterModel } from "@/lib/openrouter.server";
 
 describe("OpenRouter model selection", () => {
   const originalOpenRouterModel = process.env.OPENROUTER_MODEL;

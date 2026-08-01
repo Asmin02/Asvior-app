@@ -133,7 +133,7 @@ function ProfilePage() {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_OUT") {
         setProfile(null);
-        navigate({ to: "/auth" });
+        navigate({ to: "/" });
       }
     });
     return () => {
@@ -184,7 +184,6 @@ function ProfilePage() {
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    navigate({ to: "/" });
   };
 
   if (loading) {
