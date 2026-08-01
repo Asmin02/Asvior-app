@@ -46,15 +46,7 @@ function AuthenticatedGate() {
     };
   }, [navigate]);
 
-  if (checking) {
-    return (
-      <div data-testid="auth-gate-loading" className="animate-pulse space-y-4 px-6 pt-10">
-        <div className="h-12 rounded-2xl bg-muted" />
-        <div className="h-24 rounded-3xl bg-muted" />
-        <div className="h-24 rounded-3xl bg-muted" />
-      </div>
-    );
-  }
+  if (checking) return null;
 
   if (!allowed) return null;
 
