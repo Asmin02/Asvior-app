@@ -7,7 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Home, Plane, CheckSquare, Wallet, User } from "lucide-react";
 
 import appCss from "../styles.css?url";
@@ -161,13 +161,36 @@ function RootShell({ children }: { children: ReactNode }) {
 function MobileNav() {
   const router = useRouter();
   const pathname = router.state.location.pathname;
+  const [signedIn, setSignedIn] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const refresh = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (cancelled) return;
+      setSignedIn(!!data.session?.user);
+    };
+
+    void refresh();
+
+    const { data: authSub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (cancelled) return;
+      setSignedIn(!!session?.user);
+    });
+
+    return () => {
+      cancelled = true;
+      authSub.subscription.unsubscribe();
+    };
+  }, []);
 
   const navItems = [
     { to: "/", label: "Home", icon: Home },
     { to: "/visa-check", label: "Visa", icon: Plane },
     { to: "/checklist", label: "Checklist", icon: CheckSquare },
     { to: "/budget-planner", label: "Budget", icon: Wallet },
-    { to: "/profile", label: "Profile", icon: User },
+    { to: signedIn ? "/profile" : "/auth", label: "Profile", icon: User },
   ] as const;
 
   return (
