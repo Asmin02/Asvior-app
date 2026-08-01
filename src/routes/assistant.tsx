@@ -197,6 +197,28 @@ function AssistantPage() {
   }, [isLoading, lastMessage?.id, lastMessageText, messages, scrollToBottom, status]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    if (isLoading) {
+      const intervalId = window.setInterval(() => {
+        scrollToBottom("auto");
+      }, 120);
+
+      return () => {
+        window.clearInterval(intervalId);
+      };
+    }
+
+    const settleId = window.setTimeout(() => {
+      scrollToBottom("auto");
+    }, 120);
+
+    return () => {
+      window.clearTimeout(settleId);
+    };
+  }, [isLoading, scrollToBottom]);
+
+  useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
