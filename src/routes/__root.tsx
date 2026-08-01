@@ -257,8 +257,13 @@ function RootComponent() {
     const { data: authSub } = supabase.auth.onAuthStateChange((event, session) => {
       if (cancelled) return;
 
-      if (event === "SIGNED_OUT" || !session?.user) {
+      if (event === "SIGNED_OUT") {
         clearSignedOutLocalState();
+        resetGuestAppearance();
+        return;
+      }
+
+      if (!session?.user) {
         resetGuestAppearance();
         return;
       }
