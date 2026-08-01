@@ -145,6 +145,10 @@ function AssistantPage() {
         if (node) {
           node.scrollTop = node.scrollHeight;
         }
+        window.scrollTo({
+          top: document.documentElement.scrollHeight,
+          behavior,
+        });
       });
     });
   }, []);
