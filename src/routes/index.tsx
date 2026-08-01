@@ -106,6 +106,11 @@ const TRENDING_IMAGES = [
 ];
 const AI_BOOKMARKS_KEY = "vp_ai_bookmarks_v1";
 const HOME_REFERENCE_DATE = new Date("2026-01-01T00:00:00.000Z");
+const PUBLISHED_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  timeZone: "UTC",
+});
 
 function greetingFor(date = new Date()): string {
   const h = date.getHours();
@@ -198,7 +203,7 @@ function buildContinueActivity(
 function formatPublished(dateIso: string): string {
   const d = new Date(dateIso);
   if (Number.isNaN(d.getTime())) return "Just updated";
-  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return PUBLISHED_DATE_FORMATTER.format(d);
 }
 
 function ContinuePlanningCard({ activity }: { activity: ContinueActivity }) {
