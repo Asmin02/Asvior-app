@@ -294,7 +294,10 @@ function HomePage() {
   const [homeNow, setHomeNow] = useState<Date | null>(null);
   const referenceDate = homeNow ?? HOME_REFERENCE_DATE;
   const greeting = useMemo(() => (homeNow ? greetingFor(homeNow) : "Welcome"), [homeNow]);
-  const dailyTrending = useMemo(() => getDailyTrendingDestinations(referenceDate, 6), [referenceDate]);
+  const dailyTrending = useMemo(
+    () => getDailyTrendingDestinations(referenceDate, 6),
+    [referenceDate],
+  );
   const visaUpdates = useMemo(() => getLatestVisaUpdates(referenceDate, 8), [referenceDate]);
   const continueActivity = useMemo(
     () =>

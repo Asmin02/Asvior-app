@@ -30,7 +30,9 @@ export type AppearancePreferences = {
   currency: string;
 };
 
-export function applyAppearancePreferences(preferences: Pick<AppearancePreferences, "darkMode" | "language">): void {
+export function applyAppearancePreferences(
+  preferences: Pick<AppearancePreferences, "darkMode" | "language">,
+): void {
   if (typeof document === "undefined") return;
   document.documentElement.classList.toggle("dark", preferences.darkMode);
   document.documentElement.setAttribute("lang", preferences.language || DEFAULT_LANGUAGE);

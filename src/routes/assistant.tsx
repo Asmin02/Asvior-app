@@ -108,12 +108,12 @@ type MessageScrollSnapshot = {
 };
 
 function AssistantPage() {
-  const [initialMessages] = useState<UIMessage[]>(() => loadInitialMessages());
+  const [didRestoreMessages, setDidRestoreMessages] = useState(false);
   const transport = useMemo(() => new DefaultChatTransport({ api: "/api/chat" }), []);
 
   const { messages, sendMessage, status, setMessages, stop, error, regenerate } = useChat({
     id: "asvior-assistant",
-    messages: initialMessages,
+    messages: [],
     transport,
     onError: (e) => toast.error(e.message || "AI request failed"),
   });
@@ -154,12 +154,21 @@ function AssistantPage() {
   }, []);
 
   useEffect(() => {
+    if (didRestoreMessages) return;
+
+    setMessages(loadInitialMessages());
+    setDidRestoreMessages(true);
+  }, [didRestoreMessages, setMessages]);
+
+  useEffect(() => {
+    if (!didRestoreMessages) return;
+
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
     } catch (error) {
       void error;
     }
-  }, [messages]);
+  }, [didRestoreMessages, messages]);
 
   useLayoutEffect(() => {
     const previous = scrollSnapshotRef.current;
@@ -188,7 +197,11 @@ function AssistantPage() {
 
     if (
       !prependedHistory &&
-      (initialRestore || clearedConversation || appendedMessage || streamedContentChanged || loadingStateChanged)
+      (initialRestore ||
+        clearedConversation ||
+        appendedMessage ||
+        streamedContentChanged ||
+        loadingStateChanged)
     ) {
       scrollToBottom(initialRestore || !isLoading ? "auto" : "smooth");
     }
