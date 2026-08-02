@@ -64,6 +64,7 @@ const categories: Category[] = [
 const BUDGET_STORAGE_KEY = "vp_budget";
 
 function BudgetPlannerPage() {
+  const { phase } = useThemePhase();
   const [values, setValues] = useState<Record<string, string>>({
     flight: "",
     hotel: "",
