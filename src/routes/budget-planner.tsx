@@ -25,36 +25,36 @@ const categories: Category[] = [
   {
     key: "flight",
     label: "Flight",
-    gradient: "gradient-primary text-primary-foreground",
-    bar: "bg-primary",
+    gradient: "bg-navy text-primary-foreground",
+    bar: "bg-navy",
     icon: <Plane className="h-4 w-4" />,
   },
   {
     key: "hotel",
     label: "Hotel",
-    gradient: "gradient-emerald text-white",
+    gradient: "bg-emerald text-white",
     bar: "bg-emerald",
     icon: <Building2 className="h-4 w-4" />,
   },
   {
     key: "food",
     label: "Food",
-    gradient: "gradient-navy text-white",
-    bar: "bg-navy",
+    gradient: "bg-secondary text-navy",
+    bar: "bg-navy/70",
     icon: <UtensilsCrossed className="h-4 w-4" />,
   },
   {
     key: "transport",
     label: "Transport",
-    gradient: "bg-amber-500 text-white",
-    bar: "bg-amber-500",
+    gradient: "bg-secondary text-navy",
+    bar: "bg-navy/50",
     icon: <Car className="h-4 w-4" />,
   },
   {
     key: "other",
     label: "Other",
-    gradient: "bg-fuchsia-500 text-white",
-    bar: "bg-fuchsia-500",
+    gradient: "bg-secondary text-navy",
+    bar: "bg-navy/30",
     icon: <Gift className="h-4 w-4" />,
   },
 ];
@@ -100,37 +100,23 @@ function BudgetPlannerPage() {
     n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   return (
-    <div className="time-hero-surface phase-evening relative overflow-hidden">
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-72 gradient-hero-bg"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute -top-16 -left-10 h-52 w-52 rounded-full bg-champagne/25 blur-3xl"
-        aria-hidden
-      />
-
-      <header className="relative px-6 pt-10">
-        <div className="premium-card inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold text-champagne">
+    <div>
+      <header className="border-b border-border bg-card px-4 py-5">
+        <div className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-muted-foreground">
           <Wallet className="h-3.5 w-3.5" /> Live budget tracker
         </div>
-        <h1 className="mt-3 text-display text-3xl text-foreground">Budget Planner</h1>
-        <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+        <h1 className="mt-2 text-2xl font-bold text-foreground">Budget Planner</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
           Log each cost — your total updates as you type.
         </p>
       </header>
 
-      {/* Total card */}
-      <section className="relative mt-6 px-6 animate-fade-up">
-        <div className="relative overflow-hidden rounded-3xl gradient-navy p-6 text-white shadow-float">
-          <div className="absolute -top-16 -right-10 h-40 w-40 rounded-full bg-primary/30 blur-3xl" />
-          <div className="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-emerald/25 blur-3xl" />
-          <p className="relative text-[11px] font-bold uppercase tracking-widest opacity-70">
-            Total trip budget
-          </p>
-          <p className="relative mt-2 text-display text-5xl">${fmt(total)}</p>
+      <section className="mt-4 px-4">
+        <div className="rounded-2xl bg-navy p-6 text-primary-foreground shadow-soft">
+          <p className="text-xs font-semibold uppercase tracking-wide opacity-75">Total trip budget</p>
+          <p className="mt-2 text-4xl font-bold">${fmt(total)}</p>
           {total > 0 ? (
-            <div className="relative mt-4 flex h-2.5 w-full overflow-hidden rounded-full bg-white/15">
+            <div className="mt-4 flex h-2 w-full overflow-hidden rounded-full bg-white/20">
               {categories.map((c) => {
                 const pct = (numbers[c.key] / total) * 100;
                 if (pct <= 0) return null;
@@ -145,24 +131,15 @@ function BudgetPlannerPage() {
               })}
             </div>
           ) : (
-            <p className="relative mt-4 text-xs opacity-70">
-              Add costs below to see your breakdown.
-            </p>
+            <p className="mt-4 text-xs opacity-75">Add costs below to see your breakdown.</p>
           )}
         </div>
       </section>
 
-      {/* Inputs */}
-      <section className="relative mt-5 px-6 space-y-2.5">
-        {categories.map((c, i) => (
-          <div
-            key={c.key}
-            className="premium-card flex items-center gap-3 rounded-2xl p-3 animate-fade-up"
-            style={{ animationDelay: `${i * 40}ms` }}
-          >
-            <div
-              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl shadow-soft ${c.gradient}`}
-            >
+      <section className="mt-4 space-y-2 px-4">
+        {categories.map((c) => (
+          <div key={c.key} className="premium-card flex items-center gap-3 rounded-2xl p-3">
+            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${c.gradient}`}>
               {c.icon}
             </div>
             <div className="flex-1">
@@ -195,10 +172,10 @@ function BudgetPlannerPage() {
       </section>
 
       {total > 0 && (
-        <section className="relative mt-6 px-6 pb-6">
+        <section className="mt-6 px-4 pb-6">
           <Link
             to="/summary"
-            className="flex items-center justify-center gap-2 rounded-2xl gradient-primary px-4 py-3.5 text-sm font-semibold text-primary-foreground shadow-float transition-transform active:scale-[0.98]"
+            className="flex items-center justify-center gap-2 rounded-xl bg-navy px-4 py-3.5 text-sm font-semibold text-primary-foreground"
           >
             View & share trip summary
             <ArrowRight className="h-4 w-4" />

@@ -5,6 +5,8 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { AsviorMark } from "@/components/AsviorMark";
+import { resolveApiUrl } from "@/lib/api-base";
 import { buildScopedStorageKey, GUEST_STORAGE_SCOPE } from "@/lib/app-session";
 import {
   BudgetCard,
@@ -113,7 +115,10 @@ type MessageScrollSnapshot = {
 function AssistantPage() {
   const [authScope, setAuthScope] = useState<string>(GUEST_STORAGE_SCOPE);
   const [authResolved, setAuthResolved] = useState(false);
-  const transport = useMemo(() => new DefaultChatTransport({ api: "/api/chat" }), []);
+  const transport = useMemo(
+    () => new DefaultChatTransport({ api: resolveApiUrl("/api/chat") }),
+    [],
+  );
   const isSignedIn = authScope !== GUEST_STORAGE_SCOPE;
   const storageKey = useMemo(() => buildScopedStorageKey(STORAGE_KEY, authScope), [authScope]);
 
@@ -130,6 +135,7 @@ function AssistantPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const stickToBottomRef = useRef(true);
   const scrollSnapshotRef = useRef<MessageScrollSnapshot>({
     firstId: null,
     lastId: null,
@@ -165,23 +171,34 @@ function AssistantPage() {
     };
   }, []);
 
-  const scrollToBottom = useCallback((behavior: ScrollBehavior) => {
-    if (typeof window === "undefined") return;
+  const SCROLL_PIN_THRESHOLD = 64;
 
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        bottomRef.current?.scrollIntoView({ block: "end", behavior });
-        const node = scrollRef.current;
-        if (node) {
-          node.scrollTop = node.scrollHeight;
-        }
-        window.scrollTo({
-          top: document.documentElement.scrollHeight,
-          behavior,
-        });
-      });
-    });
+  const isNearBottom = useCallback((node: HTMLDivElement) => {
+    return node.scrollHeight - node.scrollTop - node.clientHeight <= SCROLL_PIN_THRESHOLD;
   }, []);
+
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = "auto") => {
+    const node = scrollRef.current;
+    if (!node || !stickToBottomRef.current) return;
+
+    node.scrollTo({ top: node.scrollHeight, behavior });
+  }, []);
+
+  useEffect(() => {
+    const node = scrollRef.current;
+    if (!node) return;
+
+    const handleScroll = () => {
+      stickToBottomRef.current = isNearBottom(node);
+    };
+
+    node.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+
+    return () => {
+      node.removeEventListener("scroll", handleScroll);
+    };
+  }, [isNearBottom]);
 
   useEffect(() => {
     if (!authResolved) return;
@@ -225,30 +242,46 @@ function AssistantPage() {
 
     if (
       !prependedHistory &&
+      stickToBottomRef.current &&
       (initialRestore ||
         clearedConversation ||
         appendedMessage ||
         streamedContentChanged ||
         loadingStateChanged)
     ) {
-      scrollToBottom(initialRestore || !isLoading ? "auto" : "smooth");
+      if (initialRestore || clearedConversation) {
+        stickToBottomRef.current = true;
+      }
+      scrollToBottom(initialRestore || !isLoading ? "auto" : "auto");
     }
 
     scrollSnapshotRef.current = next;
   }, [isLoading, lastMessage?.id, lastMessageText, messages, scrollToBottom, status]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    const node = scrollRef.current;
+    if (!node || !isLoading) return;
 
-    if (isLoading) {
-      const intervalId = window.setInterval(() => {
-        scrollToBottom("auto");
-      }, 120);
+    const content = node.querySelector<HTMLElement>("[data-chat-scroll-content]");
+    if (!content) return;
 
-      return () => {
-        window.clearInterval(intervalId);
-      };
-    }
+    const followStream = () => {
+      if (stickToBottomRef.current) {
+        node.scrollTop = node.scrollHeight;
+      }
+    };
+
+    const ro = new ResizeObserver(followStream);
+    ro.observe(content);
+    followStream();
+
+    return () => {
+      ro.disconnect();
+    };
+  }, [isLoading, messages.length]);
+
+  useEffect(() => {
+    if (!isLoading) return;
 
     const settleId = window.setTimeout(() => {
       scrollToBottom("auto");
@@ -257,7 +290,7 @@ function AssistantPage() {
     return () => {
       window.clearTimeout(settleId);
     };
-  }, [isLoading, scrollToBottom]);
+  }, [isLoading, scrollToBottom, lastMessageText]);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -270,9 +303,13 @@ function AssistantPage() {
   const handleSend = async (text: string) => {
     const value = text.trim();
     if (!value || isLoading) return;
+    stickToBottomRef.current = true;
     setInput("");
     await sendMessage({ text: value });
-    requestAnimationFrame(() => inputRef.current?.focus());
+    requestAnimationFrame(() => {
+      scrollToBottom("auto");
+      inputRef.current?.focus();
+    });
   };
 
   const { q } = Route.useSearch();
@@ -351,70 +388,47 @@ function AssistantPage() {
   const lastIsUserOrSubmitted = status === "submitted";
 
   return (
-    <div className="time-hero-surface phase-night relative flex h-dvh max-h-dvh flex-col overflow-hidden">
-      <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-travel-sky/40 via-background to-background dark:from-travel-blue/10" />
-      <div className="pointer-events-none fixed -top-32 -right-20 -z-10 h-72 w-72 rounded-full bg-primary/30 blur-3xl" />
-      <div className="pointer-events-none fixed top-40 -left-20 -z-10 h-72 w-72 rounded-full bg-travel-blue-light/40 blur-3xl" />
-
-      <header className="sticky top-0 z-20 border-b border-champagne/15 bg-background/60 px-4 py-3 backdrop-blur-xl">
+    <div className="relative flex h-[calc(100dvh-env(safe-area-inset-top,0px)-calc(4.5rem+env(safe-area-inset-bottom,0px)))] max-h-[calc(100dvh-env(safe-area-inset-top,0px)-calc(4.5rem+env(safe-area-inset-bottom,0px)))] flex-col overflow-hidden bg-background">
+      <header className="sticky top-0 z-20 border-b border-border bg-card px-4 py-3">
         <div className="flex items-center gap-2">
           <Link
             to="/"
             aria-label="Back to home"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-card/70 ring-1 ring-border"
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-background"
           >
-            <svg
-              className="h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </Link>
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inset-0 animate-ping rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-              </span>
-              <h1 className="text-base font-semibold tracking-tight">ASVIOR Concierge</h1>
+          <div className="flex min-w-0 flex-1 items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-navy">
+              <AsviorMark className="h-6 w-6" />
             </div>
-            <p className="text-[11px] text-muted-foreground">
-              Premium travel intelligence, on demand
-            </p>
+            <div className="min-w-0">
+              <h1 className="truncate text-base font-semibold text-foreground">AI Concierge</h1>
+              <p className="truncate text-xs text-muted-foreground">Premium travel assistant</p>
+            </div>
           </div>
           <button
             onClick={() => setShowBookmarks(true)}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-card/70 ring-1 ring-border hover:bg-accent"
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-background"
             aria-label="Bookmarks"
           >
-            <svg
-              className="h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"
-              />
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
             </svg>
           </button>
           {messages.length > 0 && (
             <>
               <button
                 onClick={bookmarkConversation}
-                className="rounded-full bg-card/70 px-2.5 py-1.5 text-[11px] font-medium ring-1 ring-border hover:bg-accent"
+                className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium"
               >
                 Save
               </button>
               <button
                 onClick={clearChat}
-                className="rounded-full bg-card/70 px-2.5 py-1.5 text-[11px] font-medium ring-1 ring-border hover:bg-accent"
+                className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium"
               >
                 New
               </button>
@@ -423,11 +437,11 @@ function AssistantPage() {
         </div>
       </header>
 
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-4 pb-40 pt-4">
+      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-4 pb-40 pt-5">
         {isEmpty ? (
           <EmptyState onPick={(p) => handleSend(p)} />
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4" data-chat-scroll-content>
             {messages.map((m) => (
               <MessageBubble
                 key={m.id}
@@ -457,12 +471,12 @@ function AssistantPage() {
         />
       )}
 
-      <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-1/2 z-30 w-full max-w-md -translate-x-1/2 px-3">
-        <div className="premium-card rounded-2xl p-2 backdrop-blur-2xl">
+      <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-1/2 z-30 w-full max-w-md -translate-x-1/2 px-3">
+        <div className="premium-card rounded-2xl p-2">
           <div className="flex items-end gap-2">
             <button
               onClick={handleVoice}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground hover:bg-accent/80"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary text-navy"
               aria-label="Voice input"
             >
               <svg
@@ -491,12 +505,12 @@ function AssistantPage() {
               }}
               rows={1}
               placeholder="Ask anything about your trip..."
-              className="max-h-32 flex-1 resize-none bg-transparent px-2 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+              className="max-h-32 min-h-[2.75rem] flex-1 resize-none bg-transparent px-2 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
             />
             {isLoading ? (
               <button
                 onClick={() => stop()}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-destructive text-destructive-foreground"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-destructive text-destructive-foreground"
                 aria-label="Stop"
               >
                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
@@ -507,7 +521,7 @@ function AssistantPage() {
               <button
                 onClick={() => handleSend(input)}
                 disabled={!input.trim()}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-travel-blue-dark text-primary-foreground shadow-lg shadow-primary/30 disabled:opacity-40"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-navy text-primary-foreground disabled:opacity-40"
                 aria-label="Send"
               >
                 <svg
@@ -537,38 +551,19 @@ function AssistantPage() {
 
 function EmptyState({ onPick }: { onPick: (prompt: string) => void }) {
   return (
-    <div className="animate-in fade-in-50 slide-in-from-bottom-2 duration-500">
-      <div className="mb-6 mt-4 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-primary via-travel-blue to-travel-blue-dark text-primary-foreground shadow-xl shadow-primary/40">
-          <svg
-            className="h-8 w-8"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 3l1.8 4.6L18 9.4l-4.2 1.8L12 15.8l-1.8-4.6L6 9.4l4.2-1.8L12 3z"
-            />
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M19 14l.9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9L19 14z"
-            />
-          </svg>
+    <div>
+      <div className="mb-6 mt-2 text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-navy">
+          <AsviorMark className="h-10 w-10" />
         </div>
-        <h2 className="mt-4 bg-gradient-to-r from-foreground to-primary bg-clip-text text-2xl font-bold tracking-tight text-transparent">
-          Hi! I'm Asvior AI ✈️
-        </h2>
-        <p className="mx-auto mt-1 max-w-xs text-sm leading-relaxed text-muted-foreground">
-          Tell me your nationality and destination and I'll guide you through the visa process step
-          by step.
+        <h2 className="mt-4 text-xl font-bold text-foreground">Hi, I'm Asvior AI</h2>
+        <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-muted-foreground">
+          Tell me your nationality and destination — I'll guide you through visas, documents, and
+          trip planning.
         </p>
       </div>
 
-      <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         Quick actions
       </p>
       <div className="grid grid-cols-2 gap-2">
@@ -576,15 +571,15 @@ function EmptyState({ onPick }: { onPick: (prompt: string) => void }) {
           <button
             key={a.label}
             onClick={() => onPick(a.prompt)}
-            className="group flex items-center gap-2 rounded-2xl border border-white/30 bg-card/60 p-3 text-left shadow-sm ring-1 ring-border backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:shadow-md"
+            className="premium-card flex items-center gap-2 rounded-xl p-3 text-left transition-colors hover:bg-secondary/40"
           >
-            <span className="text-xl">{a.icon}</span>
+            <span className="text-lg">{a.icon}</span>
             <span className="text-xs font-semibold leading-tight">{a.label}</span>
           </button>
         ))}
       </div>
 
-      <p className="mb-2 mt-6 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+      <p className="mb-2 mt-5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         Try asking
       </p>
       <div className="space-y-2">
@@ -592,16 +587,10 @@ function EmptyState({ onPick }: { onPick: (prompt: string) => void }) {
           <button
             key={s}
             onClick={() => onPick(s)}
-            className="flex w-full items-center justify-between gap-2 rounded-xl bg-card/60 p-3 text-left text-sm ring-1 ring-border backdrop-blur-xl transition-colors hover:bg-accent"
+            className="premium-card flex w-full items-center justify-between gap-2 rounded-xl p-3 text-left text-sm transition-colors hover:bg-secondary/40"
           >
             <span className="line-clamp-2">{s}</span>
-            <svg
-              className="h-4 w-4 shrink-0 text-muted-foreground"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
+            <svg className="h-4 w-4 shrink-0 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -628,8 +617,8 @@ function MessageBubble({
 
   if (isUser) {
     return (
-      <div className="flex justify-end animate-bubble-in">
-        <div className="max-w-[85%] rounded-3xl rounded-tr-md bg-gradient-to-br from-primary to-royal-deep px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-float">
+      <div className="flex justify-end">
+        <div className="max-w-[85%] rounded-2xl rounded-tr-md bg-navy px-4 py-3 text-sm text-primary-foreground">
           {text}
         </div>
       </div>
@@ -643,26 +632,14 @@ function MessageBubble({
     .trim();
 
   return (
-    <div className="flex gap-2 animate-bubble-in">
-      <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl gradient-primary text-primary-foreground shadow-float">
-        <svg
-          className="h-4 w-4"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2.2}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 3l1.8 4.6L18 9.4l-4.2 1.8L12 15.8l-1.8-4.6L6 9.4l4.2-1.8L12 3z"
-          />
-        </svg>
+    <div className="flex gap-2">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-navy">
+        <AsviorMark className="h-5 w-5" />
       </div>
-      <div className="flex-1 space-y-2">
+      <div className="min-w-0 flex-1 space-y-2">
         {segments.length === 0 ||
         (segments.length === 1 && segments[0].kind === "text" && !segments[0].content.trim()) ? (
-          <div className="rounded-2xl rounded-tl-md border border-white/30 bg-card/70 px-4 py-3 text-sm ring-1 ring-border backdrop-blur-xl">
+          <div className="premium-card rounded-2xl rounded-tl-md px-4 py-3 text-sm">
             <span className="text-muted-foreground">…</span>
           </div>
         ) : (
@@ -673,7 +650,7 @@ function MessageBubble({
               return (
                 <div
                   key={i}
-                  className="prose prose-sm max-w-none rounded-2xl rounded-tl-md border border-white/30 bg-card/70 px-4 py-3 text-sm text-card-foreground shadow-sm ring-1 ring-border backdrop-blur-xl prose-headings:mt-2 prose-headings:mb-1 prose-p:my-1.5 prose-ul:my-1.5 prose-li:my-0 prose-a:text-primary dark:prose-invert"
+                  className="premium-card prose prose-sm max-w-none rounded-2xl rounded-tl-md px-4 py-3 text-sm text-foreground prose-headings:mt-2 prose-headings:mb-1 prose-p:my-1.5 prose-ul:my-1.5 prose-li:my-0 prose-a:text-navy dark:prose-invert"
                 >
                   <ReactMarkdown>{content}</ReactMarkdown>
                 </div>
@@ -733,9 +710,9 @@ function BookmarksSheet({
       className="fixed inset-0 z-50 flex items-end sm:items-center sm:justify-center"
       onClick={onClose}
     >
-      <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-background/50" />
       <div
-        className="relative max-h-[80vh] w-full overflow-y-auto rounded-t-3xl border border-white/30 bg-card/95 p-4 shadow-2xl ring-1 ring-border backdrop-blur-2xl sm:max-w-md sm:rounded-3xl"
+        className="premium-card relative max-h-[80vh] w-full overflow-y-auto rounded-t-2xl p-4 sm:max-w-md sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-3 flex items-center justify-between">
@@ -763,7 +740,7 @@ function BookmarksSheet({
         ) : (
           <ul className="space-y-2">
             {bookmarks.map((b) => (
-              <li key={b.id} className="rounded-xl border border-border bg-background/60 p-3">
+              <li key={b.id} className="premium-card rounded-[1.3rem] p-3">
                 <div className="flex items-start gap-2">
                   <button onClick={() => onRestore(b)} className="flex-1 text-left">
                     <div className="line-clamp-1 text-sm font-semibold">{b.title}</div>

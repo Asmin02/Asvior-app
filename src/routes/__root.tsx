@@ -27,15 +27,12 @@ import { FloatingAIButton } from "@/components/FloatingAIButton";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-dvh items-center justify-center gradient-hero-bg px-4">
-      <div className="glass max-w-md rounded-3xl p-8 text-center">
-        <h1 className="text-display text-7xl text-foreground">404</h1>
+    <div className="flex min-h-dvh items-center justify-center bg-background px-4">
+      <div className="premium-card max-w-md rounded-2xl p-8 text-center">
+        <h1 className="text-6xl font-bold text-foreground">404</h1>
         <h2 className="mt-3 text-xl font-semibold text-foreground">Page not found</h2>
         <p className="mt-2 text-sm text-muted-foreground">That destination isn't on our map.</p>
-        <Link
-          to="/"
-          className="mt-6 inline-flex items-center justify-center rounded-2xl gradient-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-float transition-transform active:scale-95"
-        >
+        <Link to="/" className="mt-6 inline-flex items-center justify-center rounded-xl bg-navy px-5 py-2.5 text-sm font-semibold text-primary-foreground">
           Go home
         </Link>
       </div>
@@ -51,8 +48,8 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   }, [error]);
 
   return (
-    <div className="flex min-h-dvh items-center justify-center gradient-hero-bg px-4">
-      <div className="glass max-w-md rounded-3xl p-8 text-center">
+    <div className="flex min-h-dvh items-center justify-center bg-background px-4">
+      <div className="premium-card max-w-md rounded-2xl p-8 text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           This page didn't load
         </h1>
@@ -65,13 +62,13 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
               router.invalidate();
               reset();
             }}
-            className="rounded-2xl gradient-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-float"
+            className="rounded-xl bg-navy px-5 py-2.5 text-sm font-semibold text-primary-foreground"
           >
             Try again
           </button>
           <a
             href="/"
-            className="rounded-2xl border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground"
+            className="rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground"
           >
             Go home
           </a>
@@ -120,7 +117,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "application-name", content: "Asvior" },
       { name: "apple-mobile-web-app-title", content: "Asvior" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "format-detection", content: "telephone=no" },
     ],
@@ -212,9 +209,9 @@ function MobileNav() {
   return (
     <nav
       aria-label="Main navigation"
-      className="fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-1/2 z-50 w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2"
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2"
     >
-      <div className="glass-strong flex items-center justify-around rounded-3xl px-2 py-2">
+      <div className="mx-auto flex max-w-md items-center justify-around px-2">
         {navItems.map((item) => {
           const isActive = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
           const Icon = item.icon;
@@ -223,21 +220,14 @@ function MobileNav() {
               key={item.to}
               to={item.to}
               aria-current={isActive ? "page" : undefined}
-              className="group relative flex flex-1 flex-col items-center gap-0.5 rounded-2xl py-1.5 transition-all"
+              className="flex min-h-12 min-w-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 rounded-lg py-1 transition-colors"
             >
-              <div
-                className={`flex h-9 w-9 items-center justify-center rounded-2xl transition-all ${
-                  isActive
-                    ? "gradient-primary text-primary-foreground shadow-float"
-                    : "text-muted-foreground group-hover:text-foreground"
-                }`}
-              >
-                <Icon className="h-[18px] w-[18px]" strokeWidth={isActive ? 2.4 : 2} />
-              </div>
+              <Icon
+                className={`h-5 w-5 ${isActive ? "text-navy" : "text-muted-foreground"}`}
+                strokeWidth={isActive ? 2.25 : 2}
+              />
               <span
-                className={`text-[10px] font-semibold tracking-tight ${
-                  isActive ? "text-foreground" : "text-muted-foreground"
-                }`}
+                className={`text-[10px] font-semibold ${isActive ? "text-navy" : "text-muted-foreground"}`}
               >
                 {item.label}
               </span>
@@ -343,7 +333,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <main className="mx-auto min-h-dvh max-w-md bg-background pb-[calc(7rem+env(safe-area-inset-bottom))] font-sans antialiased">
+      <main className="mx-auto min-h-dvh max-w-md bg-background pb-[calc(4.5rem+env(safe-area-inset-bottom))] font-sans antialiased">
         <Outlet />
       </main>
       <FloatingAIButton />

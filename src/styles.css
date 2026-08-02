@@ -99,7 +99,7 @@
   --card-foreground: oklch(0.205 0.042 265);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.205 0.042 265);
-  --primary: oklch(0.556 0.221 262); /* royal blue */
+  --primary: oklch(0.205 0.042 265); /* deep navy — brand primary */
   --primary-foreground: oklch(0.99 0.004 250);
   --secondary: oklch(0.955 0.012 250);
   --secondary-foreground: oklch(0.205 0.042 265);
@@ -111,7 +111,7 @@
   --destructive-foreground: oklch(0.99 0.004 250);
   --border: oklch(0.91 0.015 250);
   --input: oklch(0.91 0.015 250);
-  --ring: oklch(0.556 0.221 262);
+  --ring: oklch(0.205 0.042 265);
   --chart-1: oklch(0.556 0.221 262);
   --chart-2: oklch(0.696 0.156 162);
   --chart-3: oklch(0.75 0.13 235);
@@ -129,10 +129,9 @@
   --shadow-glass:
     0 10px 30px -12px color-mix(in oklab, var(--navy) 22%, transparent),
     0 2px 6px -2px color-mix(in oklab, var(--navy) 12%, transparent);
-  --shadow-float:
-    0 20px 60px -20px color-mix(in oklab, var(--royal) 45%, transparent),
-    0 8px 24px -12px color-mix(in oklab, var(--navy) 25%, transparent);
-  --shadow-soft: 0 6px 20px -8px color-mix(in oklab, var(--navy) 15%, transparent);
+  --shadow-float: 0 8px 24px -8px color-mix(in oklab, var(--navy) 18%, transparent);
+  --shadow-soft: 0 2px 8px -2px color-mix(in oklab, var(--navy) 10%, transparent);
+  --shadow-luxury: 0 4px 16px -4px color-mix(in oklab, var(--navy) 14%, transparent);
 
   --gradient-primary: linear-gradient(135deg, oklch(0.58 0.2 258) 0%, oklch(0.44 0.2 262) 100%);
   --gradient-hero: linear-gradient(
@@ -201,11 +200,16 @@
   }
   html,
   body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
   body {
+    min-height: 100dvh;
+    padding-top: env(safe-area-inset-top, 0px);
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-feature-settings: "ss01", "cv11";
@@ -222,16 +226,14 @@
 
 /* Utility surfaces */
 @utility glass {
-  background: color-mix(in oklab, var(--card) 72%, transparent);
-  backdrop-filter: blur(20px) saturate(160%);
-  border: 1px solid color-mix(in oklab, var(--foreground) 8%, transparent);
-  box-shadow: var(--shadow-glass);
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
 }
 
 @utility glass-strong {
-  background: color-mix(in oklab, var(--card) 88%, transparent);
-  backdrop-filter: blur(28px) saturate(180%);
-  border: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent);
+  background: var(--card);
+  border: 1px solid var(--border);
   box-shadow: var(--shadow-float);
 }
 
@@ -280,43 +282,98 @@
   box-shadow: var(--shadow-soft);
 }
 
+@utility shadow-luxury {
+  box-shadow: var(--shadow-luxury);
+}
+
 @utility premium-card {
-  background: color-mix(in oklab, var(--card) 90%, var(--deep-slate) 10%);
-  border: 1px solid color-mix(in oklab, var(--champagne) 18%, transparent);
-  box-shadow:
-    0 12px 34px -20px color-mix(in oklab, var(--navy) 55%, transparent),
-    inset 0 1px 0 color-mix(in oklab, var(--champagne) 22%, transparent);
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
+}
+
+@utility premium-shell {
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
+}
+
+@utility premium-pill {
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+
+@utility premium-button {
+  background: var(--navy);
+  color: var(--primary-foreground);
+  box-shadow: var(--shadow-soft);
+}
+
+@utility premium-button-secondary {
+  background: var(--secondary);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+}
+
+@utility brand-frame {
+  position: relative;
+  border: 1px solid color-mix(in oklab, var(--champagne) 24%, transparent);
+  border-radius: 2rem;
+  box-shadow: var(--shadow-luxury);
+  overflow: hidden;
+}
+
+@utility section-kicker {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+@utility section-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
 }
 
 @utility time-hero-surface {
   position: relative;
-  overflow: hidden;
-  isolation: isolate;
-  transition: background 900ms ease, box-shadow 900ms ease, color 500ms ease;
+  background: var(--background);
 }
 
 @utility phase-morning {
-  background:
-    radial-gradient(circle at 14% 16%, color-mix(in oklab, var(--champagne) 68%, white 32%) 0%, transparent 32%),
-    linear-gradient(150deg, #fff8ed 0%, #ffe7c9 36%, #d9ebff 100%);
+  background: var(--background);
 }
 
 @utility phase-afternoon {
-  background:
-    radial-gradient(circle at 84% 12%, #fff8da 0%, transparent 26%),
-    linear-gradient(155deg, #e9f3ff 0%, #cfe8ff 42%, #e9f1ff 100%);
+  background: var(--background);
 }
 
 @utility phase-evening {
-  background:
-    radial-gradient(circle at 22% 12%, #ffd8a2 0%, transparent 28%),
-    linear-gradient(155deg, #3a2c71 0%, #8d4c8e 38%, #fd8e62 100%);
+  background: var(--background);
 }
 
 @utility phase-night {
-  background:
-    radial-gradient(circle at 78% 16%, #cbd8ff 0%, transparent 23%),
-    linear-gradient(155deg, #090f1f 0%, #101a32 45%, #17253e 100%);
+  background: var(--background);
+}
+
+@utility search-bar {
+  display: flex;
+  min-height: 3.25rem;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  padding: 0.75rem 1rem;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+  &:focus-within {
+    border-color: color-mix(in oklab, var(--navy) 40%, var(--border));
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--navy) 8%, transparent);
+  }
 }
 
 /* Animations */
@@ -516,6 +573,20 @@ html {
 body {
   overscroll-behavior-y: none;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Focus visibility for keyboard navigation */
+:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--champagne) 70%, var(--royal) 30%);
+  outline-offset: 2px;
+}
+
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+select:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible) {
+  outline: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -143,7 +143,7 @@ export function CountryCombobox({
           setOpen((o) => !o);
           requestAnimationFrame(() => updateMenuPlacement());
         }}
-        className="flex w-full items-center justify-between rounded-lg border border-input bg-card px-3 py-2.5 text-left text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
+        className="premium-card flex min-h-12 w-full items-center justify-between rounded-xl px-4 py-3 text-left text-sm font-medium text-foreground outline-none transition-colors focus-visible:ring-2 focus-visible:ring-navy/20"
       >
         <span className={selected ? "text-foreground" : "text-muted-foreground"}>
           {selected ? `${flagEmoji(selected.code)} ${selected.name}` : placeholder}
@@ -166,7 +166,7 @@ export function CountryCombobox({
             ref={menuRef}
             data-country-combobox-menu
             style={menuStyle}
-            className="z-[70] flex flex-col overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-xl"
+            className="premium-card z-[70] flex flex-col overflow-hidden rounded-xl border border-border bg-card text-popover-foreground shadow-float"
           >
             <div className="shrink-0 border-b border-border p-2">
               <input
@@ -174,7 +174,7 @@ export function CountryCombobox({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Type to search..."
-                className="w-full rounded-md bg-transparent px-2 py-1.5 text-sm outline-none placeholder:text-muted-foreground"
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-navy/20"
               />
             </div>
             <ul

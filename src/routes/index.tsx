@@ -9,16 +9,10 @@ import {
   ArrowRight,
   ChevronLeft,
   ChevronRight,
-  ShieldCheck,
-  Clock,
-  X,
-  FileText,
-  Compass,
   Search,
-  CalendarClock,
-  BookOpen,
   MessageCircle,
-  RefreshCw,
+  BookOpen,
+  Compass,
   Settings,
 } from "lucide-react";
 import regionEurope from "@/assets/region-europe.jpg";
@@ -33,6 +27,7 @@ import {
   CarouselItem,
   type CarouselApi,
 } from "@/components/ui/carousel";
+import { AsviorMark } from "@/components/AsviorMark";
 import { supabase } from "@/integrations/supabase/client";
 import { getCountryName, flagEmoji, loadRecentSearches, type RecentSearch } from "@/lib/visa";
 import { loadBookmarks } from "@/components/ai-cards";
@@ -46,17 +41,17 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Asvior — Travel Smarter. Explore Further." },
+      { title: "ASVIOR — Your Premium Travel Concierge" },
       {
         name: "description",
         content:
-          "The premium AI travel platform: instant visa checks across 199 countries, smart budgeting, packing lists, and a personal AI concierge.",
+          "ASVIOR is your premium travel concierge for elevated trip planning, visa confidence, budgets, itineraries, and seamless global movement.",
       },
-      { property: "og:title", content: "Asvior — Travel Smarter. Explore Further." },
+      { property: "og:title", content: "ASVIOR — Your Premium Travel Concierge" },
       {
         property: "og:description",
         content:
-          "The premium AI travel platform: instant visa checks across 199 countries, smart budgeting, packing lists, and a personal AI concierge.",
+          "ASVIOR is your premium travel concierge for elevated trip planning, visa confidence, budgets, itineraries, and seamless global movement.",
       },
     ],
   }),
@@ -114,7 +109,6 @@ const PUBLISHED_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
   timeZone: "UTC",
 });
 
-type DayPhase = "morning" | "afternoon" | "evening" | "night";
 
 function greetingFor(date = new Date()): string {
   const h = date.getHours();
@@ -123,14 +117,6 @@ function greetingFor(date = new Date()): string {
   if (h < 17) return "Good afternoon";
   if (h < 22) return "Good evening";
   return "Good night";
-}
-
-function dayPhaseFor(date = new Date()): DayPhase {
-  const hour = date.getHours();
-  if (hour >= 5 && hour < 12) return "morning";
-  if (hour >= 12 && hour < 17) return "afternoon";
-  if (hour >= 17 && hour < 22) return "evening";
-  return "night";
 }
 
 function buildContinueActivity(
@@ -205,19 +191,19 @@ function formatPublished(dateIso: string): string {
 function ContinuePlanningCard({ activity }: { activity: ContinueActivity }) {
   const content = (
     <>
-      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl gradient-primary text-primary-foreground shadow-soft">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy text-primary-foreground">
         {activity.icon}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-bold text-foreground">{activity.title}</p>
-        <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{activity.subtitle}</p>
+        <p className="text-sm font-semibold text-foreground">{activity.title}</p>
+        <p className="mt-0.5 truncate text-xs text-muted-foreground">{activity.subtitle}</p>
       </div>
       <ArrowRight className="h-4 w-4 text-muted-foreground" />
     </>
   );
 
   const className =
-    "glass flex items-center gap-3 rounded-2xl p-3.5 shadow-soft animate-fade-up transition-transform active:scale-[0.98] hover:-translate-y-0.5";
+    "premium-card flex items-center gap-3 rounded-2xl p-4 transition-colors hover:bg-secondary/40 active:scale-[0.99]";
 
   if (activity.kind === "visa") {
     return (
@@ -258,22 +244,21 @@ function ContinuePlanningCard({ activity }: { activity: ContinueActivity }) {
   );
 }
 
-function VisaUpdateCard({ item, delay }: { item: HomeVisaUpdate; delay: number }) {
+function VisaUpdateCard({ item }: { item: HomeVisaUpdate; delay?: number }) {
   return (
     <Link
       to="/country/$code"
       params={{ code: item.countryCode }}
-      className="glass block rounded-2xl p-4 shadow-soft animate-fade-up transition-transform active:scale-[0.99] hover:-translate-y-0.5"
-      style={{ animationDelay: `${delay}ms` }}
+      className="premium-card block rounded-2xl p-4 transition-colors hover:bg-secondary/30"
     >
       <div className="flex items-start gap-3">
-        <span className="mt-0.5 text-xl" aria-hidden>
+        <span className="text-xl" aria-hidden>
           {flagEmoji(item.countryCode)}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold text-foreground">{item.title}</p>
-          <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">{item.summary}</p>
-          <p className="mt-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <p className="text-sm font-semibold text-foreground">{item.title}</p>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{item.summary}</p>
+          <p className="mt-2 text-[10px] font-medium text-muted-foreground">
             {formatPublished(item.publishedAt)} · {item.source}
           </p>
         </div>
@@ -295,15 +280,6 @@ function HomePage() {
   const [homeNow, setHomeNow] = useState<Date | null>(null);
   const referenceDate = homeNow ?? HOME_REFERENCE_DATE;
   const greeting = useMemo(() => (homeNow ? greetingFor(homeNow) : "Welcome"), [homeNow]);
-  const phase = useMemo(() => dayPhaseFor(homeNow ?? new Date()), [homeNow]);
-  const phaseClass =
-    phase === "morning"
-      ? "phase-morning"
-      : phase === "afternoon"
-        ? "phase-afternoon"
-        : phase === "evening"
-          ? "phase-evening"
-          : "phase-night";
   const dailyTrending = useMemo(
     () => getDailyTrendingDestinations(referenceDate, 6),
     [referenceDate],
@@ -429,502 +405,257 @@ function HomePage() {
   }, [popularApi]);
 
   return (
-    <div className={`time-hero-surface ${phaseClass} relative overflow-hidden pb-24`}>
-      {/* Hero background */}
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-[640px] bg-gradient-to-b from-transparent via-background/30 to-background"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute -top-24 -right-16 h-80 w-80 rounded-full bg-primary/25 blur-3xl animate-float transition-opacity duration-700"
-        style={{ opacity: phase === "night" ? 0.32 : 0.55 }}
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute top-52 -left-24 h-72 w-72 rounded-full bg-amber-300/20 blur-3xl animate-float transition-opacity duration-700"
-        style={{ animationDelay: "1.2s", opacity: phase === "night" ? 0.2 : 0.72 }}
-        aria-hidden
-      />
-      {phase === "night" && (
-        <div
-          className="pointer-events-none absolute inset-0 opacity-50"
-          aria-hidden
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 14% 20%, #fff 1px, transparent 1.5px), radial-gradient(circle at 82% 24%, #fff 1px, transparent 1.5px), radial-gradient(circle at 60% 42%, #dbe7ff 1px, transparent 1.4px)",
-            backgroundSize: "170px 170px, 190px 190px, 210px 210px",
-          }}
-        />
-      )}
-
-      {/* Header */}
-      <header className="relative flex items-center justify-between px-6 pt-8 animate-fade-up">
-        <div className="flex items-center gap-2.5">
-          <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl gradient-primary shadow-float">
-            <Plane className="h-5 w-5 text-primary-foreground" strokeWidth={2.4} />
-            <span className="absolute -inset-1 -z-10 rounded-3xl gradient-primary opacity-40 blur-md" />
-          </div>
-          <div>
-            <p className="text-display text-lg leading-none text-foreground">ASVIOR</p>
-            <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-              Your Premium Travel Concierge
+    <div className="pb-6">
+      {/* Top bar */}
+      <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-border bg-card px-4 py-3">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <AsviorMark className="h-9 w-9 shrink-0" />
+          <div className="min-w-0">
+            <p className="truncate text-base font-bold text-foreground">ASVIOR</p>
+            <p className="truncate text-xs text-muted-foreground">
+              {greeting}
+              {name ? `, ${name.split(" ")[0]}` : ""}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <Link
             to="/settings"
-            className="glass inline-flex h-9 w-9 items-center justify-center rounded-full text-foreground transition-transform active:scale-95"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-background text-foreground"
             aria-label="Open settings"
           >
             <Settings className="h-4 w-4" />
           </Link>
           <Link
             to={signedIn ? "/profile" : "/auth"}
-            className="glass rounded-full px-3.5 py-2 text-[11px] font-semibold text-foreground transition-transform active:scale-95"
+            className="inline-flex h-10 items-center rounded-xl bg-navy px-3 text-xs font-semibold text-primary-foreground"
           >
-            {signedIn ? "My profile" : "Sign in"}
+            {signedIn ? "Profile" : "Sign in"}
           </Link>
         </div>
       </header>
 
-      {/* Greeting + Hero */}
-      <section className="relative px-6 pt-10">
-        <div className="animate-fade-up" style={{ animationDelay: "60ms" }}>
-          <p className="text-sm font-semibold text-muted-foreground/90">
-            {greeting}
-            {name ? `, ${name.split(" ")[0]}` : ""} ✦
-          </p>
-          <h1 className="mt-2 text-display text-[44px] leading-[1.02] text-foreground">
-            Design your
-            <br />
-            <span className="relative inline-block bg-gradient-to-r from-primary via-royal-deep to-champagne bg-clip-text text-transparent animate-gradient-shift">
-              next journey.
-            </span>
-          </h1>
-          <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-muted-foreground/90">
-            Curated travel intelligence, visa confidence, budgeting clarity, and concierge-level
-            planning in one luxury workspace.
-          </p>
-        </div>
-
-        {/* Search-like CTA */}
+      <div className="space-y-6 px-4 pt-4">
+        {/* Search */}
         <Link
           to="/visa-check"
-          className="glass mt-6 flex items-center gap-3 rounded-2xl px-4 py-3.5 shadow-soft animate-fade-up transition-transform active:scale-[0.98] hover:-translate-y-0.5"
-          style={{ animationDelay: "120ms" }}
+          aria-label="Search destinations, visas, or travel plans"
+          className="search-bar"
         >
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl gradient-champagne text-navy shadow-soft">
-            <Search className="h-4 w-4" strokeWidth={2.4} />
-          </div>
+          <Search className="h-5 w-5 shrink-0 text-muted-foreground" />
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-foreground">
-              Search by destination, visa need, or itinerary
-            </p>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">
-              Instant visa check · 199 countries
-            </p>
+            <p className="text-sm font-semibold text-foreground">Where would you like to go?</p>
+            <p className="text-xs text-muted-foreground">Search destinations, visas, or plans</p>
           </div>
-          <ArrowRight className="h-4 w-4 text-muted-foreground" />
         </Link>
 
-        <div className="mt-3 flex gap-2 animate-fade-up" style={{ animationDelay: "180ms" }}>
-          <Link
-            to="/assistant"
-            className="group inline-flex flex-1 items-center justify-center gap-2 rounded-2xl gradient-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-float transition-transform active:scale-95 hover:-translate-y-0.5"
-          >
-            <Sparkles className="h-4 w-4" />
-            Ask Concierge
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-          </Link>
-          <Link
-            to="/countries"
-            className="glass inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold text-foreground transition-transform active:scale-95"
-          >
-            <Compass className="h-4 w-4" />
-            Explore
-          </Link>
-        </div>
-      </section>
-
-      {/* Continue planning */}
-      <section
-        className="relative mt-7 px-6"
-        style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}
-      >
-        {signedIn ? (
-          <div className="mb-3 flex items-center justify-between animate-fade-up">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-              Continue planning
-            </p>
+        {/* AI Concierge shortcut */}
+        <Link
+          to="/assistant"
+          className="flex items-center gap-3 rounded-2xl bg-navy p-4 text-primary-foreground shadow-soft"
+        >
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10">
+            <Sparkles className="h-5 w-5" />
           </div>
-        ) : null}
-
-        {!signedIn ? null : continueActivity ? (
-          <ContinuePlanningCard activity={continueActivity} />
-        ) : (
-          <div className="glass rounded-2xl p-4 text-sm text-muted-foreground animate-fade-up">
-            Start with a visa check, budget, checklist, or AI chat to continue from here.
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold">AI Concierge</p>
+            <p className="text-xs text-primary-foreground/75">Ask anything about your trip</p>
           </div>
+          <ArrowRight className="h-4 w-4 shrink-0 opacity-75" />
+        </Link>
+
+        {/* Quick tools */}
+        <section>
+          <h2 className="section-title mb-3">Travel tools</h2>
+          <div className="grid grid-cols-2 gap-3">
+            <ToolCard to="/visa-check" title="Visa Check" desc="199 countries" icon={<Plane className="h-5 w-5" />} />
+            <ToolCard to="/checklist" title="Checklist" desc="Pre-departure" icon={<CheckSquare className="h-5 w-5" />} />
+            <ToolCard to="/budget-planner" title="Budget" desc="Plan costs" icon={<Wallet className="h-5 w-5" />} />
+            <ToolCard to="/countries" title="Explore" desc="Country guides" icon={<Globe2 className="h-5 w-5" />} />
+          </div>
+        </section>
+
+        {/* Continue / Recent trips */}
+        {signedIn && continueActivity && (
+          <section>
+            <h2 className="section-title mb-3">Continue planning</h2>
+            <ContinuePlanningCard activity={continueActivity} />
+          </section>
         )}
-      </section>
 
-      {/* Recent searches */}
-      <section
-        className="relative mt-5 px-6"
-        style={{ contentVisibility: "auto", containIntrinsicSize: "260px" }}
-      >
-        <div className="mb-3 flex items-center justify-between animate-fade-up">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-            Recent searches
-          </p>
-        </div>
-        {recent.length === 0 ? (
-          <div className="glass rounded-2xl p-4 text-sm text-muted-foreground animate-fade-up">
-            No recent destinations yet.
+        {/* Recent searches */}
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="section-title">Recent searches</h2>
+            {recent.length > 0 && (
+              <Link to="/visa-check" className="text-xs font-semibold text-navy">
+                New search
+              </Link>
+            )}
           </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-            {recent.slice(0, 5).map((r, i) => (
-              <Link
-                key={`${r.passport}-${r.destination}-${r.timestamp}`}
-                to="/country/$code"
-                params={{ code: r.destination }}
-                className="glass flex items-center gap-2.5 rounded-2xl p-3 shadow-soft animate-fade-up transition-transform active:scale-[0.98] hover:-translate-y-0.5"
-                style={{ animationDelay: `${i * 60}ms` }}
+          {recent.length === 0 ? (
+            <div className="premium-card rounded-2xl p-4 text-sm text-muted-foreground">
+              No recent destinations yet. Start with a visa check.
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {recent.slice(0, 5).map((r) => (
+                <Link
+                  key={`${r.passport}-${r.destination}-${r.timestamp}`}
+                  to="/country/$code"
+                  params={{ code: r.destination }}
+                  className="premium-card flex items-center gap-3 rounded-2xl p-3 transition-colors hover:bg-secondary/30"
+                >
+                  <span className="text-lg">{flagEmoji(r.destination)}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-foreground">
+                      {getCountryName(r.destination)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{r.status}</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Popular destinations */}
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="section-title">Popular destinations</h2>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                aria-label="Previous destination"
+                onClick={() => popularApi?.scrollPrev()}
+                disabled={!canScrollPopularPrev}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border disabled:opacity-40"
               >
-                <span className="text-lg" aria-hidden>
-                  {flagEmoji(r.destination)}
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-foreground">
-                    {getCountryName(r.destination)}
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                aria-label="Next destination"
+                onClick={() => popularApi?.scrollNext()}
+                disabled={!canScrollPopularNext}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border disabled:opacity-40"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+              <Link to="/countries" className="ml-1 text-xs font-semibold text-navy">
+                See all
+              </Link>
+            </div>
+          </div>
+          <Carousel setApi={setPopularApi} opts={{ align: "start", containScroll: "trimSnaps" }}>
+            <CarouselContent className="-ml-3">
+              {POPULAR.map((d) => (
+                <CarouselItem key={d.code} className="basis-[44%] pl-3 sm:basis-[38%]">
+                  <Link
+                    to="/country/$code"
+                    params={{ code: d.code }}
+                    className="group block overflow-hidden rounded-2xl border border-border bg-card shadow-soft"
+                  >
+                    <div className="relative h-32 overflow-hidden">
+                      <img
+                        src={d.image}
+                        alt={d.name}
+                        loading="lazy"
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-navy/70 to-transparent" />
+                      <p className="absolute bottom-2 left-2 text-sm font-semibold text-white">
+                        {flagEmoji(d.code)} {d.name}
+                      </p>
+                    </div>
+                    <p className="px-3 py-2 text-xs text-muted-foreground">{d.tagline}</p>
+                  </Link>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+          </Carousel>
+        </section>
+
+        {/* Travel inspiration */}
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="section-title">Travel inspiration</h2>
+            <span className="text-xs text-muted-foreground">Updated daily</span>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {dailyTrending.slice(0, 4).map((destination) => (
+              <Link
+                key={destination.code}
+                to="/country/$code"
+                params={{ code: destination.code }}
+                className="group overflow-hidden rounded-2xl border border-border bg-card shadow-soft"
+              >
+                <div className="relative h-24 overflow-hidden">
+                  <img
+                    src={TRENDING_IMAGES[destination.imageIndex]}
+                    alt={destination.name}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-navy/60 to-transparent" />
+                  <p className="absolute bottom-2 left-2 truncate text-xs font-semibold text-white">
+                    {flagEmoji(destination.code)} {destination.name}
                   </p>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground">{r.status}</p>
                 </div>
               </Link>
             ))}
           </div>
-        )}
-      </section>
+        </section>
 
-      {/* Country Hub banner */}
-      <section
-        className="relative mt-8 px-6"
-        style={{ contentVisibility: "auto", containIntrinsicSize: "300px" }}
-      >
-        <Link
-          to="/countries"
-          className="group relative block overflow-hidden rounded-3xl shadow-float"
-        >
-          <img
-            src={regionEurope}
-            alt="Explore country guides"
-            width={1024}
-            height={576}
-            loading="lazy"
-            decoding="async"
-            fetchPriority="low"
-            className="h-36 w-full object-cover transition-transform duration-700 group-hover:scale-105"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-navy/95 via-navy/60 to-navy/10" />
-          <div className="absolute inset-y-0 left-0 flex flex-col justify-center p-5">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-white/70">
-              Country Hub
-            </p>
-            <p className="mt-1 text-xl font-extrabold text-white">Explore 199 countries</p>
-            <p className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-white/80">
-              Visas · costs · attractions <ArrowRight className="h-3 w-3" />
-            </p>
-          </div>
-        </Link>
-      </section>
-
-      {/* Popular destinations */}
-      <section
-        className="relative mt-9"
-        style={{ contentVisibility: "auto", containIntrinsicSize: "420px" }}
-      >
-        <div className="mb-3 flex items-center justify-between px-6">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-            Popular destinations
-          </p>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              aria-label="Previous destination"
-              onClick={() => popularApi?.scrollPrev()}
-              disabled={!canScrollPopularPrev}
-              className="glass inline-flex h-7 w-7 items-center justify-center rounded-full text-foreground transition active:scale-95 disabled:opacity-40"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              aria-label="Next destination"
-              onClick={() => popularApi?.scrollNext()}
-              disabled={!canScrollPopularNext}
-              className="glass inline-flex h-7 w-7 items-center justify-center rounded-full text-foreground transition active:scale-95 disabled:opacity-40"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-            <Link to="/countries" className="text-[11px] font-semibold text-primary">
-              See all
-            </Link>
-          </div>
-        </div>
-        <Carousel
-          className="-mx-1 px-5"
-          setApi={setPopularApi}
-          opts={{ align: "start", containScroll: "trimSnaps", slidesToScroll: 1 }}
-        >
-          <CarouselContent className="-ml-3 pb-2">
-            {POPULAR.map((d, i) => (
-              <CarouselItem key={d.code} className="basis-auto pl-3">
-                <Link
-                  to="/country/$code"
-                  params={{ code: d.code }}
-                  className="group relative block h-52 w-44 overflow-hidden rounded-3xl shadow-float animate-fade-up"
-                  style={{ animationDelay: `${i * 80}ms` }}
-                >
-                  <img
-                    src={d.image}
-                    alt={d.name}
-                    loading={i === 0 ? "eager" : "lazy"}
-                    fetchPriority={i === 0 ? "high" : "low"}
-                    decoding="async"
-                    draggable={false}
-                    width={352}
-                    height={416}
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-navy/95 via-navy/40 to-transparent" />
-                  <div className="absolute top-3 left-3 glass rounded-full px-2.5 py-1 text-[10px] font-bold text-foreground">
-                    {flagEmoji(d.code)} {d.name}
-                  </div>
-                  <div className="absolute inset-x-0 bottom-0 p-4">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-white/70">
-                      Explore
-                    </p>
-                    <p className="mt-0.5 text-sm font-bold text-white">{d.tagline}</p>
-                  </div>
-                </Link>
-              </CarouselItem>
+        {/* Visa updates */}
+        <section>
+          <h2 className="section-title mb-3">Latest visa updates</h2>
+          <div className="space-y-2">
+            {visaUpdates.slice(0, 4).map((item) => (
+              <VisaUpdateCard key={item.id} item={item} />
             ))}
-          </CarouselContent>
-        </Carousel>
-      </section>
-
-      {/* Feature grid */}
-      <section
-        className="relative mt-10 px-6"
-        style={{ contentVisibility: "auto", containIntrinsicSize: "380px" }}
-      >
-        <div className="mb-3 flex items-center justify-between">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-            Everything you need
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <FeatureCard
-            to="/visa-check"
-            title="Visa Check"
-            desc="199 countries"
-            icon={<Plane className="h-5 w-5" />}
-            tone="primary"
-            delay={0}
-          />
-          <FeatureCard
-            to="/checklist"
-            title="Checklist"
-            desc="Never forget a thing"
-            icon={<CheckSquare className="h-5 w-5" />}
-            tone="emerald"
-            delay={70}
-          />
-          <FeatureCard
-            to="/budget-planner"
-            title="Budget"
-            desc="Plan every dollar"
-            icon={<Wallet className="h-5 w-5" />}
-            tone="navy"
-            delay={140}
-          />
-          <FeatureCard
-            to="/assistant"
-            title="Asvior AI"
-            desc="Ask anything"
-            icon={<Sparkles className="h-5 w-5" />}
-            tone="royal"
-            delay={210}
-          />
-        </div>
-      </section>
-
-      {/* Trending destinations */}
-      <section
-        className="relative mt-10 px-6"
-        style={{ contentVisibility: "auto", containIntrinsicSize: "620px" }}
-      >
-        <div className="mb-3 flex items-center justify-between">
-          <div>
-            <h2 className="text-display text-2xl text-foreground">Trending Destinations</h2>
-            <p className="mt-0.5 text-xs font-semibold text-muted-foreground">Updated Daily</p>
           </div>
-          <div className="glass inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald">
-            <RefreshCw className="h-3 w-3" />
-            24h rotation
-          </div>
-        </div>
+        </section>
 
-        <div className="grid grid-cols-2 gap-3">
-          {dailyTrending.map((destination, i) => (
-            <Link
-              key={destination.code}
-              to="/country/$code"
-              params={{ code: destination.code }}
-              className="group glass overflow-hidden rounded-3xl shadow-soft animate-fade-up transition-all active:scale-[0.98] hover:-translate-y-0.5 hover:shadow-float"
-              style={{ animationDelay: `${i * 70}ms` }}
-            >
-              <div className="relative h-28 overflow-hidden">
-                <img
-                  src={TRENDING_IMAGES[destination.imageIndex]}
-                  alt={`${destination.name} destination`}
-                  width={480}
-                  height={320}
-                  loading="lazy"
-                  decoding="async"
-                  fetchPriority="low"
-                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-navy/80 via-navy/25 to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 px-3 pb-2">
-                  <p className="truncate text-sm font-bold text-white">
-                    {flagEmoji(destination.code)} {destination.name}
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-3.5">
-                <p className="line-clamp-2 text-[12px] font-medium leading-relaxed text-muted-foreground">
-                  {destination.places.slice(0, 5).join(" • ")}
-                </p>
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  <span className="rounded-full bg-primary/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">
-                    Visa
-                  </span>
-                  <span className="rounded-full bg-emerald/12 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald">
-                    Budget
-                  </span>
-                  <span className="rounded-full bg-muted px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-foreground">
-                    Attractions
-                  </span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Latest visa updates */}
-      <section
-        className="relative mt-10 px-6"
-        style={{ contentVisibility: "auto", containIntrinsicSize: "560px" }}
-      >
-        <div className="mb-3 flex items-center justify-between">
-          <div>
-            <h2 className="text-display text-2xl text-foreground">Latest Visa Updates</h2>
-            <p className="mt-0.5 text-xs font-semibold text-muted-foreground">
-              Structured for future API feeds
-            </p>
-          </div>
-          <CalendarClock className="h-4 w-4 text-primary" />
-        </div>
-        <div className="space-y-2.5">
-          {visaUpdates.map((item, i) => (
-            <VisaUpdateCard key={item.id} item={item} delay={i * 45} />
-          ))}
-        </div>
-      </section>
-
-      <section className="relative mt-10 px-6 pb-4">
-        <footer className="space-y-3 text-center">
+        <footer className="border-t border-border pt-4 text-center">
           <nav
             aria-label="Legal"
-            className="flex flex-wrap items-center justify-center gap-4 text-[11px] font-semibold text-muted-foreground"
+            className="flex flex-wrap items-center justify-center gap-3 text-xs text-muted-foreground"
           >
-            <Link to="/about" className="hover:text-foreground">
-              About
-            </Link>
-            <span aria-hidden>·</span>
-            <Link to="/privacy" className="hover:text-foreground">
-              Privacy
-            </Link>
-            <span aria-hidden>·</span>
-            <Link to="/terms" className="hover:text-foreground">
-              Terms
-            </Link>
-            <span aria-hidden>·</span>
-            <Link to="/contact" className="hover:text-foreground">
-              Contact
-            </Link>
-            <span aria-hidden>·</span>
-            <Link to="/support" className="hover:text-foreground">
-              Support
-            </Link>
-            <span aria-hidden>·</span>
-            <a href="mailto:hello@asvior.app" className="hover:text-foreground">
-              hello@asvior.app
-            </a>
-            <span aria-hidden>·</span>
-            <a href="mailto:support@asvior.app" className="hover:text-foreground">
-              support@asvior.app
-            </a>
+            <Link to="/about" className="hover:text-foreground">About</Link>
+            <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
+            <Link to="/terms" className="hover:text-foreground">Terms</Link>
+            <Link to="/contact" className="hover:text-foreground">Contact</Link>
+            <Link to="/support" className="hover:text-foreground">Support</Link>
           </nav>
         </footer>
-      </section>
+      </div>
     </div>
   );
 }
 
-function FeatureCard({
+function ToolCard({
   to,
   title,
   desc,
   icon,
-  tone,
-  delay = 0,
 }: {
   to: string;
   title: string;
   desc: string;
   icon: React.ReactNode;
-  tone: "primary" | "emerald" | "navy" | "royal";
-  delay?: number;
 }) {
-  const toneClasses: Record<string, string> = {
-    primary: "gradient-primary text-primary-foreground",
-    emerald: "gradient-emerald text-white",
-    navy: "gradient-navy text-white",
-    royal: "bg-primary/10 text-primary",
-  };
   return (
     <Link
       to={to}
-      className="glass group relative flex flex-col justify-between overflow-hidden rounded-3xl p-4 shadow-soft animate-fade-up transition-all active:scale-[0.98] hover:-translate-y-1 hover:shadow-float"
-      style={{ animationDelay: `${delay}ms` }}
+      className="premium-card flex flex-col gap-3 rounded-2xl p-4 transition-colors hover:bg-secondary/30"
     >
-      <div
-        className={`flex h-11 w-11 items-center justify-center rounded-2xl shadow-soft ${toneClasses[tone]}`}
-      >
-        {icon}
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-navy">{icon}</div>
+      <div>
+        <p className="text-sm font-semibold text-foreground">{title}</p>
+        <p className="text-xs text-muted-foreground">{desc}</p>
       </div>
-      <div className="mt-6">
-        <p className="text-[15px] font-bold text-foreground">{title}</p>
-        <p className="mt-0.5 text-[11px] font-medium text-muted-foreground">{desc}</p>
-      </div>
-      <ArrowRight className="absolute top-4 right-4 h-4 w-4 text-muted-foreground transition-all group-hover:translate-x-1 group-hover:text-primary" />
     </Link>
   );
 }

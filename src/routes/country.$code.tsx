@@ -70,12 +70,12 @@ const COUNTRY_OPTIONS: CountryOption[] = VISA_CODES.map((code) => ({
 })).sort((a, b) => a.name.localeCompare(b.name));
 
 const statusTone: Record<VisaStatus, string> = {
-  "Visa Free": "gradient-emerald text-white",
+  "Visa Free": "bg-emerald text-white",
   "Visa on Arrival": "bg-amber-400/90 text-amber-950",
   ETA: "bg-sky-400/90 text-sky-950",
-  eVisa: "gradient-primary text-primary-foreground",
+  eVisa: "bg-navy text-primary-foreground",
   "Visa Required": "bg-destructive text-destructive-foreground",
-  "No Admission": "gradient-navy text-white",
+  "No Admission": "bg-navy text-white",
 };
 
 const statusIcon: Record<VisaStatus, React.ReactNode> = {
@@ -170,21 +170,21 @@ function CountryHubPage() {
           height={576}
           className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-navy/40 via-navy/20 to-background" />
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background to-transparent" />
+        <div className="absolute inset-0 bg-navy/30" />
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
 
-        <div className="absolute inset-x-0 top-0 flex items-center justify-between px-5 pt-6">
+        <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4 pt-6">
           <Link
             to="/countries"
             aria-label="Back to countries"
-            className="glass-strong flex h-10 w-10 items-center justify-center rounded-2xl text-foreground transition-transform active:scale-95"
+            className="premium-card flex h-10 w-10 items-center justify-center rounded-2xl text-foreground"
           >
             <ArrowLeft className="h-4.5 w-4.5" />
           </Link>
           <button
             onClick={toggleFav}
             aria-label={isFav ? "Remove from favorites" : "Save country"}
-            className={`glass-strong flex h-10 w-10 items-center justify-center rounded-2xl transition-all active:scale-95 ${
+            className={`premium-card flex h-10 w-10 items-center justify-center rounded-2xl ${
               isFav ? "text-red-500" : "text-foreground"
             }`}
           >
@@ -192,13 +192,13 @@ function CountryHubPage() {
           </button>
         </div>
 
-        <div className="absolute inset-x-0 bottom-0 px-6 pb-2 animate-fade-up">
+        <div className="absolute inset-x-0 bottom-0 px-4 pb-2">
           <span className="text-5xl drop-shadow-lg">{flagEmoji(code)}</span>
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <h1 className="text-display text-4xl text-foreground">{name}</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">{name}</h1>
             {visa && (
               <span
-                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider shadow-soft ${statusTone[visa.status]}`}
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${statusTone[visa.status]}`}
               >
                 {statusIcon[visa.status]}
                 {visa.status}
@@ -216,8 +216,8 @@ function CountryHubPage() {
       </section>
 
       {/* ============ PASSPORT SELECTOR ============ */}
-      <section className="relative mt-4 px-6 animate-fade-up">
-        <div className="glass rounded-3xl p-4">
+      <section className="relative mt-4 px-4">
+        <div className="premium-card rounded-2xl p-4">
           <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
             Your passport
           </label>
@@ -236,9 +236,9 @@ function CountryHubPage() {
       {/* ============ VISA INFORMATION ============ */}
       {visa && (
         <Section title="Visa information" icon={<ShieldCheck className="h-4 w-4" />}>
-          <div className="glass overflow-hidden rounded-3xl">
+          <div className="premium-card overflow-hidden rounded-2xl">
             <div className={`px-5 py-4 ${statusTone[visa.status]}`}>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/25 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest">
                 {statusIcon[visa.status]}
                 {visa.status}
               </div>
@@ -270,7 +270,7 @@ function CountryHubPage() {
                   href={visa.officialUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl gradient-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-float transition-transform active:scale-[0.98]"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-navy px-4 py-3 text-sm font-semibold text-primary-foreground shadow-soft"
                 >
                   <Globe2 className="h-4 w-4" /> Official visa website{" "}
                   <ExternalLink className="h-3.5 w-3.5" />
@@ -279,7 +279,7 @@ function CountryHubPage() {
                   href={immigrationUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="glass inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold text-foreground transition-transform active:scale-[0.98]"
+                  className="premium-card inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold text-foreground"
                 >
                   <Landmark className="h-4 w-4 text-primary" /> Immigration authority{" "}
                   <ExternalLink className="h-3.5 w-3.5" />
@@ -304,7 +304,7 @@ function CountryHubPage() {
 
       {/* ============ TRAVEL COST ============ */}
       <Section title="Travel cost" icon={<Banknote className="h-4 w-4" />}>
-        <div className="glass rounded-3xl p-5">
+        <div className="premium-card rounded-2xl p-5">
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
               Trip length
@@ -314,9 +314,9 @@ function CountryHubPage() {
                 <button
                   key={d}
                   onClick={() => setDays(d)}
-                  className={`rounded-full px-3 py-1 text-[11px] font-bold transition-all active:scale-95 ${
+                  className={`rounded-full px-3 py-1 text-[11px] font-bold transition-colors ${
                     days === d
-                      ? "gradient-primary text-primary-foreground shadow-soft"
+                      ? "bg-navy text-primary-foreground shadow-soft"
                       : "bg-muted text-muted-foreground"
                   }`}
                 >
@@ -388,11 +388,11 @@ function CountryHubPage() {
 
       {/* ============ TOP ATTRACTIONS ============ */}
       <Section title="Top attractions" icon={<MapPin className="h-4 w-4" />}>
-        <div className="-mx-6 flex gap-3 overflow-x-auto px-6 pb-2 [scrollbar-width:none]">
+        <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none]">
           {profile.attractions.map((a, i) => (
             <div
               key={a.name}
-              className="relative h-48 w-40 shrink-0 overflow-hidden rounded-3xl shadow-glass"
+              className="relative h-48 w-40 shrink-0 overflow-hidden rounded-2xl border border-border shadow-soft"
             >
               <img
                 src={regionMeta.image}
@@ -403,7 +403,7 @@ function CountryHubPage() {
                 className="absolute inset-0 h-full w-full object-cover"
                 style={{ objectPosition: `${(i * 33) % 100}% center` }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-navy/95 via-navy/40 to-navy/10" />
+              <div className="absolute inset-0 bg-navy/60" />
               <div className="absolute inset-x-0 bottom-0 p-3.5">
                 <span className="text-2xl drop-shadow">{a.emoji}</span>
                 <p className="mt-1 text-[13px] font-bold leading-tight text-white">{a.name}</p>
@@ -445,15 +445,15 @@ function CountryHubPage() {
       </Section>
 
       {/* ============ ASK AI ============ */}
-      <section className="relative mt-8 px-6">
-        <div className="overflow-hidden rounded-3xl gradient-navy p-5 text-white shadow-float">
+      <section className="relative mt-8 px-4">
+        <div className="overflow-hidden rounded-2xl bg-navy p-5 text-primary-foreground shadow-soft">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/10">
               <Sparkles className="h-5 w-5" strokeWidth={2.4} />
             </div>
             <div>
               <p className="text-sm font-bold">Ask AI about {name}</p>
-              <p className="mt-0.5 text-[11px] text-white/70">
+              <p className="mt-0.5 text-[11px] text-primary-foreground/70">
                 Instant answers from your travel concierge
               </p>
             </div>
@@ -464,7 +464,7 @@ function CountryHubPage() {
                 key={q}
                 to="/assistant"
                 search={{ q }}
-                className="flex items-center justify-between gap-2 rounded-2xl bg-white/10 px-4 py-2.5 text-left text-[13px] font-medium backdrop-blur-sm transition-all hover:bg-white/15 active:scale-[0.98]"
+                className="flex items-center justify-between gap-2 rounded-2xl bg-white/10 px-4 py-2.5 text-left text-[13px] font-medium transition-colors hover:bg-white/15"
               >
                 <span className="min-w-0 flex-1">{q}</span>
                 <Sparkles className="h-3.5 w-3.5 shrink-0 opacity-70" />
@@ -489,7 +489,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="relative mt-8 px-6 animate-fade-up">
+    <section className="relative mt-8 px-4">
       <p className="mb-3 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
         <span className="text-primary">{icon}</span>
         {title}
@@ -513,8 +513,8 @@ function InfoTile({ icon, label, value }: { icon: React.ReactNode; label: string
 
 function InfoCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="glass rounded-3xl p-4">
-      <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+    <div className="premium-card rounded-2xl p-4">
+      <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-secondary text-navy">
         {icon}
       </div>
       <p className="mt-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
@@ -566,7 +566,7 @@ function TipRow({
   text: string;
 }) {
   return (
-    <div className="glass flex items-start gap-3 rounded-3xl p-4">
+    <div className="premium-card flex items-start gap-3 rounded-2xl p-4">
       <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl ${tone}`}>
         {icon}
       </div>
@@ -615,7 +615,7 @@ function DocChecklist({
   const pct = documents.length ? Math.round((done / documents.length) * 100) : 0;
 
   return (
-    <div className="glass rounded-3xl p-5">
+    <div className="premium-card rounded-2xl p-5">
       <div className="flex items-center justify-between">
         <p className="text-sm font-bold text-foreground">
           {done}/{documents.length} ready
@@ -626,7 +626,7 @@ function DocChecklist({
       </div>
       <div className="mt-2.5 h-2 overflow-hidden rounded-full bg-muted">
         <div
-          className="h-full rounded-full gradient-emerald transition-all duration-500"
+          className="h-full rounded-full bg-emerald transition-all duration-500"
           style={{ width: `${pct}%` }}
         />
       </div>

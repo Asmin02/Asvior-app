@@ -1,14 +1,21 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { Globe2, Heart, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
 import { CountryCombobox, type CountryOption } from "@/components/CountryCombobox";
 import { VISA_CODES } from "@/data/visa-data";
 import { Button } from "@/components/ui/button";
+import {
+  EmptyStateCard,
+  LoadingSkeleton,
+  PageBadge,
+  PageHeader,
+  PageShell,
+} from "@/components/PageShell";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/favorites")({
-  head: () => ({ meta: [{ title: "Favorite Destinations — Asvior" }] }),
+  head: () => ({ meta: [{ title: "Favorite Destinations — ASVIOR" }] }),
   component: FavoritesPage,
 });
 
@@ -19,10 +26,12 @@ function getCountryName(code: string) {
     return code;
   }
 }
+
 function flag(code: string) {
   if (code.length !== 2) return "";
   return String.fromCodePoint(...[...code.toUpperCase()].map((c) => 0x1f1a5 + c.charCodeAt(0)));
 }
+
 const OPTIONS: CountryOption[] = VISA_CODES.map((c) => ({ code: c, name: getCountryName(c) })).sort(
   (a, b) => a.name.localeCompare(b.name),
 );
@@ -37,6 +46,7 @@ function FavoritesPage() {
   useEffect(() => {
     load();
   }, []);
+
   const load = async () => {
     setLoadError(false);
     const { data: userData, error: userError } = await supabase.auth.getUser();
@@ -87,13 +97,20 @@ function FavoritesPage() {
   };
 
   return (
-    <div className="px-5 pt-8 pb-6">
-      <h1 className="text-2xl font-bold text-foreground">Favorite Destinations</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Quick-access list of countries you love.</p>
+    <PageShell className="pb-6">
+      <PageHeader
+        badge={
+          <PageBadge icon={<Heart className="h-3.5 w-3.5" />}>
+            {favs.length} saved {favs.length === 1 ? "destination" : "destinations"}
+          </PageBadge>
+        }
+        title="Favorites"
+        subtitle="Quick-access list of countries you love."
+      />
 
-      <Card className="mt-5 ring-1 ring-border">
-        <CardContent className="p-4">
-          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+      <section className="relative mt-6 px-4">
+        <div className="premium-card rounded-2xl p-5">
+          <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
             Add a country
           </label>
           <div className="flex gap-2">
@@ -105,76 +122,67 @@ function FavoritesPage() {
                 placeholder="Search country..."
               />
             </div>
-            <Button onClick={add} disabled={!adding}>
-              Add
+            <Button onClick={add} disabled={!adding} size="icon" aria-label="Add favorite">
+              <Plus className="h-4 w-4" />
             </Button>
           </div>
-        </CardContent>
-      </Card>
-
-      {loading ? (
-        <div className="mt-5 grid grid-cols-2 gap-3" aria-hidden>
-          <div className="h-32 animate-pulse rounded-xl bg-muted" />
-          <div className="h-32 animate-pulse rounded-xl bg-muted" />
-          <div className="h-32 animate-pulse rounded-xl bg-muted" />
-          <div className="h-32 animate-pulse rounded-xl bg-muted" />
         </div>
-      ) : loadError ? (
-        <Card className="mt-6 ring-1 ring-border">
-          <CardContent className="p-8 text-center">
-            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10 text-2xl">
-              📡
-            </div>
-            <p className="text-sm font-semibold text-foreground">Couldn't load your favorites.</p>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              Check your connection and try again.
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-4"
-              onClick={() => {
-                setLoading(true);
-                load();
-              }}
-            >
-              Retry
-            </Button>
-          </CardContent>
-        </Card>
-      ) : favs.length === 0 ? (
-        <Card className="mt-6 ring-1 ring-border">
-          <CardContent className="p-8 text-center">
-            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-travel-sky text-2xl">
-              🌍
-            </div>
-            <p className="text-sm font-semibold text-foreground">No favorites yet.</p>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              Start planning your first adventure — add a dream destination above.
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="mt-5 grid grid-cols-2 gap-3">
-          {favs.map((code) => (
-            <Card key={code} className="ring-1 ring-border animate-fade-in">
-              <CardContent className="p-4 text-center">
-                <div className="text-4xl">{flag(code)}</div>
-                <p className="mt-2 truncate text-sm font-semibold text-foreground">
-                  {getCountryName(code)}
-                </p>
+      </section>
+
+      <section className="relative mt-5 px-4">
+        {loading ? (
+          <LoadingSkeleton rows={4} />
+        ) : loadError ? (
+          <EmptyStateCard
+            icon="📡"
+            title="Couldn't load your favorites"
+            description="Check your connection and try again."
+            action={
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-2xl"
+                onClick={() => {
+                  setLoading(true);
+                  load();
+                }}
+              >
+                Retry
+              </Button>
+            }
+          />
+        ) : favs.length === 0 ? (
+          <EmptyStateCard
+            icon={<Globe2 className="h-7 w-7 text-navy" />}
+            title="No favorites yet"
+            description="Start planning your first adventure — add a dream destination above."
+          />
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {favs.map((code) => (
+              <div
+                key={code}
+                className="premium-card group relative overflow-hidden rounded-2xl p-4 text-center"
+              >
+                <Link to="/country/$code" params={{ code }} className="block">
+                  <div className="text-4xl drop-shadow">{flag(code)}</div>
+                  <p className="mt-2 truncate text-sm font-bold text-foreground">
+                    {getCountryName(code)}
+                  </p>
+                </Link>
                 <button
                   onClick={() => remove(code)}
-                  className="mt-2 text-[11px] text-destructive hover:underline"
+                  className="mt-3 inline-flex items-center gap-1 rounded-full bg-destructive/10 px-3 py-1 text-[10px] font-semibold text-destructive transition-colors hover:bg-destructive/15"
                   aria-label={`Remove ${getCountryName(code)} from favorites`}
                 >
+                  <Trash2 className="h-3 w-3" />
                   Remove
                 </button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-    </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    </PageShell>
   );
 }

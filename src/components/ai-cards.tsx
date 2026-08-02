@@ -89,8 +89,8 @@ export function VisaSummaryCard({ data }: { data: VisaCardData }) {
     : "from-emerald-500/20 to-teal-500/10 text-emerald-700 dark:text-emerald-300 ring-emerald-500/30";
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/40 bg-gradient-to-br from-card/90 to-card/60 shadow-lg ring-1 ring-border backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 duration-300">
-      <div className="flex items-center gap-2 border-b border-border/60 bg-gradient-to-r from-primary/10 to-travel-blue/10 px-4 py-2.5">
+    <div className="premium-card overflow-hidden rounded-[1.5rem] animate-bubble-in">
+      <div className="flex items-center gap-2 border-b border-champagne/12 bg-gradient-to-r from-primary/10 to-champagne/8 px-4 py-2.5">
         <span className="text-lg">🛂</span>
         <h3 className="text-sm font-semibold tracking-tight">Visa Summary</h3>
         {data.passport && data.destination && (
@@ -125,7 +125,7 @@ export function VisaSummaryCard({ data }: { data: VisaCardData }) {
             href={data.officialUrl}
             target="_blank"
             rel="noreferrer noopener"
-            className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-primary to-travel-blue-dark px-4 py-2.5 text-xs font-semibold text-primary-foreground shadow-md shadow-primary/30 transition-transform active:scale-[0.98]"
+            className="flex items-center justify-center gap-2 rounded-2xl premium-button px-4 py-2.5 text-xs font-semibold shadow-float transition-transform active:scale-[0.98]"
           >
             <svg
               className="h-3.5 w-3.5"
@@ -207,8 +207,8 @@ export function DocChecklistCard({ data }: { data: DocChecklistData }) {
   const pct = total ? Math.round((done / total) * 100) : 0;
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/40 bg-gradient-to-br from-card/90 to-card/60 shadow-lg ring-1 ring-border backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 duration-300">
-      <div className="flex items-center gap-2 border-b border-border/60 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 px-4 py-2.5">
+    <div className="premium-card overflow-hidden rounded-[1.5rem] animate-bubble-in">
+      <div className="flex items-center gap-2 border-b border-champagne/12 bg-gradient-to-r from-emerald/10 to-champagne/8 px-4 py-2.5">
         <span className="text-lg">📄</span>
         <h3 className="text-sm font-semibold tracking-tight">
           {data.title || "Document Checklist"}
@@ -297,8 +297,8 @@ export function BudgetCard({ data }: { data: BudgetCardData }) {
     ];
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/40 bg-gradient-to-br from-card/90 to-card/60 shadow-lg ring-1 ring-border backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 duration-300">
-      <div className="flex items-center gap-2 border-b border-border/60 bg-gradient-to-r from-travel-blue/10 to-primary/10 px-4 py-2.5">
+    <div className="premium-card overflow-hidden rounded-[1.5rem] animate-bubble-in">
+      <div className="flex items-center gap-2 border-b border-champagne/12 bg-gradient-to-r from-primary/10 to-champagne/8 px-4 py-2.5">
         <span className="text-lg">💰</span>
         <h3 className="text-sm font-semibold tracking-tight">
           Daily Budget {data.destination ? `· ${data.destination}` : ""}
@@ -375,7 +375,7 @@ export function SuggestedQuestions({
           <button
             key={i}
             onClick={() => onPick(q)}
-            className="rounded-full border border-primary/30 bg-primary/5 px-3 py-1.5 text-[11px] font-medium text-primary transition-colors hover:bg-primary/15"
+            className="premium-pill rounded-full px-3 py-1.5 text-[11px] font-medium text-primary transition-colors hover:bg-primary/10"
           >
             {q}
           </button>

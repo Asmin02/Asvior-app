@@ -14,6 +14,7 @@ import {
   Trash2,
   Plane,
 } from "lucide-react";
+import { PageBadge, PageHeader, PageShell } from "@/components/PageShell";
 import { Switch } from "@/components/ui/switch";
 import {
   AlertDialog,
@@ -190,21 +191,18 @@ function SettingsPage() {
   };
 
   return (
-    <div className="time-hero-surface phase-night relative overflow-hidden">
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-64 gradient-hero-bg"
-        aria-hidden
+    <PageShell className="pb-6">
+      <PageHeader
+        badge={
+          <PageBadge icon={<Palette className="h-3.5 w-3.5" />}>
+            {userId ? "Synced to your account" : "Local device"}
+          </PageBadge>
+        }
+        title="Settings"
+        subtitle="Personalize your Asvior experience."
       />
 
-      <header className="relative px-6 pt-10">
-        <div className="premium-card inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold text-champagne">
-          <Palette className="h-3.5 w-3.5" /> {userId ? "Synced to your account" : "Local device"}
-        </div>
-        <h1 className="mt-3 text-display text-3xl text-foreground">Settings</h1>
-        <p className="mt-1.5 text-sm text-muted-foreground">Personalize your Asvior experience.</p>
-      </header>
-
-      <section className="relative mt-6 space-y-3 px-6 pb-6">
+      <section className="mt-6 space-y-3 px-4 pb-6">
         <SettingsCard icon={<Moon className="h-4 w-4" />} title="Appearance">
           <Row label="Dark mode" hint="Easier on the eyes at night.">
             <Switch
@@ -280,7 +278,7 @@ function SettingsPage() {
               className="flex min-h-11 items-center justify-between gap-3 py-3 text-sm font-semibold text-foreground transition-colors hover:text-primary"
             >
               <span className="flex items-center gap-2.5">
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary text-navy">
                   <Mail className="h-4 w-4" />
                 </span>
                 Contact support
@@ -309,7 +307,7 @@ function SettingsPage() {
                   {deleting ? "Deleting account…" : "Delete account"}
                 </button>
               </AlertDialogTrigger>
-              <AlertDialogContent className="rounded-3xl">
+              <AlertDialogContent className="rounded-2xl">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete your account?</AlertDialogTitle>
                   <AlertDialogDescription>
@@ -331,7 +329,7 @@ function SettingsPage() {
           </SettingsCard>
         )}
       </section>
-    </div>
+    </PageShell>
   );
 }
 
@@ -345,9 +343,9 @@ function SettingsCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="premium-card rounded-3xl p-5">
+    <div className="premium-card rounded-2xl p-5">
       <p className="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-        <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-champagne/15 text-champagne">
+        <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-secondary text-navy">
           {icon}
         </span>
         {title}
@@ -384,7 +382,7 @@ function LinkRow({ to, icon, label }: { to: string; icon: React.ReactNode; label
       className="flex min-h-11 items-center justify-between gap-3 py-3 text-sm font-semibold text-foreground transition-colors hover:text-primary"
     >
       <span className="flex items-center gap-2.5">
-        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-champagne/15 text-champagne">
+        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary text-navy">
           {icon}
         </span>
         {label}
@@ -421,7 +419,7 @@ function Select({
         id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="min-h-11 w-full rounded-2xl border border-border/70 bg-card/90 px-4 py-3 text-sm font-semibold text-foreground outline-none transition-all focus:ring-2 focus:ring-champagne/40"
+        className="min-h-11 w-full rounded-2xl border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground outline-none transition-all focus:ring-2 focus:ring-navy/20"
       >
         {options.map(([v, l]) => (
           <option key={v} value={v}>

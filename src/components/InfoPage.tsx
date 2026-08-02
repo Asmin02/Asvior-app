@@ -14,37 +14,31 @@ export function InfoPage({
   children: ReactNode;
 }) {
   return (
-    <div className="relative overflow-hidden">
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-64 gradient-hero-bg"
-        aria-hidden
-      />
-      <header className="relative px-6 pt-10">
+    <div className="pb-8">
+      <header className="border-b border-border bg-card px-4 py-5">
         <Link
           to="/settings"
           aria-label="Back to settings"
-          className="glass mb-4 inline-flex h-10 w-10 items-center justify-center rounded-2xl text-foreground transition-transform active:scale-95"
+          className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-background text-foreground transition-colors hover:bg-secondary"
         >
           <ArrowLeft className="h-4 w-4" />
         </Link>
-        <div className="glass inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold text-primary">
+        <div className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-muted-foreground">
           {badge}
         </div>
-        <h1 className="mt-3 text-display text-3xl text-foreground">{title}</h1>
-        <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{subtitle}</p>
+        <h1 className="mt-2 text-2xl font-bold tracking-tight text-foreground">{title}</h1>
+        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{subtitle}</p>
       </header>
-      <section className="relative mt-6 space-y-3 px-6 pb-8">{children}</section>
+      <section className="mt-4 space-y-3 px-4">{children}</section>
     </div>
   );
 }
 
 export function InfoSection({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="glass rounded-3xl p-5">
-      <h2 className="text-sm font-bold text-foreground">{title}</h2>
-      <div className="mt-2 space-y-2 text-[13px] leading-relaxed text-muted-foreground">
-        {children}
-      </div>
+    <div className="premium-card rounded-2xl p-5">
+      <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+      <div className="mt-2 space-y-2 text-sm leading-relaxed text-muted-foreground">{children}</div>
     </div>
   );
 }

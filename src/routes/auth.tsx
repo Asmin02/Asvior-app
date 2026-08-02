@@ -1,8 +1,10 @@
 import { createFileRoute, useNavigate, Link, Outlet, useLocation } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Plane, Mail, Lock, User as UserIcon, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, User as UserIcon, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getEmailVerificationRedirectUrl, getPasswordResetRedirectUrl } from "@/lib/auth-redirects";
+import { AsviorMark } from "@/components/AsviorMark";
+import { PageShell } from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -113,31 +115,24 @@ function AuthPage() {
   };
 
   return (
-    <div data-testid="auth-page" className="relative min-h-dvh overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 gradient-hero-bg" aria-hidden />
-      <div
-        className="pointer-events-none absolute -top-20 -right-16 h-72 w-72 rounded-full bg-primary/30 blur-3xl"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute -bottom-16 -left-16 h-72 w-72 rounded-full bg-emerald/25 blur-3xl"
-        aria-hidden
-      />
-
-      <div className="relative px-6 pt-8">
+    <PageShell className="min-h-dvh pb-6">
+      <div data-testid="auth-page" className="px-4 pt-8">
         <Link
           data-testid="auth-back-link"
           to="/"
-          className="glass inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-foreground"
+          className="premium-card inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-foreground"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back
         </Link>
 
-        <div className="mt-10 text-center animate-fade-up">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl gradient-primary shadow-float">
-            <Plane className="h-8 w-8 text-primary-foreground" strokeWidth={2.2} />
+        <div className="mt-10 text-center">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-navy shadow-soft">
+            <AsviorMark className="h-12 w-12" />
           </div>
-          <h1 className="mt-5 text-display text-3xl text-foreground">
+          <p className="mt-5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            ASVIOR Account
+          </p>
+          <h1 className="mt-3 text-2xl font-bold tracking-tight text-foreground">
             {mode === "signup"
               ? "Join Asvior"
               : mode === "forgot"
@@ -155,7 +150,7 @@ function AuthPage() {
 
         <form
           onSubmit={handle}
-          className="mt-8 glass rounded-3xl p-5 space-y-3 animate-scale-in"
+          className="mt-8 premium-card space-y-3 rounded-2xl p-5"
           data-testid="auth-form"
         >
           {mode === "signup" && (
@@ -212,7 +207,7 @@ function AuthPage() {
             type="submit"
             data-testid="auth-submit-btn"
             disabled={busy}
-            className="mt-2 h-12 w-full rounded-2xl gradient-primary text-sm font-semibold shadow-float"
+            className="mt-2 h-12 w-full rounded-2xl text-sm font-semibold"
           >
             {busy
               ? "Please wait…"
@@ -269,7 +264,7 @@ function AuthPage() {
           )}
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 }
 
@@ -283,9 +278,9 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-card/70 px-4 py-2.5 transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/30">
+    <div className="rounded-2xl border border-border bg-card px-4 py-2.5 transition-all focus-within:border-navy/40 focus-within:ring-2 focus-within:ring-navy/10">
       <label className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-        <span className="text-primary">{icon}</span>
+        <span className="text-navy">{icon}</span>
         {label}
       </label>
       {children}

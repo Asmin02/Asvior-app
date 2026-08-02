@@ -3,9 +3,8 @@ import { useEffect, useState } from "react";
 import { Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { setRecoveryInProgress } from "@/lib/auth-recovery";
 import { toast } from "sonner";
-
-const RECOVERY_SESSION_FLAG = "asvior_recovery_in_progress";
 
 export function inferAuthFlowType(
   searchType?: string,
@@ -112,19 +111,21 @@ function AuthCallbackPage() {
         const { data } = await supabase.auth.getSession();
         if (cancelled) return;
 
-        if (!data.session && flowType !== "recovery") {
+        if (!data.session) {
+          const message =
+            flowType === "recovery"
+              ? "The password reset link is invalid or has expired."
+              : "The confirmation link is invalid or has expired.";
           setStatus("error");
-          setMessage("The confirmation link is invalid or has expired.");
-          toast.error("Invalid or expired confirmation link.");
+          setMessage(message);
+          toast.error(message);
           setTimeout(() => navigate({ to: "/auth", replace: true }), 1400);
           return;
         }
 
         setStatus("ok");
         if (flowType === "recovery") {
-          if (typeof window !== "undefined") {
-            sessionStorage.setItem(RECOVERY_SESSION_FLAG, "1");
-          }
+          await setRecoveryInProgress();
           setMessage("Redirecting to password reset…");
           setTimeout(() => navigate({ to: "/reset-password", replace: true }), 400);
         } else {

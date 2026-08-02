@@ -2,11 +2,11 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { PageHeader, PageShell } from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { clearRecoveryInProgress, isRecoveryInProgress } from "@/lib/auth-recovery";
 import { toast } from "sonner";
-
-const RECOVERY_SESSION_FLAG = "asvior_recovery_in_progress";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({ meta: [{ title: "Reset password — Asvior" }] }),
@@ -25,12 +25,11 @@ function ResetPasswordPage() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const recoveryStarted =
-        typeof window !== "undefined" && sessionStorage.getItem(RECOVERY_SESSION_FLAG) === "1";
+      const recoveryStarted = await isRecoveryInProgress();
       const { data } = await supabase.auth.getSession();
       if (cancelled) return;
 
-      if (!recoveryStarted || !data.session) {
+      if (!data.session || !recoveryStarted) {
         toast.error("Password reset link is invalid or has expired.");
         navigate({
           to: "/auth",
@@ -63,9 +62,7 @@ function ResetPasswordPage() {
     try {
       const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
-      if (typeof window !== "undefined") {
-        sessionStorage.removeItem(RECOVERY_SESSION_FLAG);
-      }
+      await clearRecoveryInProgress();
       toast.success("Password updated successfully.");
       navigate({
         to: "/profile",
@@ -81,18 +78,21 @@ function ResetPasswordPage() {
 
   if (checkingSession) {
     return (
-      <div data-testid="reset-password-page" className="px-5 pt-10 pb-6">
-        <h1 className="text-2xl font-bold text-foreground">Checking reset link…</h1>
-      </div>
+      <PageShell className="pb-6">
+        <PageHeader title="Checking reset link…" />
+      </PageShell>
     );
   }
 
   return (
-    <div data-testid="reset-password-page" className="px-5 pt-10 pb-6">
-      <h1 className="text-2xl font-bold text-foreground">Create New Password</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Enter and confirm your new password.</p>
-      <form onSubmit={submit} className="mt-6 space-y-3">
-        <div className="flex items-center gap-2 rounded-2xl border border-border bg-card px-3 py-2">
+    <PageShell className="pb-6">
+      <div data-testid="reset-password-page">
+        <PageHeader
+          title="Create New Password"
+          subtitle="Enter and confirm your new password."
+        />
+        <form onSubmit={submit} className="mt-6 space-y-3 px-4">
+          <div className="premium-card flex items-center gap-2 rounded-2xl px-3 py-2">
           <Input
             data-testid="reset-password-input"
             type={showNewPassword ? "text" : "password"}
@@ -115,7 +115,7 @@ function ResetPasswordPage() {
             {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         </div>
-        <div className="flex items-center gap-2 rounded-2xl border border-border bg-card px-3 py-2">
+        <div className="premium-card flex items-center gap-2 rounded-2xl px-3 py-2">
           <Input
             data-testid="reset-password-confirm-input"
             type={showConfirmPassword ? "text" : "password"}
@@ -142,11 +142,12 @@ function ResetPasswordPage() {
           data-testid="reset-password-submit-btn"
           type="submit"
           disabled={busy}
-          className="w-full py-5 font-semibold"
+          className="w-full rounded-2xl py-5 font-semibold"
         >
           {busy ? "Updating…" : "Update password"}
         </Button>
       </form>
-    </div>
+      </div>
+    </PageShell>
   );
 }

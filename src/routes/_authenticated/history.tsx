@@ -1,9 +1,15 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Clock3, Compass, Heart, MessageCircle, Trash2 } from "lucide-react";
+import { CheckCircle2, Clock3, Compass, Heart, History, MessageCircle, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  EmptyStateCard,
+  LoadingSkeleton,
+  PageBadge,
+  PageHeader,
+  PageShell,
+} from "@/components/PageShell";
 import { loadBookmarks, removeBookmark, type BookmarkedConversation } from "@/components/ai-cards";
 import { buildScopedStorageKey } from "@/lib/app-session";
 import { loadRecentSearches, type RecentSearch } from "@/lib/visa";
@@ -292,97 +298,83 @@ function HistoryPage() {
   };
 
   return (
-    <div className="px-5 pt-8 pb-6">
-      <h1 className="text-2xl font-bold text-foreground">Travel History</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Manage all your travel activity in one place.
-      </p>
+    <PageShell className="pb-6">
+      <PageHeader
+        badge={<PageBadge icon={<History className="h-3.5 w-3.5" />}>Unified activity</PageBadge>}
+        title="Travel History"
+        subtitle="Manage all your travel activity in one place."
+      />
 
-      <div
-        className="mt-5 grid grid-cols-3 gap-2 rounded-xl bg-muted p-1"
-        role="tablist"
-        aria-label="History type"
-      >
-        <button
-          role="tab"
-          aria-selected={tab === "all"}
-          onClick={() => {
-            setTab("all");
-            clearSelection();
-          }}
-          className={`rounded-lg py-2 text-xs font-semibold transition-colors ${tab === "all" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
+      <div className="relative mt-5 space-y-2 px-4">
+        <div
+          className="premium-pill grid grid-cols-3 gap-1.5 p-1.5"
+          role="tablist"
+          aria-label="History type"
         >
-          All
-        </button>
-        <button
-          role="tab"
-          aria-selected={tab === "recent"}
-          onClick={() => {
-            setTab("recent");
-            clearSelection();
-          }}
-          className={`rounded-lg py-2 text-xs font-semibold transition-colors ${tab === "recent" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
-        >
-          Recent
-        </button>
-        <button
-          role="tab"
-          aria-selected={tab === "ai"}
-          onClick={() => {
-            setTab("ai");
-            clearSelection();
-          }}
-          className={`rounded-lg py-2 text-xs font-semibold transition-colors ${tab === "ai" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
-        >
-          AI
-        </button>
-      </div>
+          {(
+            [
+              ["all", "All"],
+              ["recent", "Recent"],
+              ["ai", "AI"],
+            ] as const
+          ).map(([value, label]) => (
+            <button
+              key={value}
+              role="tab"
+              aria-selected={tab === value}
+              onClick={() => {
+                setTab(value);
+                clearSelection();
+              }}
+              className={`rounded-2xl py-2 text-xs font-semibold transition-colors ${
+                tab === value
+                  ? "bg-navy text-primary-foreground shadow-soft"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
 
-      <div
-        className="mt-2 grid grid-cols-3 gap-2 rounded-xl bg-muted p-1"
-        role="tablist"
-        aria-label="History type secondary"
-      >
-        <button
-          role="tab"
-          aria-selected={tab === "visa"}
-          onClick={() => {
-            setTab("visa");
-            clearSelection();
-          }}
-          className={`rounded-lg py-2 text-xs font-semibold transition-colors ${tab === "visa" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
+        <div
+          className="premium-pill grid grid-cols-3 gap-1.5 p-1.5"
+          role="tablist"
+          aria-label="History type secondary"
         >
-          Visa
-        </button>
-        <button
-          role="tab"
-          aria-selected={tab === "trips"}
-          onClick={() => {
-            setTab("trips");
-            clearSelection();
-          }}
-          className={`rounded-lg py-2 text-xs font-semibold transition-colors ${tab === "trips" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
-        >
-          Trips
-        </button>
-        <button
-          role="tab"
-          aria-selected={tab === "favorites"}
-          onClick={() => {
-            setTab("favorites");
-            clearSelection();
-          }}
-          className={`rounded-lg py-2 text-xs font-semibold transition-colors ${tab === "favorites" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
-        >
-          Favorites
-        </button>
+          {(
+            [
+              ["visa", "Visa"],
+              ["trips", "Trips"],
+              ["favorites", "Favorites"],
+            ] as const
+          ).map(([value, label]) => (
+            <button
+              key={value}
+              role="tab"
+              aria-selected={tab === value}
+              onClick={() => {
+                setTab(value);
+                clearSelection();
+              }}
+              className={`rounded-2xl py-2 text-xs font-semibold transition-colors ${
+                tab === value
+                  ? "bg-navy text-primary-foreground shadow-soft"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {!loading && !loadError && visibleItems.length > 0 && (
-        <div className="mt-3 flex flex-wrap items-center gap-2">
+        <div className="relative mt-3 flex flex-wrap items-center gap-2 px-4">
           <Button
             size="sm"
             variant="outline"
+            className="rounded-2xl"
             onClick={() => {
               if (selected.size === visibleItems.length) {
                 clearSelection();
@@ -396,6 +388,7 @@ function HistoryPage() {
           <Button
             size="sm"
             variant="destructive"
+            className="rounded-2xl"
             disabled={selectedItems.length === 0 || processing}
             onClick={() => void deleteItems(selectedItems)}
           >
@@ -404,6 +397,7 @@ function HistoryPage() {
           <Button
             size="sm"
             variant="outline"
+            className="rounded-2xl"
             disabled={visibleItems.length === 0 || processing}
             onClick={() => void deleteItems(visibleItems)}
           >
@@ -412,27 +406,19 @@ function HistoryPage() {
         </div>
       )}
 
-      <div className="mt-4 space-y-2">
+      <div className="relative mt-4 space-y-2.5 px-4">
         {loading ? (
-          <div className="space-y-2" aria-hidden>
-            <div className="h-16 animate-pulse rounded-xl bg-muted" />
-            <div className="h-16 animate-pulse rounded-xl bg-muted" />
-            <div className="h-16 animate-pulse rounded-xl bg-muted" />
-          </div>
+          <LoadingSkeleton rows={4} />
         ) : loadError ? (
-          <Card className="ring-1 ring-border">
-            <CardContent className="p-8 text-center">
-              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10 text-2xl">
-                📡
-              </div>
-              <p className="text-sm font-semibold text-foreground">Couldn't load your history.</p>
-              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                Check your connection and try again.
-              </p>
+          <EmptyStateCard
+            icon="📡"
+            title="Couldn't load your history"
+            description="Check your connection and try again."
+            action={
               <Button
                 variant="outline"
                 size="sm"
-                className="mt-4"
+                className="rounded-2xl"
                 onClick={() => {
                   setLoading(true);
                   void load();
@@ -440,61 +426,64 @@ function HistoryPage() {
               >
                 Retry
               </Button>
-            </CardContent>
-          </Card>
+            }
+          />
         ) : visibleItems.length === 0 ? (
-          <Card className="ring-1 ring-border">
-            <CardContent className="p-8 text-center">
-              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-travel-sky text-travel-blue-dark text-2xl">
-                ✈️
-              </div>
-              <p className="text-sm font-semibold text-foreground">No travel history yet.</p>
-              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                Start exploring and your activity will appear here.
-              </p>
+          <EmptyStateCard
+            icon="✈️"
+            title="No travel history yet"
+            description="Start exploring and your activity will appear here."
+            action={
               <Link
                 to="/"
-                className="mt-4 inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground"
+                className="inline-flex items-center justify-center rounded-2xl bg-navy px-5 py-2.5 text-xs font-semibold text-primary-foreground shadow-soft"
               >
                 Start Exploring
               </Link>
-            </CardContent>
-          </Card>
+            }
+          />
         ) : (
           visibleItems.map((item) => {
             const isSelected = selected.has(item.key);
             return (
-              <Card key={item.key} className="ring-1 ring-border animate-fade-in">
-                <CardContent className="flex items-center gap-3 p-3">
+              <div
+                key={item.key}
+                className="premium-card rounded-2xl p-4"
+              >
+                <div className="flex items-center gap-3">
                   <button
                     onClick={() => toggleSelected(item.key)}
                     aria-label={isSelected ? "Deselect history item" : "Select history item"}
-                    className="text-primary"
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors ${
+                      isSelected
+                        ? "bg-navy text-primary-foreground"
+                        : "bg-muted text-muted-foreground"
+                    }`}
                   >
                     {isSelected ? (
-                      <CheckCircle2 className="h-5 w-5" />
+                      <CheckCircle2 className="h-4 w-4" />
                     ) : (
-                      <Clock3 className="h-5 w-5" />
+                      <Clock3 className="h-4 w-4" />
                     )}
                   </button>
-                  <div className="text-xl">
-                    {item.kind === "favorites" && <Heart className="h-5 w-5 text-rose-500" />}
-                    {item.kind === "ai" && <MessageCircle className="h-5 w-5 text-primary" />}
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-secondary text-lg">
+                    {item.kind === "favorites" && <Heart className="h-4 w-4 text-rose-500" />}
+                    {item.kind === "ai" && <MessageCircle className="h-4 w-4 text-primary" />}
                     {(item.kind === "visa" || item.kind === "recent") && (
-                      <Compass className="h-5 w-5 text-primary" />
+                      <Compass className="h-4 w-4 text-primary" />
                     )}
                     {item.kind === "trips" && "🧳"}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold">{item.title}</p>
+                    <p className="truncate text-sm font-bold text-foreground">{item.title}</p>
                     <p className="text-[11px] text-muted-foreground">{item.subtitle}</p>
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-[10px] font-medium text-muted-foreground">
                       {new Date(item.createdAt).toLocaleDateString()}
                     </p>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex shrink-0 items-center gap-1">
                     {item.status && (
-                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
                         {item.status}
                       </span>
                     )}
@@ -502,7 +491,7 @@ function HistoryPage() {
                       <Link
                         to="/country/$code"
                         params={{ code: item.destinationCode }}
-                        className="rounded-md border border-border px-2 py-1 text-[10px] font-semibold"
+                        className="premium-pill rounded-xl px-2.5 py-1 text-[10px] font-semibold"
                       >
                         Open
                       </Link>
@@ -510,25 +499,25 @@ function HistoryPage() {
                     {item.kind === "ai" && (
                       <button
                         onClick={() => restoreAiConversation(item)}
-                        className="rounded-md border border-border px-2 py-1 text-[10px] font-semibold"
+                        className="premium-pill rounded-xl px-2.5 py-1 text-[10px] font-semibold"
                       >
                         Open
                       </button>
                     )}
                     <button
                       onClick={() => void deleteItems([item])}
-                      className="rounded-md p-1 text-destructive"
+                      className="premium-pill flex h-8 w-8 items-center justify-center rounded-xl text-destructive"
                       aria-label="Delete history item"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             );
           })
         )}
       </div>
-    </div>
+    </PageShell>
   );
 }

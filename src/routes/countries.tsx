@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, Compass, Search, Sparkles } from "lucide-react";
 import { VISA_CODES } from "@/data/visa-data";
 import { getCountryName, flagEmoji } from "@/lib/visa";
+import { PageBadge, PageHeader, PageShell } from "@/components/PageShell";
 import { COUNTRY_PROFILES } from "@/data/country-profiles";
 import { REGION_META, REGION_ORDER, type Region } from "@/data/regions";
 
@@ -58,29 +59,18 @@ function CountriesPage() {
   const showFeatured = !query && region === "all";
 
   return (
-    <div className="relative overflow-hidden">
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-72 gradient-hero-bg"
-        aria-hidden
+    <PageShell className="pb-6">
+      <PageHeader
+        badge={
+          <PageBadge icon={<Compass className="h-3.5 w-3.5" />}>Smart Country Hub</PageBadge>
+        }
+        title="Explore the world"
+        subtitle="199 interactive country dashboards — visas, costs, attractions, and insider tips."
       />
-      <div
-        className="pointer-events-none absolute -top-16 -left-12 h-56 w-56 rounded-full bg-emerald/20 blur-3xl"
-        aria-hidden
-      />
-
-      <header className="relative px-6 pt-10">
-        <div className="glass inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold text-primary">
-          <Compass className="h-3.5 w-3.5" /> Smart Country Hub
-        </div>
-        <h1 className="mt-3 text-display text-3xl text-foreground">Explore the world</h1>
-        <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-          199 interactive country dashboards — visas, costs, attractions, and insider tips.
-        </p>
-      </header>
 
       {/* Search */}
-      <div className="relative mt-5 px-6">
-        <div className="glass flex items-center gap-2.5 rounded-2xl px-4 py-3">
+      <div className="mt-5 px-4">
+        <div className="premium-card flex items-center gap-2.5 rounded-2xl px-4 py-3">
           <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
           <input
             value={query}
@@ -91,7 +81,7 @@ function CountriesPage() {
         </div>
 
         {/* Region chips */}
-        <div className="-mx-6 mt-3 flex gap-2 overflow-x-auto px-6 pb-1 [scrollbar-width:none]">
+        <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
           <RegionChip active={region === "all"} onClick={() => setRegion("all")} label="All" />
           {REGION_ORDER.map((r) => (
             <RegionChip
@@ -106,11 +96,11 @@ function CountriesPage() {
 
       {/* Featured */}
       {showFeatured && (
-        <section className="relative mt-5 animate-fade-up">
-          <p className="px-6 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+        <section className="mt-5">
+          <p className="px-4 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
             Trending destinations
           </p>
-          <div className="mt-3 flex gap-3 overflow-x-auto px-6 pb-2 [scrollbar-width:none]">
+          <div className="mt-3 flex gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none]">
             {FEATURED.map((code) => {
               const p = COUNTRY_PROFILES[code];
               const img = p ? REGION_META[p.region as Region]?.image : undefined;
@@ -119,7 +109,7 @@ function CountriesPage() {
                   key={code}
                   to="/country/$code"
                   params={{ code }}
-                  className="group relative h-44 w-32 shrink-0 overflow-hidden rounded-3xl shadow-glass transition-transform active:scale-[0.97]"
+                  className="group relative h-44 w-32 shrink-0 overflow-hidden rounded-2xl border border-border shadow-soft"
                 >
                   {img && (
                     <img
@@ -128,7 +118,7 @@ function CountriesPage() {
                       width={1024}
                       height={576}
                       loading="lazy"
-                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      className="absolute inset-0 h-full w-full object-cover"
                     />
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-navy/90 via-navy/25 to-transparent" />
@@ -147,7 +137,7 @@ function CountriesPage() {
       )}
 
       {/* All countries */}
-      <section className="relative mt-6 px-6 pb-6">
+      <section className="mt-6 px-4 pb-6">
         <div className="mb-3 flex items-center justify-between">
           <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
             {query || region !== "all"
@@ -158,12 +148,12 @@ function CountriesPage() {
         </div>
 
         {filtered.length === 0 ? (
-          <div className="glass rounded-3xl p-8 text-center">
+          <div className="premium-card rounded-2xl p-8 text-center">
             <p className="text-sm font-semibold text-foreground">No countries found</p>
             <p className="mt-1 text-xs text-muted-foreground">Try a different name or region.</p>
           </div>
         ) : (
-          <div className="glass overflow-hidden rounded-3xl">
+          <div className="premium-card overflow-hidden rounded-2xl">
             {filtered.map((c, i) => {
               const p = COUNTRY_PROFILES[c.code];
               return (
@@ -191,7 +181,7 @@ function CountriesPage() {
           </div>
         )}
       </section>
-    </div>
+    </PageShell>
   );
 }
 
@@ -207,10 +197,10 @@ function RegionChip({
   return (
     <button
       onClick={onClick}
-      className={`shrink-0 rounded-full px-3.5 py-1.5 text-[11px] font-bold transition-all active:scale-95 ${
+      className={`shrink-0 rounded-full px-3.5 py-1.5 text-[11px] font-bold transition-colors ${
         active
-          ? "gradient-primary text-primary-foreground shadow-soft"
-          : "glass text-muted-foreground"
+          ? "bg-navy text-primary-foreground shadow-soft"
+          : "premium-card text-muted-foreground"
       }`}
     >
       {label}

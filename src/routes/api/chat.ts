@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
+import { applyCapacitorCors, corsPreflightResponse } from "@/lib/api-base";
 import { createOpenRouterProvider, getOpenRouterModel } from "@/lib/openrouter.server";
 
 const SYSTEM_PROMPT = `You are Asvior AI, a world-class travel concierge inside the Asvior app. You help travelers with:
@@ -82,16 +83,23 @@ CRITICAL: End substantive travel/visa answers with a brief disclaimer reminding 
 export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
+      OPTIONS: async ({ request }) => corsPreflightResponse(request),
       POST: async ({ request }) => {
         try {
           const body = (await request.json()) as { messages?: UIMessage[] };
           const messages = body.messages;
           if (!Array.isArray(messages)) {
-            return new Response("Messages are required", { status: 400 });
+            return applyCapacitorCors(
+              request,
+              new Response("Messages are required", { status: 400 }),
+            );
           }
           const key = process.env.OPENROUTER_API_KEY;
           if (!key) {
-            return new Response("Missing OPENROUTER_API_KEY", { status: 500 });
+            return applyCapacitorCors(
+              request,
+              new Response("Missing OPENROUTER_API_KEY", { status: 500 }),
+            );
           }
 
           const openrouter = createOpenRouterProvider(key);
@@ -102,11 +110,14 @@ export const Route = createFileRoute("/api/chat")({
             messages: await convertToModelMessages(messages),
           });
 
-          return result.toUIMessageStreamResponse({ originalMessages: messages });
+          return applyCapacitorCors(
+            request,
+            result.toUIMessageStreamResponse({ originalMessages: messages }),
+          );
         } catch (err) {
           console.error("chat error", err);
           const msg = err instanceof Error ? err.message : "Unknown error";
-          return new Response(msg, { status: 500 });
+          return applyCapacitorCors(request, new Response(msg, { status: 500 }));
         }
       },
     },

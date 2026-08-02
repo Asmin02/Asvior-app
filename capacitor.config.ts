@@ -2,38 +2,44 @@ import type { CapacitorConfig } from "@capacitor/cli";
 
 // Asvior — Capacitor configuration.
 //
-// The Android application id (com.asvior.app) is what Google Play uses as the
-// unique identifier for the app. Do not change it after the first Play upload.
-// versionCode / versionName live in android/app/build.gradle and are bumped per
-// release; keep versionCode strictly monotonic.
+// Android loading strategy (IMPORTANT):
+// - By default this shell serves the **bundled** web build from `dist/client`
+//   (populated by `npm run build` + `npx cap sync android`). Use this for
+//   local UI verification and `installDebug` on a physical device.
+// - Set `CAPACITOR_REMOTE_URL=https://asvior.app` before `cap sync` when you
+//   want the WebView to load the live deployed site instead (SSR + /api/chat
+//   on the server). Play Store release pipelines should set that env var.
 //
-// Loading strategy: this Capacitor shell wraps the deployed Asvior web app at
-// https://asvior.app so the SSR-driven TanStack Start routes, /api/chat, and
-// server functions all continue to work. `androidScheme: "https"` unifies the
-// origin with the deployed site so localStorage/cookies used by the Supabase
-// client behave the same as in a browser.
+// The application id (com.asvior.app) is what Google Play uses as the unique
+// identifier. Do not change it after the first Play upload.
+const remoteUrl = process.env.CAPACITOR_REMOTE_URL?.trim();
+
 const config: CapacitorConfig = {
   appId: "com.asvior.app",
   appName: "Asvior",
-  webDir: "dist",
-  server: {
-    url: "https://asvior.app",
-    androidScheme: "https",
-    cleartext: false,
-    allowNavigation: [
-      "asvior.app",
-      "*.asvior.app",
-      "*.supabase.co",
-    ],
-  },
+  // TanStack Start client prerender output (not the repo root `dist/` folder).
+  webDir: "dist/client",
+  ...(remoteUrl
+    ? {
+        server: {
+          url: remoteUrl,
+          androidScheme: "https",
+          cleartext: false,
+          allowNavigation: ["asvior.app", "*.asvior.app", "*.supabase.co"],
+        },
+      }
+    : {}),
   android: {
-    // On Android 9+ cleartext http is blocked. We only ever talk to https
-    // origins (asvior.app, supabase.co), so keep the default.
     allowMixedContent: false,
     captureInput: true,
     webContentsDebuggingEnabled: false,
   },
   plugins: {
+    // Native HTTP bypasses WebView CORS when the bundled shell calls
+    // https://asvior.app/api/chat from https://localhost.
+    CapacitorHttp: {
+      enabled: true,
+    },
     SplashScreen: {
       launchShowDuration: 800,
       launchAutoHide: true,

@@ -30,6 +30,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { recordVisaCheckSuccess } from "@/lib/in-app-review";
 import { toast } from "sonner";
 import { GUEST_STORAGE_SCOPE } from "@/lib/app-session";
+import { PageBadge } from "@/components/PageShell";
 
 export const Route = createFileRoute("/visa-check")({
   head: () => ({
@@ -177,28 +178,17 @@ function VisaCheckPage() {
   };
 
   return (
-    <div className="relative overflow-x-hidden">
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-72 gradient-hero-bg"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute -top-16 -right-10 h-52 w-52 rounded-full bg-primary/25 blur-3xl"
-        aria-hidden
-      />
-
-      <header className="relative px-6 pt-10">
-        <div className="glass inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold text-primary">
-          <Plane className="h-3.5 w-3.5" /> 199 countries · live data
-        </div>
-        <h1 className="mt-3 text-display text-3xl text-foreground">Visa Check</h1>
-        <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+    <div>
+      <header className="border-b border-border bg-card px-4 py-5">
+        <PageBadge icon={<Plane className="h-3.5 w-3.5" />}>199 countries</PageBadge>
+        <h1 className="mt-2 text-2xl font-bold text-foreground">Visa Check</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
           Instantly see if you need a visa, how long you can stay, and what to bring.
         </p>
       </header>
 
-      <section className="relative mt-6 px-6 animate-fade-up">
-        <div className="glass rounded-3xl p-5 space-y-4">
+      <section className="mt-4 px-4">
+        <div className="premium-card space-y-4 rounded-2xl p-5">
           <div>
             <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
               Passport
@@ -239,7 +229,7 @@ function VisaCheckPage() {
           <Button
             onClick={handleCheck}
             disabled={!passport || !destination || checking}
-            className="mt-2 h-12 w-full rounded-2xl gradient-primary text-sm font-semibold shadow-float transition-transform active:scale-[0.98] hover:shadow-float"
+            className="mt-2 h-12 w-full"
           >
             {checking ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -252,21 +242,16 @@ function VisaCheckPage() {
       </section>
 
       {checking && (
-        <section className="relative mt-5 px-6 pb-6 animate-fade-up" aria-live="polite">
-          <div className="glass flex items-center gap-4 rounded-3xl p-5">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl gradient-primary text-primary-foreground shadow-soft">
+        <section className="mt-4 px-4 pb-4" aria-live="polite">
+          <div className="premium-card flex items-center gap-4 rounded-2xl p-5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy text-primary-foreground">
               <Loader2 className="h-5 w-5 animate-spin" />
             </div>
             <div className="min-w-0 flex-1">
-              <p
-                key={loadingStep}
-                className="animate-fade-up text-sm font-semibold text-foreground"
-              >
-                {LOADING_STEPS[loadingStep]}
-              </p>
-              <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-muted">
+              <p className="text-sm font-semibold text-foreground">{LOADING_STEPS[loadingStep]}</p>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
                 <div
-                  className="h-full rounded-full gradient-primary transition-all duration-500 ease-out"
+                  className="h-full rounded-full bg-navy transition-all duration-500 ease-out"
                   style={{ width: `${((loadingStep + 1) / LOADING_STEPS.length) * 100}%` }}
                 />
               </div>
@@ -276,8 +261,8 @@ function VisaCheckPage() {
       )}
 
       {result && !checking && (
-        <section className="relative mt-5 px-6 pb-6 animate-scale-in">
-          <div className="glass overflow-hidden rounded-3xl">
+        <section className="mt-4 px-4 pb-6">
+          <div className="premium-card overflow-hidden rounded-2xl">
             {/* Status header */}
             <div className={`${statusMeta[result.status].tone} px-5 py-4`}>
               <div className="flex items-start justify-between gap-3">
@@ -337,7 +322,7 @@ function VisaCheckPage() {
                 href={result.officialUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl gradient-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-float transition-transform active:scale-[0.98]"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-navy px-4 py-3 text-sm font-semibold text-primary-foreground"
               >
                 <Globe2 className="h-4 w-4" />
                 Visit official portal
@@ -347,7 +332,7 @@ function VisaCheckPage() {
               <Link
                 to="/country/$code"
                 params={{ code: destination }}
-                className="glass inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold text-foreground transition-transform active:scale-[0.98]"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground"
               >
                 <Compass className="h-4 w-4 text-primary" />
                 Explore {getCountryName(destination)} guide

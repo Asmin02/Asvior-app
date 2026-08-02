@@ -1,66 +1,83 @@
-// Native initialisation for the Capacitor Android/iOS shell.
-//
-// The only runtime this file matters for is Capacitor. In the browser it does
-// nothing because @capacitor/app.addListener silently no-ops on the web
-// adapter — but we still guard on isNative() to avoid registering listeners
-// we don't need.
-//
-// What it wires up:
-// 1. appUrlOpen — catches deep links (asvior://... and App Links to
-//    https://asvior.app/...) and forwards the path to the router. The heavy
-//    lifting (exchanging the Supabase PKCE code for a session) is done by
-//    the canonical `/auth/callback` route so we have one code path shared
-//    with the web.
-// 2. StatusBar + SplashScreen niceties for a polished first paint.
-import { isNative } from "@/lib/capacitor-env";
-import { reportError } from "@/lib/error-reporting";
-
-type NavigableRouter = {
-  navigate: (opts: { to: string; replace?: boolean }) => Promise<unknown> | unknown;
-};
-
-let installed = false;
-
-export async function installNativeShell(router: NavigableRouter | undefined): Promise<void> {
-  if (installed || !isNative()) return;
-  installed = true;
-
-  try {
-    const [{ App }, { StatusBar, Style }, { SplashScreen }] = await Promise.all([
-      import("@capacitor/app"),
-      import("@capacitor/status-bar"),
-      import("@capacitor/splash-screen"),
-    ]);
-
-    await StatusBar.setStyle({ style: Style.Dark }).catch(() => undefined);
-    await SplashScreen.hide().catch(() => undefined);
-
-    App.addListener("appUrlOpen", (event) => {
-      try {
-        const rawUrl = event.url ?? "";
-        if (!rawUrl) return;
-
-        // Accepts:
-        //   asvior://asvior.app/auth/callback?code=...
-        //   asvior:///auth/callback?code=...      (host optional)
-        //   https://asvior.app/auth/callback?code=...
-        // We only need the path/query part — the callback route does the
-        // Supabase code exchange itself.
-        const url = new URL(rawUrl);
-        const path = `${url.pathname || "/"}${url.search || ""}${url.hash || ""}`;
-
-        if (router?.navigate) {
-          Promise.resolve(router.navigate({ to: path, replace: true })).catch(() => undefined);
-        }
-      } catch (err) {
-        reportError(err instanceof Error ? err : new Error(String(err)), {
-          boundary: "native_app_url_open",
-        });
-      }
-    });
-  } catch (err) {
-    reportError(err instanceof Error ? err : new Error(String(err)), {
-      boundary: "native_shell_install",
-    });
-  }
-}
+// Native initialisation for the Capacitor Android/iOS shell.
+//
+// The only runtime this file matters for is Capacitor. In the browser it does
+// nothing because @capacitor/app.addListener silently no-ops on the web
+// adapter — but we still guard on isNative() to avoid registering listeners
+// we don't need.
+//
+// What it wires up:
+// 1. appUrlOpen + getLaunchUrl — catches deep links (asvior://... and App
+//    Links to https://asvior.app/...) and forwards the path to the router.
+//    The heavy lifting (exchanging the Supabase PKCE code for a session) is done
+//    by the canonical `/auth/callback` route so we have one code path shared
+//    with the web.
+// 2. StatusBar + SplashScreen niceties for a polished first paint.
+import { isNative } from "@/lib/capacitor-env";
+import { reportError } from "@/lib/error-reporting";
+import { applyDeepLinkHash, parseDeepLinkTarget } from "@/lib/native-deep-link";
+
+type NavigableRouter = {
+  navigate: (opts: {
+    to: string;
+    search?: Record<string, string>;
+    replace?: boolean;
+  }) => Promise<unknown> | unknown;
+};
+
+let installed = false;
+
+function navigateFromDeepLink(rawUrl: string, router: NavigableRouter | undefined): void {
+  if (!rawUrl || !router?.navigate) return;
+
+  const target = parseDeepLinkTarget(rawUrl);
+  applyDeepLinkHash(target.pathname, target.search, target.hash);
+
+  Promise.resolve(
+    router.navigate({
+      to: target.pathname,
+      search: Object.keys(target.search).length > 0 ? target.search : undefined,
+      replace: true,
+    }),
+  ).catch(() => undefined);
+}
+
+export async function installNativeShell(router: NavigableRouter | undefined): Promise<void> {
+  if (installed || !isNative()) return;
+  installed = true;
+
+  try {
+    const [{ App }, { StatusBar, Style }, { SplashScreen }] = await Promise.all([
+      import("@capacitor/app"),
+      import("@capacitor/status-bar"),
+      import("@capacitor/splash-screen"),
+    ]);
+
+    await StatusBar.setOverlaysWebView({ overlay: false }).catch(() => undefined);
+    await StatusBar.show().catch(() => undefined);
+    await StatusBar.setStyle({ style: Style.Dark }).catch(() => undefined);
+    await StatusBar.setBackgroundColor({ color: "#0F172A" }).catch(() => undefined);
+    await SplashScreen.hide().catch(() => undefined);
+
+    App.addListener("appUrlOpen", (event) => {
+      try {
+        navigateFromDeepLink(event.url ?? "", router);
+      } catch (err) {
+        reportError(err instanceof Error ? err : new Error(String(err)), {
+          boundary: "native_app_url_open",
+        });
+      }
+    });
+
+    // Cold-start deep links (e.g. password-reset email) arrive via getLaunchUrl,
+    // not appUrlOpen, when the app was not already running.
+    const launch = await App.getLaunchUrl();
+    if (launch?.url) {
+      navigateFromDeepLink(launch.url, router);
+    }
+  } catch (err) {
+    reportError(err instanceof Error ? err : new Error(String(err)), {
+      boundary: "native_shell_install",
+    });
+  }
+}
+

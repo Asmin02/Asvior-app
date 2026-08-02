@@ -13,14 +13,16 @@
     "format": "prettier --write .",
     "test": "vitest",
     "test:run": "vitest run",
-    "cap:sync": "cap sync android",
+    "build:cap": "node scripts/ensure-cap-env.mjs && node scripts/build-cap.mjs",
+    "cap:sync": "npm run build:cap && cap sync android",
+    "cap:sync:remote": "node scripts/cap-sync-remote.mjs",
     "cap:copy": "cap copy android",
     "cap:open:android": "cap open android"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^3.0.1",
     "@ai-sdk/react": "^4.0.5",
-    "@capacitor-community/in-app-review": "^8.0.0",
+    "@capacitor-community/in-app-review": "^7.1.0",
     "@capacitor/android": "^7.6.8",
     "@capacitor/app": "^7.1.2",
     "@capacitor/browser": "^7.0.5",

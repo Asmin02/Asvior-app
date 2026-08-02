@@ -1,5 +1,6 @@
 import "./lib/error-capture";
 
+import { applyCapacitorCors, corsPreflightResponse } from "./lib/api-base";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { buildCanonicalUrl, isCanonicalHost } from "./lib/seo";
@@ -112,13 +113,27 @@ export async function applySeoTransform(request: Request, response: Response): P
   });
 }
 
+function isCapacitorChatRequest(request: Request): boolean {
+  return new URL(request.url).pathname === "/api/chat";
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
+    // Capacitor bundled builds POST to production /api/chat from https://localhost.
+    // Vercel may not route OPTIONS to the TanStack handler, so answer preflight here.
+    if (isCapacitorChatRequest(request) && request.method === "OPTIONS") {
+      return corsPreflightResponse(request);
+    }
+
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       const normalized = await normalizeCatastrophicSsrResponse(response);
-      return await applySeoResponse(request, normalized);
+      const seo = await applySeoResponse(request, normalized);
+      if (isCapacitorChatRequest(request)) {
+        return applyCapacitorCors(request, seo);
+      }
+      return seo;
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(), {

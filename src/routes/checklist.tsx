@@ -115,39 +115,27 @@ function ChecklistPage() {
   const progress = Math.round((checked.size / defaultItems.length) * 100);
 
   return (
-    <div className="time-hero-surface phase-afternoon relative overflow-hidden">
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-72 gradient-hero-bg"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute -top-10 -right-10 h-52 w-52 rounded-full bg-champagne/35 blur-3xl"
-        aria-hidden
-      />
-
-      <header className="relative flex items-start justify-between px-6 pt-10">
+    <div>
+      <header className="flex items-start justify-between border-b border-border bg-card px-4 py-5">
         <div>
-          <div className="premium-card inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold text-champagne">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-muted-foreground">
             <CheckCircle2 className="h-3.5 w-3.5" /> Autosaved
           </div>
-          <h1 className="mt-3 text-display text-3xl text-foreground">Checklist</h1>
-          <p className="mt-1.5 text-sm text-muted-foreground">
-            Everything you need before takeoff.
-          </p>
+          <h1 className="mt-2 text-2xl font-bold text-foreground">Checklist</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Everything you need before takeoff.</p>
         </div>
         {checked.size > 0 && (
           <button
             onClick={reset}
-            className="mt-1 rounded-full bg-muted px-3 py-1.5 text-[11px] font-semibold text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
+            className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-secondary"
           >
             Reset
           </button>
         )}
       </header>
 
-      {/* Progress ring card */}
-      <section className="relative mt-6 px-6 animate-fade-up">
-        <div className="premium-card flex items-center gap-4 rounded-3xl p-5">
+      <section className="mt-4 px-4">
+        <div className="premium-card flex items-center gap-4 rounded-2xl p-5">
           <div className="relative flex h-20 w-20 shrink-0 items-center justify-center">
             <svg className="absolute inset-0 -rotate-90" viewBox="0 0 80 80">
               <circle
@@ -177,7 +165,7 @@ function ChecklistPage() {
                 </linearGradient>
               </defs>
             </svg>
-            <span className="text-display text-lg text-foreground">{progress}%</span>
+            <span className="text-lg font-bold text-foreground">{progress}%</span>
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-bold text-foreground">
@@ -190,23 +178,20 @@ function ChecklistPage() {
         </div>
       </section>
 
-      <section className="relative mt-5 space-y-2.5 px-6">
-        {defaultItems.map((item, i) => {
+      <section className="mt-4 space-y-2 px-4">
+        {defaultItems.map((item) => {
           const isChecked = checked.has(item.id);
           return (
             <button
               key={item.id}
               onClick={() => toggleItem(item.id)}
-              style={{ animationDelay: `${i * 30}ms` }}
-              className={`premium-card group flex w-full items-center gap-3 rounded-2xl p-4 text-left transition-all animate-fade-up active:scale-[0.99] hover:-translate-y-0.5 ${
-                isChecked ? "opacity-70" : ""
+              className={`premium-card flex w-full min-h-[4.5rem] items-center gap-3 rounded-2xl p-4 text-left transition-colors active:scale-[0.99] ${
+                isChecked ? "opacity-70" : "hover:bg-secondary/30"
               }`}
             >
               <div
-                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition-all ${
-                  isChecked
-                    ? "gradient-primary text-primary-foreground shadow-soft"
-                    : "bg-muted text-champagne"
+                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-colors ${
+                  isChecked ? "bg-navy text-primary-foreground" : "bg-secondary text-navy"
                 }`}
               >
                 {isChecked ? <CheckCircle2 className="h-5 w-5" /> : item.icon}
@@ -226,8 +211,8 @@ function ChecklistPage() {
       </section>
 
       {progress === 100 && (
-        <section className="relative mt-5 px-6 animate-scale-in">
-          <div className="flex items-center gap-3 rounded-3xl gradient-primary p-4 text-primary-foreground shadow-float">
+        <section className="mt-4 px-4">
+          <div className="flex items-center gap-3 rounded-2xl bg-navy p-4 text-primary-foreground">
             <Sparkles className="h-5 w-5" />
             <div className="flex-1">
               <p className="text-sm font-bold">You're all set!</p>
@@ -237,10 +222,10 @@ function ChecklistPage() {
         </section>
       )}
 
-      <section className="relative mt-6 px-6 pb-6">
+      <section className="mt-6 px-4 pb-6">
         <Link
           to="/summary"
-          className="flex items-center justify-center gap-2 rounded-2xl gradient-primary px-4 py-3.5 text-sm font-semibold text-primary-foreground shadow-float transition-transform active:scale-[0.98]"
+          className="flex items-center justify-center gap-2 rounded-xl bg-navy px-4 py-3.5 text-sm font-semibold text-primary-foreground"
         >
           View & share trip summary
           <ArrowRight className="h-4 w-4" />
