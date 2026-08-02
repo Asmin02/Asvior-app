@@ -9,7 +9,7 @@ export function PageShell({
   phase?: string;
   className?: string;
 }) {
-  return <div className={cn("min-h-full bg-background", className)}>{children}</div>;
+  return <div className={cn("page-header-safe min-h-full bg-background", className)}>{children}</div>;
 }
 
 export function PageHeader({

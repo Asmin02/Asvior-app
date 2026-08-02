@@ -83,7 +83,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { name: "theme-color", content: "#0F172A" },
+      { name: "theme-color", content: "#0B1F3A" },
       { title: "ASVIOR — Your Premium Travel Concierge" },
       {
         name: "description",
@@ -126,7 +126,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "canonical", href: "https://asvior.app" },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
-      { rel: "apple-touch-icon", href: "/icon-192.svg" },
+      { rel: "apple-touch-icon", href: "/icon-192.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -209,7 +209,7 @@ function MobileNav() {
   return (
     <nav
       aria-label="Main navigation"
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2"
+      className="app-glass-nav fixed bottom-0 left-0 right-0 z-50 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2"
     >
       <div className="mx-auto flex max-w-md items-center justify-around px-2">
         {navItems.map((item) => {
@@ -220,14 +220,14 @@ function MobileNav() {
               key={item.to}
               to={item.to}
               aria-current={isActive ? "page" : undefined}
-              className="flex min-h-12 min-w-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 rounded-lg py-1 transition-colors"
+              className={`app-nav-link flex min-h-12 min-w-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 rounded-lg py-1 ${isActive ? "app-nav-link--active" : ""}`}
             >
               <Icon
-                className={`h-5 w-5 ${isActive ? "text-navy" : "text-muted-foreground"}`}
+                className={`h-5 w-5 ${isActive ? "app-nav-icon--active" : "text-muted-foreground"}`}
                 strokeWidth={isActive ? 2.25 : 2}
               />
               <span
-                className={`text-[10px] font-semibold ${isActive ? "text-navy" : "text-muted-foreground"}`}
+                className={`text-[10px] font-semibold ${isActive ? "app-nav-label--active" : "text-muted-foreground"}`}
               >
                 {item.label}
               </span>
@@ -333,7 +333,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <main className="mx-auto min-h-dvh max-w-md bg-background pb-[calc(4.5rem+env(safe-area-inset-bottom))] font-sans antialiased">
+      <main className="app-main page-enter mx-auto min-h-dvh max-w-md bg-background pb-[calc(4.5rem+env(safe-area-inset-bottom))] font-sans antialiased">
         <Outlet />
       </main>
       <FloatingAIButton />

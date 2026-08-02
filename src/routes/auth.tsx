@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Mail, Lock, User as UserIcon, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getEmailVerificationRedirectUrl, getPasswordResetRedirectUrl } from "@/lib/auth-redirects";
-import { AsviorMark } from "@/components/AsviorMark";
+import { AsviorLogo } from "@/components/AsviorLogo";
 import { PageShell } from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -126,9 +126,7 @@ function AuthPage() {
         </Link>
 
         <div className="mt-10 text-center">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-navy shadow-soft">
-            <AsviorMark className="h-12 w-12" />
-          </div>
+          <AsviorLogo className="mx-auto h-32 w-auto max-w-[260px]" />
           <p className="mt-5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             ASVIOR Account
           </p>

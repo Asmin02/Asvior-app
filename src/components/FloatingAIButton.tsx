@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { MessageCircle } from "lucide-react";
+import { AsviorMark } from "@/components/AsviorMark";
 
 export function FloatingAIButton() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -14,11 +14,13 @@ export function FloatingAIButton() {
   return (
     <Link
       to="/assistant"
-      aria-label="Open AI Concierge"
-      className="fixed bottom-[calc(5.75rem+env(safe-area-inset-bottom))] right-4 z-40 flex h-12 items-center gap-2 rounded-full bg-navy px-4 text-primary-foreground shadow-float transition-transform active:scale-95"
+      aria-label="Open Asvior AI"
+      className="floating-ai-btn bottom-[calc(5.75rem+env(safe-area-inset-bottom))] right-4"
     >
-      <MessageCircle className="h-5 w-5" strokeWidth={2} />
-      <span className="text-sm font-semibold">AI Concierge</span>
+      <span className="floating-ai-btn-icon">
+        <AsviorMark className="floating-ai-btn-mark" aria-hidden />
+      </span>
+      <span className="text-sm font-semibold tracking-tight text-white">Asvior AI</span>
     </Link>
   );
 }

@@ -2,6 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { AsviorLogo } from "@/components/AsviorLogo";
+import { BrandLoading } from "@/components/BrandLoading";
 import { PageHeader, PageShell } from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,7 +81,7 @@ function ResetPasswordPage() {
   if (checkingSession) {
     return (
       <PageShell className="pb-6">
-        <PageHeader title="Checking reset link…" />
+        <BrandLoading label="Checking reset link…" />
       </PageShell>
     );
   }
@@ -87,6 +89,9 @@ function ResetPasswordPage() {
   return (
     <PageShell className="pb-6">
       <div data-testid="reset-password-page">
+        <div className="px-4 pt-6 text-center">
+          <AsviorLogo className="mx-auto h-24 w-auto max-w-[220px]" showTagline={false} />
+        </div>
         <PageHeader
           title="Create New Password"
           subtitle="Enter and confirm your new password."

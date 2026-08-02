@@ -1,94 +1,63 @@
 import { cn } from "@/lib/utils";
 
+/** Official ASVIOR "A" travel symbol — use for avatars, favicon, and compact chrome. */
 export function AsviorMark({ className }: { className?: string }) {
   return (
     <svg
-      viewBox="0 0 160 176"
+      viewBox="0 0 120 120"
       aria-hidden="true"
-      className={cn("drop-shadow-[0_16px_34px_rgba(6,18,44,0.32)]", className)}
+      className={cn("shrink-0", className)}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
       <defs>
-        <linearGradient
-          id="asvior-gold"
-          x1="25"
-          y1="12"
-          x2="82"
-          y2="126"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#F5E1A4" />
-          <stop offset="0.55" stopColor="#D7B06A" />
-          <stop offset="1" stopColor="#8F6731" />
+        <linearGradient id="asvior-gold-leg" x1="72" y1="18" x2="98" y2="108" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#F2D98B" />
+          <stop offset="0.45" stopColor="#D4AF37" />
+          <stop offset="1" stopColor="#9A7728" />
         </linearGradient>
-        <linearGradient
-          id="asvior-blue"
-          x1="118"
-          y1="18"
-          x2="70"
-          y2="142"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#59B7FF" />
-          <stop offset="0.52" stopColor="#1D63E6" />
-          <stop offset="1" stopColor="#0B2C7A" />
+        <linearGradient id="asvior-gold-arc" x1="24" y1="72" x2="98" y2="72" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#E8C96A" />
+          <stop offset="1" stopColor="#B8892E" />
         </linearGradient>
-        <linearGradient
-          id="asvior-arc"
-          x1="38"
-          y1="104"
-          x2="124"
-          y2="104"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#F4DC9A" />
-          <stop offset="1" stopColor="#9A6D2A" />
-        </linearGradient>
-        <radialGradient
-          id="asvior-globe"
-          cx="0"
-          cy="0"
-          r="1"
-          gradientUnits="userSpaceOnUse"
-          gradientTransform="translate(79 132) rotate(90) scale(34 38)"
-        >
-          <stop stopColor="#254DA6" />
-          <stop offset="0.65" stopColor="#122B64" />
-          <stop offset="1" stopColor="#081426" />
-        </radialGradient>
       </defs>
 
+      {/* Left leg — deep navy */}
       <path
-        d="M29 146C22.4 146 16 140.3 16 132.4C16 128.9 17.1 125.6 19.1 122.7L65.1 56.2C69.9 49.3 77.5 45 85.6 45C89.2 45 92.2 47.9 92.2 51.5C92.2 53 91.7 54.5 90.9 55.8L47.2 141.1C43.9 144.3 39.6 146 35.1 146H29Z"
-        fill="url(#asvior-gold)"
+        d="M34 98L58 34L66 34L42 98H34Z"
+        fill="#0B1F3A"
+      />
+
+      {/* Right leg — luxury gold */}
+      <path
+        d="M58 34L86 98H76L66 72L56 98H46L58 34Z"
+        fill="url(#asvior-gold-leg)"
+      />
+
+      {/* Mountain range */}
+      <path
+        d="M44 88L52 76L58 82L64 70L72 88H44Z"
+        fill="#0B1F3A"
       />
       <path
-        d="M128.3 146C134.8 146 141.2 140.4 141.2 132.6C141.2 129.2 140.1 126 138.1 123.2L93.7 58.6C90.2 53.4 84.3 50.3 77.9 50.3C74.5 50.3 71.7 53.1 71.7 56.5C71.7 58 72.2 59.4 73 60.6L116.3 141C119.4 144.2 123.6 146 128 146H128.3Z"
-        fill="url(#asvior-blue)"
-      />
-      <path
-        d="M43 108.4C54.7 100.8 66.8 97.1 79.4 97.1C91.9 97.1 104.4 101 116.9 108.8"
-        stroke="url(#asvior-arc)"
-        strokeWidth="6"
+        d="M50 76L52 74L54 76M62 70L64 68L66 70"
+        stroke="#FAF8F4"
+        strokeWidth="1.6"
         strokeLinecap="round"
       />
-      <circle cx="79.4" cy="131.6" r="32.2" fill="url(#asvior-globe)" />
+
+      {/* Flight arc */}
       <path
-        d="M58.4 126.1C63.7 123.6 70.1 121.5 76.8 120.4C81.5 119.6 86.1 119.5 90.5 120"
-        stroke="rgba(228,238,255,0.46)"
-        strokeWidth="2.4"
+        d="M28 68C42 58 58 54 74 58C84 60 92 64 98 70"
+        stroke="url(#asvior-gold-arc)"
+        strokeWidth="4.5"
         strokeLinecap="round"
       />
+
+      {/* Airplane */}
       <path
-        d="M91.7 115.4C95.2 119.4 97.4 124.6 97.9 131.4"
-        stroke="rgba(228,238,255,0.28)"
-        strokeWidth="2.4"
-        strokeLinecap="round"
-      />
-      <path
-        d="M79.4 72.4L82.4 79.4L89.8 82.3L82.4 85.2L79.4 92.3L76.5 85.2L69 82.3L76.5 79.4L79.4 72.4Z"
-        fill="#F6E0A3"
+        d="M96 68L104 64L100 70L104 76L96 72L92 74L94 70L96 68Z"
+        fill="#0B1F3A"
       />
     </svg>
   );

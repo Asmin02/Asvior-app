@@ -12,7 +12,7 @@ import {
 } from "@/components/PageShell";
 import { loadBookmarks, removeBookmark, type BookmarkedConversation } from "@/components/ai-cards";
 import { buildScopedStorageKey } from "@/lib/app-session";
-import { loadRecentSearches, type RecentSearch } from "@/lib/visa";
+import { loadRecentSearches, saveRecentSearches, type RecentSearch } from "@/lib/visa";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/history")({
@@ -67,20 +67,10 @@ type HistoryItem = {
 };
 
 const SCOPED_CHAT_KEY = "vp_ai_chat_v1";
-const SCOPED_RECENT_KEY = "vp_recent_searches";
 
 function toTimestamp(iso: string): number {
   const time = new Date(iso).getTime();
   return Number.isFinite(time) ? time : 0;
-}
-
-function saveRecentSearches(scope: string, items: RecentSearch[]): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(buildScopedStorageKey(SCOPED_RECENT_KEY, scope), JSON.stringify(items));
-  } catch {
-    // Ignore local write failures to avoid blocking UI.
-  }
 }
 
 function HistoryPage() {
@@ -263,7 +253,7 @@ function HistoryPage() {
           (row) => !recentIds.has(`${row.passport}-${row.destination}-${row.timestamp}`),
         );
         setRecentSearches(nextRecent);
-        saveRecentSearches(userId, nextRecent);
+        saveRecentSearches(nextRecent, userId);
       }
 
       if (aiIds.length > 0) {

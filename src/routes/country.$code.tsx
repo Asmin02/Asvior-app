@@ -454,7 +454,7 @@ function CountryHubPage() {
             <div>
               <p className="text-sm font-bold">Ask AI about {name}</p>
               <p className="mt-0.5 text-[11px] text-primary-foreground/70">
-                Instant answers from your travel concierge
+                Instant answers from Asvior AI
               </p>
             </div>
           </div>

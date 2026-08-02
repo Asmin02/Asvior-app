@@ -1,17 +1,20 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import type { ReactNode } from "react";
+import { AsviorLogo } from "@/components/AsviorLogo";
 
 export function InfoPage({
   badge,
   title,
   subtitle,
   children,
+  showLogo = true,
 }: {
   badge: ReactNode;
   title: string;
   subtitle: string;
   children: ReactNode;
+  showLogo?: boolean;
 }) {
   return (
     <div className="pb-8">
@@ -23,6 +26,9 @@ export function InfoPage({
         >
           <ArrowLeft className="h-4 w-4" />
         </Link>
+        {showLogo ? (
+          <AsviorLogo className="mx-auto mb-4 h-24 w-auto max-w-[220px]" showTagline={false} />
+        ) : null}
         <div className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-muted-foreground">
           {badge}
         </div>

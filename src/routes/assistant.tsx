@@ -29,11 +29,11 @@ export const Route = createFileRoute("/assistant")({
   }),
   head: () => ({
     meta: [
-      { title: "Concierge Assistant — ASVIOR" },
+      { title: "Asvior AI — ASVIOR" },
       {
         name: "description",
         content:
-          "Chat with the ASVIOR concierge assistant for instant visa, document, budget, weather, and travel guidance.",
+          "Chat with Asvior AI for instant visa, document, budget, weather, and travel guidance.",
       },
     ],
   }),
@@ -136,6 +136,8 @@ function AssistantPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const stickToBottomRef = useRef(true);
+  const suggestedSendTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isLoadingRef = useRef(false);
   const scrollSnapshotRef = useRef<MessageScrollSnapshot>({
     firstId: null,
     lastId: null,
@@ -144,6 +146,7 @@ function AssistantPage() {
     status: "ready",
   });
   const isLoading = status === "submitted" || status === "streaming";
+  isLoadingRef.current = isLoading;
   const lastMessage = messages[messages.length - 1];
   const lastMessageText = lastMessage ? getText(lastMessage) : "";
 
@@ -252,7 +255,13 @@ function AssistantPage() {
       if (initialRestore || clearedConversation) {
         stickToBottomRef.current = true;
       }
-      scrollToBottom(initialRestore || !isLoading ? "auto" : "auto");
+      scrollToBottom(
+        initialRestore || clearedConversation
+          ? "auto"
+          : isLoading && streamedContentChanged
+            ? "auto"
+            : "smooth",
+      );
     }
 
     scrollSnapshotRef.current = next;
@@ -281,36 +290,63 @@ function AssistantPage() {
   }, [isLoading, messages.length]);
 
   useEffect(() => {
-    if (!isLoading) return;
-
-    const settleId = window.setTimeout(() => {
-      scrollToBottom("auto");
-    }, 120);
-
-    return () => {
-      window.clearTimeout(settleId);
-    };
-  }, [isLoading, scrollToBottom, lastMessageText]);
+    if (!isLoading) {
+      scrollToBottom("smooth");
+    }
+  }, [isLoading, scrollToBottom]);
 
   useEffect(() => {
-    inputRef.current?.focus();
+    return () => {
+      if (suggestedSendTimerRef.current) {
+        clearTimeout(suggestedSendTimerRef.current);
+      }
+    };
   }, []);
 
   useEffect(() => {
     if (showBookmarks) setBookmarks(loadBookmarks(authScope));
   }, [showBookmarks, authScope]);
 
-  const handleSend = async (text: string) => {
-    const value = text.trim();
-    if (!value || isLoading) return;
-    stickToBottomRef.current = true;
-    setInput("");
-    await sendMessage({ text: value });
-    requestAnimationFrame(() => {
-      scrollToBottom("auto");
-      inputRef.current?.focus();
-    });
-  };
+  const cancelSuggestedSend = useCallback(() => {
+    if (suggestedSendTimerRef.current) {
+      clearTimeout(suggestedSendTimerRef.current);
+      suggestedSendTimerRef.current = null;
+    }
+  }, []);
+
+  const handleSend = useCallback(
+    async (text: string, options?: { focusAfter?: boolean }) => {
+      const value = text.trim();
+      if (!value || isLoadingRef.current) return;
+      cancelSuggestedSend();
+      stickToBottomRef.current = true;
+      setInput("");
+      await sendMessage({ text: value });
+      requestAnimationFrame(() => {
+        scrollToBottom(isLoadingRef.current ? "auto" : "smooth");
+        if (options?.focusAfter !== false) {
+          inputRef.current?.focus();
+        }
+      });
+    },
+    [cancelSuggestedSend, scrollToBottom, sendMessage],
+  );
+
+  const handleSuggestedPick = useCallback(
+    (text: string) => {
+      const value = text.trim();
+      if (!value || isLoadingRef.current) return;
+      cancelSuggestedSend();
+      inputRef.current?.blur();
+      setInput(value);
+      stickToBottomRef.current = true;
+      suggestedSendTimerRef.current = setTimeout(() => {
+        suggestedSendTimerRef.current = null;
+        void handleSend(value, { focusAfter: false });
+      }, 250);
+    },
+    [cancelSuggestedSend, handleSend],
+  );
 
   const { q } = Route.useSearch();
   const navigate = Route.useNavigate();
@@ -319,7 +355,7 @@ function AssistantPage() {
     if (q && !autoAskedRef.current) {
       autoAskedRef.current = true;
       navigate({ search: {}, replace: true });
-      handleSend(q);
+      handleSend(q, { focusAfter: false });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
@@ -389,7 +425,7 @@ function AssistantPage() {
 
   return (
     <div className="relative flex h-[calc(100dvh-env(safe-area-inset-top,0px)-calc(4.5rem+env(safe-area-inset-bottom,0px)))] max-h-[calc(100dvh-env(safe-area-inset-top,0px)-calc(4.5rem+env(safe-area-inset-bottom,0px)))] flex-col overflow-hidden bg-background">
-      <header className="sticky top-0 z-20 border-b border-border bg-card px-4 py-3">
+      <header className="ai-chat-header sticky top-0 z-20 px-4 py-3">
         <div className="flex items-center gap-2">
           <Link
             to="/"
@@ -401,11 +437,11 @@ function AssistantPage() {
             </svg>
           </Link>
           <div className="flex min-w-0 flex-1 items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-navy">
+            <div className="ai-chat-avatar h-9 w-9">
               <AsviorMark className="h-6 w-6" />
             </div>
             <div className="min-w-0">
-              <h1 className="truncate text-base font-semibold text-foreground">AI Concierge</h1>
+              <h1 className="truncate text-base font-semibold text-foreground">Asvior AI</h1>
               <p className="truncate text-xs text-muted-foreground">Premium travel assistant</p>
             </div>
           </div>
@@ -437,9 +473,9 @@ function AssistantPage() {
         </div>
       </header>
 
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-4 pb-40 pt-5">
+      <div ref={scrollRef} className="min-h-0 flex-1 scroll-smooth overflow-y-auto px-4 pb-40 pt-5">
         {isEmpty ? (
-          <EmptyState onPick={(p) => handleSend(p)} />
+          <EmptyState onPick={handleSuggestedPick} />
         ) : (
           <div className="space-y-4" data-chat-scroll-content>
             {messages.map((m) => (
@@ -447,7 +483,7 @@ function AssistantPage() {
                 key={m.id}
                 message={m}
                 onCopy={copyText}
-                onSuggestionPick={(q) => handleSend(q)}
+                onSuggestionPick={handleSuggestedPick}
                 isStreaming={
                   isLoading && m.id === messages[messages.length - 1]?.id && m.role === "assistant"
                 }
@@ -472,7 +508,7 @@ function AssistantPage() {
       )}
 
       <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-1/2 z-30 w-full max-w-md -translate-x-1/2 px-3">
-        <div className="premium-card rounded-2xl p-2">
+        <div className="ai-chat-input-shell rounded-2xl p-2">
           <div className="flex items-end gap-2">
             <button
               onClick={handleVoice}
@@ -521,7 +557,7 @@ function AssistantPage() {
               <button
                 onClick={() => handleSend(input)}
                 disabled={!input.trim()}
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-navy text-primary-foreground disabled:opacity-40"
+                className="ai-chat-send-btn flex h-11 w-11 shrink-0 items-center justify-center disabled:opacity-40"
                 aria-label="Send"
               >
                 <svg
@@ -553,7 +589,7 @@ function EmptyState({ onPick }: { onPick: (prompt: string) => void }) {
   return (
     <div>
       <div className="mb-6 mt-2 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-navy">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#faf8f4] shadow-soft">
           <AsviorMark className="h-10 w-10" />
         </div>
         <h2 className="mt-4 text-xl font-bold text-foreground">Hi, I'm Asvior AI</h2>
@@ -618,7 +654,7 @@ function MessageBubble({
   if (isUser) {
     return (
       <div className="flex justify-end">
-        <div className="max-w-[85%] rounded-2xl rounded-tr-md bg-navy px-4 py-3 text-sm text-primary-foreground">
+        <div className="ai-chat-user-bubble max-w-[85%] px-4 py-3 text-sm">
           {text}
         </div>
       </div>
@@ -633,13 +669,13 @@ function MessageBubble({
 
   return (
     <div className="flex gap-2">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-navy">
+      <div className="ai-chat-avatar h-9 w-9 shrink-0">
         <AsviorMark className="h-5 w-5" />
       </div>
       <div className="min-w-0 flex-1 space-y-2">
         {segments.length === 0 ||
         (segments.length === 1 && segments[0].kind === "text" && !segments[0].content.trim()) ? (
-          <div className="premium-card rounded-2xl rounded-tl-md px-4 py-3 text-sm">
+          <div className="ai-chat-assistant-bubble premium-card rounded-2xl rounded-tl-md px-4 py-3 text-sm">
             <span className="text-muted-foreground">…</span>
           </div>
         ) : (
@@ -650,7 +686,7 @@ function MessageBubble({
               return (
                 <div
                   key={i}
-                  className="premium-card prose prose-sm max-w-none rounded-2xl rounded-tl-md px-4 py-3 text-sm text-foreground prose-headings:mt-2 prose-headings:mb-1 prose-p:my-1.5 prose-ul:my-1.5 prose-li:my-0 prose-a:text-navy dark:prose-invert"
+                  className="ai-chat-assistant-bubble prose prose-sm max-w-none rounded-2xl rounded-tl-md px-4 py-3 text-sm text-foreground prose-headings:mt-2 prose-headings:mb-1 prose-p:my-1.5 prose-ul:my-1.5 prose-li:my-0 prose-a:text-navy dark:prose-invert"
                 >
                   <ReactMarkdown>{content}</ReactMarkdown>
                 </div>
