@@ -13,6 +13,8 @@ import {
   Sparkles,
   ArrowRight,
 } from "lucide-react";
+import { useThemePhase } from "@/components/ThemeProvider";
+import { phaseSurfaceClass } from "@/lib/theme-phase";
 
 export const Route = createFileRoute("/checklist")({
   head: () => ({
@@ -82,6 +84,7 @@ const defaultItems: CheckItem[] = [
 const STORAGE_KEY = "vp_checklist";
 
 function ChecklistPage() {
+  const { phase } = useThemePhase();
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [loaded, setLoaded] = useState(false);
 
@@ -115,7 +118,7 @@ function ChecklistPage() {
   const progress = Math.round((checked.size / defaultItems.length) * 100);
 
   return (
-    <div className="time-hero-surface phase-afternoon relative overflow-hidden">
+      <div className={`time-hero-surface ${phaseSurfaceClass(phase)} relative overflow-hidden`}>
       <div
         className="pointer-events-none absolute inset-x-0 top-0 h-72 gradient-hero-bg"
         aria-hidden

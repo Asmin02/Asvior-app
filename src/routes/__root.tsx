@@ -24,6 +24,7 @@ import {
 } from "@/lib/app-session";
 import { Toaster } from "@/components/ui/sonner";
 import { FloatingAIButton } from "@/components/FloatingAIButton";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 function NotFoundComponent() {
   return (
@@ -343,12 +344,15 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <main className="mx-auto min-h-dvh max-w-md bg-background pb-[calc(7rem+env(safe-area-inset-bottom))] font-sans antialiased">
-        <Outlet />
-      </main>
-      <FloatingAIButton />
-      <MobileNav />
-      <Toaster />
+      <ThemeProvider>
+        <div className="app-ambient" aria-hidden />
+        <main className="relative z-10 mx-auto min-h-dvh max-w-md bg-transparent pb-[calc(7rem+env(safe-area-inset-bottom))] font-sans antialiased">
+          <Outlet />
+        </main>
+        <FloatingAIButton />
+        <MobileNav />
+        <Toaster />
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

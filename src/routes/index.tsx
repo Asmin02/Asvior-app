@@ -42,6 +42,8 @@ import {
   getLatestVisaUpdates,
   type HomeVisaUpdate,
 } from "@/data/home-feed";
+import { useThemePhase } from "@/components/ThemeProvider";
+import { greetingFor, phaseSurfaceClass } from "@/lib/theme-phase";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -113,25 +115,6 @@ const PUBLISHED_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
   day: "numeric",
   timeZone: "UTC",
 });
-
-type DayPhase = "morning" | "afternoon" | "evening" | "night";
-
-function greetingFor(date = new Date()): string {
-  const h = date.getHours();
-  if (h < 5) return "Still up?";
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  if (h < 22) return "Good evening";
-  return "Good night";
-}
-
-function dayPhaseFor(date = new Date()): DayPhase {
-  const hour = date.getHours();
-  if (hour >= 5 && hour < 12) return "morning";
-  if (hour >= 12 && hour < 17) return "afternoon";
-  if (hour >= 17 && hour < 22) return "evening";
-  return "night";
-}
 
 function buildContinueActivity(
   recent: RecentSearch[],
@@ -295,15 +278,8 @@ function HomePage() {
   const [homeNow, setHomeNow] = useState<Date | null>(null);
   const referenceDate = homeNow ?? HOME_REFERENCE_DATE;
   const greeting = useMemo(() => (homeNow ? greetingFor(homeNow) : "Welcome"), [homeNow]);
-  const phase = useMemo(() => dayPhaseFor(homeNow ?? new Date()), [homeNow]);
-  const phaseClass =
-    phase === "morning"
-      ? "phase-morning"
-      : phase === "afternoon"
-        ? "phase-afternoon"
-        : phase === "evening"
-          ? "phase-evening"
-          : "phase-night";
+  const { phase } = useThemePhase();
+  const phaseClass = phaseSurfaceClass(phase);
   const dailyTrending = useMemo(
     () => getDailyTrendingDestinations(referenceDate, 6),
     [referenceDate],

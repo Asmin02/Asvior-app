@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Plane, Building2, UtensilsCrossed, Car, Gift, Wallet, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useThemePhase } from "@/components/ThemeProvider";
+import { phaseSurfaceClass } from "@/lib/theme-phase";
 
 export const Route = createFileRoute("/budget-planner")({
   head: () => ({

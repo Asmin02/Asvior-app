@@ -13,8 +13,20 @@ import {
   ChevronRight,
   Trash2,
   Plane,
+  Sunrise,
+  Sun,
+  Sunset,
+  Moon as MoonIcon,
+  Clock,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { useThemePhase } from "@/components/ThemeProvider";
+import {
+  PHASE_DESCRIPTIONS,
+  PHASE_ORDER,
+  phaseSurfaceClass,
+  type PhaseMode,
+} from "@/lib/theme-phase";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -87,6 +99,7 @@ const DEFAULT: Settings = {
 
 function SettingsPage() {
   const navigate = useNavigate();
+  const { phase, phaseMode, setPhaseMode } = useThemePhase();
   const [s, setS] = useState<Settings>(DEFAULT);
   const [userId, setUserId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -190,7 +203,7 @@ function SettingsPage() {
   };
 
   return (
-    <div className="time-hero-surface phase-night relative overflow-hidden">
+    <div className={`time-hero-surface ${phaseSurfaceClass(phase)} relative overflow-hidden`}>
       <div
         className="pointer-events-none absolute inset-x-0 top-0 h-64 gradient-hero-bg"
         aria-hidden
@@ -213,6 +226,19 @@ function SettingsPage() {
               aria-label="Toggle dark mode"
             />
           </Row>
+
+          <div className="mt-4 border-t border-border/60 pt-4">
+            <div className="mb-1 flex items-center justify-between">
+              <p className="text-sm font-semibold text-foreground">Time-of-day theme</p>
+              <span className="phase-chip rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                {phaseMode === "auto" ? `Auto · ${phase}` : phase}
+              </span>
+            </div>
+            <p className="mb-3 text-[11px] text-muted-foreground">
+              Ambient colors shift with the hours. Lock a mood or let it follow the clock.
+            </p>
+            <PhasePicker value={phaseMode} onChange={setPhaseMode} />
+          </div>
         </SettingsCard>
 
         <SettingsCard icon={<Languages className="h-4 w-4" />} title="Preferences">
@@ -331,6 +357,56 @@ function SettingsPage() {
           </SettingsCard>
         )}
       </section>
+    </div>
+  );
+}
+
+const PHASE_ICONS = {
+  morning: Sunrise,
+  afternoon: Sun,
+  evening: Sunset,
+  night: MoonIcon,
+} as const;
+
+function PhasePicker({
+  value,
+  onChange,
+}: {
+  value: PhaseMode;
+  onChange: (mode: PhaseMode) => void;
+}) {
+  const options: { mode: PhaseMode; label: string; hint: string; Icon: typeof Clock }[] = [
+    { mode: "auto", label: "Auto", hint: "Follow the clock", Icon: Clock },
+    ...PHASE_ORDER.map((p) => ({
+      mode: p as PhaseMode,
+      label: p.charAt(0).toUpperCase() + p.slice(1),
+      hint: PHASE_DESCRIPTIONS[p],
+      Icon: PHASE_ICONS[p],
+    })),
+  ];
+
+  return (
+    <div className="grid grid-cols-5 gap-2">
+      {options.map(({ mode, label, hint, Icon }) => {
+        const active = value === mode;
+        return (
+          <button
+            key={mode}
+            type="button"
+            onClick={() => onChange(mode)}
+            aria-pressed={active}
+            title={hint}
+            className={`flex flex-col items-center gap-1.5 rounded-2xl border px-1.5 py-2.5 text-center transition-all active:scale-95 ${
+              active
+                ? "phase-chip phase-ring border-transparent"
+                : "border-border/60 bg-card/60 text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Icon className="h-4 w-4" strokeWidth={active ? 2.4 : 2} />
+            <span className="text-[10px] font-bold tracking-tight">{label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }

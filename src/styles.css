@@ -195,6 +195,92 @@
   );
 }
 
+/* =========================================================
+   TIME-OF-DAY PHASES
+   The <html data-phase="…"> attribute (set by ThemeProvider)
+   re-tints ambient tokens app-wide. These layer on TOP of
+   light / dark: text + surface tokens stay intact for
+   contrast; only accents and the ambient wash shift.
+   ========================================================= */
+
+:root {
+  /* Neutral defaults (used before ThemeProvider hydrates). */
+  --phase-accent: var(--royal);
+  --phase-accent-soft: color-mix(in oklab, var(--royal) 16%, transparent);
+  --phase-glow-1: color-mix(in oklab, var(--royal) 22%, transparent);
+  --phase-glow-2: color-mix(in oklab, var(--champagne) 20%, transparent);
+  --phase-tint: transparent;
+  --phase-ring: color-mix(in oklab, var(--royal) 45%, transparent);
+}
+
+/* ---- LIGHT MODE PHASES ---- */
+[data-phase="morning"] {
+  --phase-accent: oklch(0.72 0.13 68);
+  --phase-accent-soft: oklch(0.94 0.06 74 / 0.6);
+  --phase-glow-1: oklch(0.9 0.11 78 / 0.55);
+  --phase-glow-2: oklch(0.86 0.08 250 / 0.45);
+  --phase-tint: oklch(0.97 0.03 78 / 0.4);
+  --phase-ring: oklch(0.72 0.13 68 / 0.5);
+}
+[data-phase="afternoon"] {
+  --phase-accent: oklch(0.6 0.17 245);
+  --phase-accent-soft: oklch(0.9 0.07 240 / 0.6);
+  --phase-glow-1: oklch(0.85 0.1 240 / 0.5);
+  --phase-glow-2: oklch(0.92 0.07 210 / 0.45);
+  --phase-tint: oklch(0.96 0.03 235 / 0.35);
+  --phase-ring: oklch(0.6 0.17 245 / 0.5);
+}
+[data-phase="evening"] {
+  --phase-accent: oklch(0.66 0.17 40);
+  --phase-accent-soft: oklch(0.9 0.08 45 / 0.55);
+  --phase-glow-1: oklch(0.78 0.15 45 / 0.5);
+  --phase-glow-2: oklch(0.62 0.15 330 / 0.4);
+  --phase-tint: oklch(0.93 0.05 50 / 0.42);
+  --phase-ring: oklch(0.66 0.17 40 / 0.5);
+}
+[data-phase="night"] {
+  --phase-accent: oklch(0.62 0.16 275);
+  --phase-accent-soft: oklch(0.88 0.06 270 / 0.5);
+  --phase-glow-1: oklch(0.7 0.13 270 / 0.4);
+  --phase-glow-2: oklch(0.6 0.12 250 / 0.35);
+  --phase-tint: oklch(0.9 0.04 270 / 0.35);
+  --phase-ring: oklch(0.62 0.16 275 / 0.5);
+}
+
+/* ---- DARK MODE PHASES (higher specificity → win over light) ---- */
+.dark[data-phase="morning"] {
+  --phase-accent: oklch(0.82 0.12 78);
+  --phase-accent-soft: oklch(0.5 0.09 74 / 0.35);
+  --phase-glow-1: oklch(0.68 0.12 72 / 0.32);
+  --phase-glow-2: oklch(0.55 0.1 250 / 0.3);
+  --phase-tint: oklch(0.4 0.06 70 / 0.18);
+  --phase-ring: oklch(0.82 0.12 78 / 0.45);
+}
+.dark[data-phase="afternoon"] {
+  --phase-accent: oklch(0.74 0.16 245);
+  --phase-accent-soft: oklch(0.5 0.11 240 / 0.32);
+  --phase-glow-1: oklch(0.6 0.14 245 / 0.32);
+  --phase-glow-2: oklch(0.62 0.1 210 / 0.28);
+  --phase-tint: oklch(0.42 0.07 240 / 0.16);
+  --phase-ring: oklch(0.74 0.16 245 / 0.45);
+}
+.dark[data-phase="evening"] {
+  --phase-accent: oklch(0.78 0.15 45);
+  --phase-accent-soft: oklch(0.5 0.11 45 / 0.34);
+  --phase-glow-1: oklch(0.6 0.16 40 / 0.34);
+  --phase-glow-2: oklch(0.5 0.14 330 / 0.3);
+  --phase-tint: oklch(0.4 0.08 40 / 0.2);
+  --phase-ring: oklch(0.78 0.15 45 / 0.45);
+}
+.dark[data-phase="night"] {
+  --phase-accent: oklch(0.74 0.15 275);
+  --phase-accent-soft: oklch(0.5 0.1 270 / 0.34);
+  --phase-glow-1: oklch(0.5 0.14 272 / 0.36);
+  --phase-glow-2: oklch(0.45 0.12 250 / 0.32);
+  --phase-tint: oklch(0.4 0.07 270 / 0.2);
+  --phase-ring: oklch(0.74 0.15 275 / 0.45);
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
@@ -293,6 +379,40 @@
   overflow: hidden;
   isolation: isolate;
   transition: background 900ms ease, box-shadow 900ms ease, color 500ms ease;
+}
+
+/* Fixed, whole-app ambient wash driven by the active phase.
+   Sits behind all content; re-tints smoothly as the phase shifts. */
+@utility app-ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 70% at 12% -8%, var(--phase-glow-1) 0%, transparent 55%),
+    radial-gradient(110% 70% at 92% 4%, var(--phase-glow-2) 0%, transparent 52%),
+    linear-gradient(180deg, var(--phase-tint) 0%, transparent 42%);
+  transition: background 1100ms ease;
+}
+
+/* Accent helpers tied to the active phase. */
+@utility text-phase {
+  color: var(--phase-accent);
+}
+@utility bg-phase {
+  background-color: var(--phase-accent);
+}
+@utility phase-chip {
+  background: var(--phase-accent-soft);
+  color: color-mix(in oklab, var(--phase-accent) 75%, var(--foreground) 25%);
+  border: 1px solid color-mix(in oklab, var(--phase-accent) 30%, transparent);
+}
+@utility phase-ring {
+  box-shadow: 0 0 0 1px var(--phase-ring), 0 18px 48px -22px var(--phase-ring);
+}
+@utility phase-transition {
+  transition: background-color 900ms ease, color 600ms ease, border-color 900ms ease,
+    box-shadow 900ms ease;
 }
 
 @utility phase-morning {
