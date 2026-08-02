@@ -19,6 +19,7 @@ import {
   BookOpen,
   MessageCircle,
   RefreshCw,
+  Settings,
 } from "lucide-react";
 import regionEurope from "@/assets/region-europe.jpg";
 import regionAsia from "@/assets/region-asia.jpg";
@@ -34,6 +35,8 @@ import {
 } from "@/components/ui/carousel";
 import { supabase } from "@/integrations/supabase/client";
 import { getCountryName, flagEmoji, loadRecentSearches, type RecentSearch } from "@/lib/visa";
+import { loadBookmarks } from "@/components/ai-cards";
+import { GUEST_STORAGE_SCOPE } from "@/lib/app-session";
 import {
   getDailyTrendingDestinations,
   getLatestVisaUpdates,
@@ -104,7 +107,6 @@ const TRENDING_IMAGES = [
   regionMiddleEast,
   regionAfrica,
 ];
-const AI_BOOKMARKS_KEY = "vp_ai_bookmarks_v1";
 const HOME_REFERENCE_DATE = new Date("2026-01-01T00:00:00.000Z");
 const PUBLISHED_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -119,22 +121,6 @@ function greetingFor(date = new Date()): string {
   if (h < 17) return "Good afternoon";
   if (h < 22) return "Good evening";
   return "Good night";
-}
-
-function readAiBookmark(): BookmarkSnapshot | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = localStorage.getItem(AI_BOOKMARKS_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as BookmarkSnapshot[];
-    if (!Array.isArray(parsed) || parsed.length === 0) return null;
-    const newest = parsed
-      .filter((v) => v && typeof v.createdAt === "number")
-      .sort((a, b) => b.createdAt - a.createdAt)[0];
-    return newest ?? null;
-  } catch {
-    return null;
-  }
 }
 
 function buildContinueActivity(
@@ -321,20 +307,23 @@ function HomePage() {
     setName(n);
 
     if (!isSignedIn) {
-      setRecent([]);
+      setRecent(loadRecentSearches(GUEST_STORAGE_SCOPE));
       setHasBudget(false);
       setHasChecklist(false);
       setLatestAiBookmark(null);
       return;
     }
 
-    setRecent(loadRecentSearches());
+    setRecent(loadRecentSearches(user.id));
     try {
       const b = localStorage.getItem("vp_budget");
       const c = localStorage.getItem("vp_checklist");
       setHasBudget(!!b);
       setHasChecklist(!!c);
-      setLatestAiBookmark(readAiBookmark());
+      const latestBookmark = loadBookmarks(user.id)
+        .filter((v) => v && typeof v.createdAt === "number")
+        .sort((a, b) => b.createdAt - a.createdAt)[0] as BookmarkSnapshot | undefined;
+      setLatestAiBookmark(latestBookmark ?? null);
     } catch {
       setHasBudget(false);
       setHasChecklist(false);
@@ -451,12 +440,21 @@ function HomePage() {
             </p>
           </div>
         </div>
-        <Link
-          to={signedIn ? "/profile" : "/auth"}
-          className="glass rounded-full px-3.5 py-2 text-[11px] font-semibold text-foreground transition-transform active:scale-95"
-        >
-          {signedIn ? "My profile" : "Sign in"}
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/settings"
+            className="glass inline-flex h-9 w-9 items-center justify-center rounded-full text-foreground transition-transform active:scale-95"
+            aria-label="Open settings"
+          >
+            <Settings className="h-4 w-4" />
+          </Link>
+          <Link
+            to={signedIn ? "/profile" : "/auth"}
+            className="glass rounded-full px-3.5 py-2 text-[11px] font-semibold text-foreground transition-transform active:scale-95"
+          >
+            {signedIn ? "My profile" : "Sign in"}
+          </Link>
+        </div>
       </header>
 
       {/* Greeting + Hero */}
@@ -538,45 +536,43 @@ function HomePage() {
       </section>
 
       {/* Recent searches */}
-      {signedIn && (
-        <section
-          className="relative mt-5 px-6"
-          style={{ contentVisibility: "auto", containIntrinsicSize: "260px" }}
-        >
-          <div className="mb-3 flex items-center justify-between animate-fade-up">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-              Recent searches
-            </p>
+      <section
+        className="relative mt-5 px-6"
+        style={{ contentVisibility: "auto", containIntrinsicSize: "260px" }}
+      >
+        <div className="mb-3 flex items-center justify-between animate-fade-up">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+            Recent searches
+          </p>
+        </div>
+        {recent.length === 0 ? (
+          <div className="glass rounded-2xl p-4 text-sm text-muted-foreground animate-fade-up">
+            No recent destinations yet.
           </div>
-          {recent.length === 0 ? (
-            <div className="glass rounded-2xl p-4 text-sm text-muted-foreground animate-fade-up">
-              No recent destinations yet.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-              {recent.slice(0, 4).map((r, i) => (
-                <Link
-                  key={`${r.passport}-${r.destination}-${r.timestamp}`}
-                  to="/country/$code"
-                  params={{ code: r.destination }}
-                  className="glass flex items-center gap-2.5 rounded-2xl p-3 shadow-soft animate-fade-up transition-transform active:scale-[0.98] hover:-translate-y-0.5"
-                  style={{ animationDelay: `${i * 60}ms` }}
-                >
-                  <span className="text-lg" aria-hidden>
-                    {flagEmoji(r.destination)}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-foreground">
-                      {getCountryName(r.destination)}
-                    </p>
-                    <p className="mt-0.5 text-[11px] text-muted-foreground">{r.status}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </section>
-      )}
+        ) : (
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+            {recent.slice(0, 5).map((r, i) => (
+              <Link
+                key={`${r.passport}-${r.destination}-${r.timestamp}`}
+                to="/country/$code"
+                params={{ code: r.destination }}
+                className="glass flex items-center gap-2.5 rounded-2xl p-3 shadow-soft animate-fade-up transition-transform active:scale-[0.98] hover:-translate-y-0.5"
+                style={{ animationDelay: `${i * 60}ms` }}
+              >
+                <span className="text-lg" aria-hidden>
+                  {flagEmoji(r.destination)}
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-foreground">
+                    {getCountryName(r.destination)}
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">{r.status}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* Country Hub banner */}
       <section

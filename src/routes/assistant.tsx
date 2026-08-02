@@ -4,6 +4,8 @@ import { DefaultChatTransport, type UIMessage } from "ai";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { buildScopedStorageKey, GUEST_STORAGE_SCOPE } from "@/lib/app-session";
 import {
   BudgetCard,
   DocChecklistCard,
@@ -82,10 +84,11 @@ const SUGGESTIONS = [
   "Safety tips for solo travel in South America.",
 ];
 
-function loadInitialMessages(): UIMessage[] {
+function loadMessagesForScope(scope: string, persist: boolean): UIMessage[] {
   if (typeof window === "undefined") return [];
+  if (!persist) return [];
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(buildScopedStorageKey(STORAGE_KEY, scope));
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
@@ -108,11 +111,14 @@ type MessageScrollSnapshot = {
 };
 
 function AssistantPage() {
-  const [didRestoreMessages, setDidRestoreMessages] = useState(false);
+  const [authScope, setAuthScope] = useState<string>(GUEST_STORAGE_SCOPE);
+  const [authResolved, setAuthResolved] = useState(false);
   const transport = useMemo(() => new DefaultChatTransport({ api: "/api/chat" }), []);
+  const isSignedIn = authScope !== GUEST_STORAGE_SCOPE;
+  const storageKey = useMemo(() => buildScopedStorageKey(STORAGE_KEY, authScope), [authScope]);
 
   const { messages, sendMessage, status, setMessages, stop, error, regenerate } = useChat({
-    id: "asvior-assistant",
+    id: `asvior-assistant-${authScope}`,
     messages: [],
     transport,
     onError: (e) => toast.error(e.message || "AI request failed"),
@@ -135,6 +141,30 @@ function AssistantPage() {
   const lastMessage = messages[messages.length - 1];
   const lastMessageText = lastMessage ? getText(lastMessage) : "";
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const resolveScope = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (cancelled) return;
+      setAuthScope(data.session?.user?.id || GUEST_STORAGE_SCOPE);
+      setAuthResolved(true);
+    };
+
+    void resolveScope();
+
+    const { data: authSub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (cancelled) return;
+      setAuthScope(session?.user?.id || GUEST_STORAGE_SCOPE);
+      setAuthResolved(true);
+    });
+
+    return () => {
+      cancelled = true;
+      authSub.subscription.unsubscribe();
+    };
+  }, []);
+
   const scrollToBottom = useCallback((behavior: ScrollBehavior) => {
     if (typeof window === "undefined") return;
 
@@ -154,21 +184,19 @@ function AssistantPage() {
   }, []);
 
   useEffect(() => {
-    if (didRestoreMessages) return;
-
-    setMessages(loadInitialMessages());
-    setDidRestoreMessages(true);
-  }, [didRestoreMessages, setMessages]);
+    if (!authResolved) return;
+    setMessages(loadMessagesForScope(authScope, isSignedIn));
+  }, [authResolved, authScope, isSignedIn, setMessages]);
 
   useEffect(() => {
-    if (!didRestoreMessages) return;
+    if (!authResolved || !isSignedIn) return;
 
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+      localStorage.setItem(storageKey, JSON.stringify(messages));
     } catch (error) {
       void error;
     }
-  }, [didRestoreMessages, messages]);
+  }, [authResolved, isSignedIn, messages, storageKey]);
 
   useLayoutEffect(() => {
     const previous = scrollSnapshotRef.current;
@@ -236,8 +264,8 @@ function AssistantPage() {
   }, []);
 
   useEffect(() => {
-    if (showBookmarks) setBookmarks(loadBookmarks());
-  }, [showBookmarks]);
+    if (showBookmarks) setBookmarks(loadBookmarks(authScope));
+  }, [showBookmarks, authScope]);
 
   const handleSend = async (text: string) => {
     const value = text.trim();
@@ -266,7 +294,7 @@ function AssistantPage() {
   const clearChat = () => {
     setMessages([]);
     try {
-      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(storageKey);
     } catch (error) {
       void error;
     }
@@ -295,13 +323,16 @@ function AssistantPage() {
           .replace(/```[\s\S]*?```/g, "")
           .slice(0, 120)
       : "";
-    saveBookmark({
-      id: `bm_${Date.now()}`,
-      title,
-      preview,
-      createdAt: Date.now(),
-      messages,
-    });
+    saveBookmark(
+      {
+        id: `bm_${Date.now()}`,
+        title,
+        preview,
+        createdAt: Date.now(),
+        messages,
+      },
+      authScope,
+    );
     toast.success("Conversation bookmarked");
   };
 
@@ -312,8 +343,8 @@ function AssistantPage() {
   };
 
   const deleteBookmark = (id: string) => {
-    removeBookmark(id);
-    setBookmarks(loadBookmarks());
+    removeBookmark(id, authScope);
+    setBookmarks(loadBookmarks(authScope));
   };
 
   const isEmpty = messages.length === 0;

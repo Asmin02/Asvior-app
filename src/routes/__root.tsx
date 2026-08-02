@@ -7,7 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Home, Plane, CheckSquare, Wallet, User } from "lucide-react";
 
 import appCss from "../styles.css?url";
@@ -145,9 +145,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  const capacitorBridgeShim =
+    "(function(){if(typeof window==='undefined')return;window.Capacitor=window.Capacitor||{};if(typeof window.Capacitor.triggerEvent!=='function'){window.Capacitor.triggerEvent=function(){};}window.CapacitorWebView=window.CapacitorWebView||{};if(typeof window.CapacitorWebView.triggerEvent!=='function'){window.CapacitorWebView.triggerEvent=function(){};}})();";
+
   return (
     <html lang="en">
       <head>
+        <script dangerouslySetInnerHTML={{ __html: capacitorBridgeShim }} />
         <HeadContent />
       </head>
       <body>
@@ -167,21 +171,33 @@ function MobileNav() {
     let cancelled = false;
 
     const refresh = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (cancelled) return;
-      setSignedIn(!!data.session?.user);
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (cancelled) return;
+        setSignedIn(!!data.session?.user);
+      } catch {
+        if (cancelled) return;
+        setSignedIn(false);
+      }
     };
 
     void refresh();
 
-    const { data: authSub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (cancelled) return;
-      setSignedIn(!!session?.user);
-    });
+    let unsubscribe = () => {};
+
+    try {
+      const { data: authSub } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (cancelled) return;
+        setSignedIn(!!session?.user);
+      });
+      unsubscribe = () => authSub.subscription.unsubscribe();
+    } catch {
+      setSignedIn(false);
+    }
 
     return () => {
       cancelled = true;
-      authSub.subscription.unsubscribe();
+      unsubscribe();
     };
   }, []);
 
@@ -236,6 +252,7 @@ function MobileNav() {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+  const activeUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -267,32 +284,51 @@ function RootComponent() {
     const initialize = async () => {
       resetGuestAppearance();
 
-      const { data } = await supabase.auth.getSession();
-      if (cancelled) return;
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (cancelled) return;
 
-      if (data.session?.user) {
-        await syncAppearanceForUser(data.session.user.id);
+        if (data.session?.user) {
+          activeUserIdRef.current = data.session.user.id;
+          await syncAppearanceForUser(data.session.user.id);
+        }
+      } catch {
+        if (cancelled) return;
+        activeUserIdRef.current = null;
+        resetGuestAppearance();
       }
     };
 
     void initialize();
 
-    const { data: authSub } = supabase.auth.onAuthStateChange((event, session) => {
-      if (cancelled) return;
+    let unsubscribe = () => {};
 
-      if (event === "SIGNED_OUT") {
-        clearSignedOutLocalState();
-        resetGuestAppearance();
-        return;
-      }
+    try {
+      const { data: authSub } = supabase.auth.onAuthStateChange((event, session) => {
+        if (cancelled) return;
 
-      if (!session?.user) {
-        resetGuestAppearance();
-        return;
-      }
+        if (event === "SIGNED_OUT") {
+          clearSignedOutLocalState(activeUserIdRef.current ?? undefined);
+          activeUserIdRef.current = null;
+          resetGuestAppearance();
+          return;
+        }
 
-      void syncAppearanceForUser(session.user.id);
-    });
+        if (!session?.user) {
+          activeUserIdRef.current = null;
+          resetGuestAppearance();
+          return;
+        }
+
+        activeUserIdRef.current = session.user.id;
+
+        void syncAppearanceForUser(session.user.id);
+      });
+      unsubscribe = () => authSub.subscription.unsubscribe();
+    } catch {
+      activeUserIdRef.current = null;
+      resetGuestAppearance();
+    }
 
     // No-op in the browser. On Capacitor Android/iOS this registers the
     // appUrlOpen listener that exchanges the reset-password code from a deep
@@ -301,7 +337,7 @@ function RootComponent() {
 
     return () => {
       cancelled = true;
-      authSub.subscription.unsubscribe();
+      unsubscribe();
     };
   }, [router]);
 

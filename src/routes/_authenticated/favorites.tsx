@@ -32,15 +32,25 @@ function FavoritesPage() {
   const [adding, setAdding] = useState("");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     load();
   }, []);
   const load = async () => {
     setLoadError(false);
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user) {
+      setFavs([]);
+      setLoading(false);
+      return;
+    }
+    setUserId(userData.user.id);
+
     const { data, error } = await supabase
       .from("favorite_destinations")
       .select("country_code")
+      .eq("user_id", userData.user.id)
       .order("created_at", { ascending: false });
     if (error) {
       setLoadError(true);
@@ -52,12 +62,10 @@ function FavoritesPage() {
   };
 
   const add = async () => {
-    if (!adding) return;
-    const { data: u } = await supabase.auth.getUser();
-    if (!u.user) return;
+    if (!adding || !userId) return;
     const { error } = await supabase
       .from("favorite_destinations")
-      .insert({ user_id: u.user.id, country_code: adding });
+      .insert({ user_id: userId, country_code: adding });
     if (error && !error.message.includes("duplicate")) toast.error(error.message);
     else toast.success(`Added ${getCountryName(adding)}`);
     setAdding("");
@@ -65,9 +73,11 @@ function FavoritesPage() {
   };
 
   const remove = async (code: string) => {
+    if (!userId) return;
     const { error } = await supabase
       .from("favorite_destinations")
       .delete()
+      .eq("user_id", userId)
       .eq("country_code", code);
     if (error) {
       toast.error("Couldn't remove — check your connection and try again.");

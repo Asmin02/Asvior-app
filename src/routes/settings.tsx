@@ -31,8 +31,10 @@ import { deleteAccount } from "@/lib/account.functions";
 import {
   applyAppearancePreferences,
   cacheAppearancePreferences,
+  cacheGuestAppearancePreferences,
   DEFAULT_CURRENCY,
   DEFAULT_LANGUAGE,
+  readGuestAppearancePreferences,
 } from "@/lib/app-session";
 import { APP_VERSION, SUPPORT_EMAIL } from "@/lib/app-info";
 import { toast } from "sonner";
@@ -122,8 +124,22 @@ function SettingsPage() {
         }
       }
 
-      setS(DEFAULT);
-      applyAppearancePreferences({ darkMode: false, language: DEFAULT_LANGUAGE });
+      const guestAppearance = readGuestAppearancePreferences();
+      setS({
+        ...DEFAULT,
+        dark_mode: guestAppearance.darkMode,
+        language: guestAppearance.language || DEFAULT_LANGUAGE,
+        currency: guestAppearance.currency || DEFAULT_CURRENCY,
+      });
+      applyAppearancePreferences({
+        darkMode: guestAppearance.darkMode,
+        language: guestAppearance.language || DEFAULT_LANGUAGE,
+      });
+      cacheAppearancePreferences({
+        darkMode: guestAppearance.darkMode,
+        language: guestAppearance.language || DEFAULT_LANGUAGE,
+        currency: guestAppearance.currency || DEFAULT_CURRENCY,
+      });
     })();
   }, []);
 
@@ -138,12 +154,21 @@ function SettingsPage() {
       applyAppearancePreferences({ darkMode: next.dark_mode, language: next.language });
     }
 
-    if (userId) {
-      cacheAppearancePreferences({
+    cacheAppearancePreferences({
+      darkMode: next.dark_mode,
+      language: next.language,
+      currency: next.currency,
+    });
+
+    if (!userId) {
+      cacheGuestAppearancePreferences({
         darkMode: next.dark_mode,
         language: next.language,
         currency: next.currency,
       });
+    }
+
+    if (userId) {
       await supabase.from("user_settings").upsert({ user_id: userId, ...next });
     }
   };

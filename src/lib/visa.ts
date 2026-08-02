@@ -1,5 +1,6 @@
 // Shared visa requirement logic (data: passport-index-dataset)
 import { VISA_DATA } from "@/data/visa-data";
+import { buildScopedStorageKey, GUEST_STORAGE_SCOPE } from "@/lib/app-session";
 
 export type VisaStatus =
   "Visa Free" | "Visa on Arrival" | "ETA" | "eVisa" | "Visa Required" | "No Admission";
@@ -245,25 +246,32 @@ export function savePassport(code: string) {
   }
 }
 
-export function saveRecentSearch(search: RecentSearch) {
+export function saveRecentSearch(search: RecentSearch, scope = GUEST_STORAGE_SCOPE) {
   try {
-    const raw = localStorage.getItem(RECENT_KEY);
+    const raw = localStorage.getItem(buildScopedStorageKey(RECENT_KEY, scope));
     const arr: RecentSearch[] = raw ? JSON.parse(raw) : [];
     const next = [
       search,
       ...arr.filter((s) => s.passport !== search.passport || s.destination !== search.destination),
     ].slice(0, 6);
-    localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+    localStorage.setItem(buildScopedStorageKey(RECENT_KEY, scope), JSON.stringify(next));
   } catch (error) {
     void error;
   }
 }
 
-export function loadRecentSearches(): RecentSearch[] {
+export function loadRecentSearches(scope = GUEST_STORAGE_SCOPE): RecentSearch[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = localStorage.getItem(RECENT_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const scoped = localStorage.getItem(buildScopedStorageKey(RECENT_KEY, scope));
+    if (scoped) return JSON.parse(scoped);
+
+    if (scope === GUEST_STORAGE_SCOPE) {
+      const legacy = localStorage.getItem(RECENT_KEY);
+      return legacy ? JSON.parse(legacy) : [];
+    }
+
+    return [];
   } catch {
     return [];
   }

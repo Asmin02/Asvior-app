@@ -39,6 +39,7 @@ function TripsPage() {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState<Partial<Trip>>({});
 
@@ -47,9 +48,18 @@ function TripsPage() {
   }, []);
   const load = async () => {
     setLoadError(false);
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user) {
+      setTrips([]);
+      setLoading(false);
+      return;
+    }
+    setUserId(userData.user.id);
+
     const { data, error } = await supabase
       .from("saved_trips")
       .select("*")
+      .eq("user_id", userData.user.id)
       .order("created_at", { ascending: false });
     if (error) {
       setLoadError(true);
@@ -61,8 +71,9 @@ function TripsPage() {
   };
 
   const remove = async (id: string) => {
+    if (!userId) return;
     if (!confirm("Delete this trip?")) return;
-    await supabase.from("saved_trips").delete().eq("id", id);
+    await supabase.from("saved_trips").delete().eq("user_id", userId).eq("id", id);
     toast.success("Trip deleted");
     load();
   };
@@ -73,7 +84,7 @@ function TripsPage() {
   };
 
   const save = async () => {
-    if (!editing) return;
+    if (!editing || !userId) return;
     const { error } = await supabase
       .from("saved_trips")
       .update({
@@ -82,6 +93,7 @@ function TripsPage() {
         start_date: draft.start_date || null,
         end_date: draft.end_date || null,
       })
+      .eq("user_id", userId)
       .eq("id", editing);
     if (error) toast.error(error.message);
     else {

@@ -1,5 +1,24 @@
 apply plugin: 'com.android.application'
 
+def keystorePropertiesFile = rootProject.file('keystore.properties')
+def keystoreProperties = new Properties()
+def hasReleaseSigning = false
+
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withInputStream { stream ->
+        keystoreProperties.load(stream)
+    }
+    hasReleaseSigning = [
+        'RELEASE_STORE_FILE',
+        'RELEASE_STORE_PASSWORD',
+        'RELEASE_KEY_ALIAS',
+        'RELEASE_KEY_PASSWORD',
+    ].every { key ->
+        def value = keystoreProperties.getProperty(key)
+        value != null && !value.trim().isEmpty()
+    }
+}
+
 android {
     namespace "com.asvior.app"
     compileSdk rootProject.ext.compileSdkVersion
@@ -16,10 +35,23 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        if (hasReleaseSigning) {
+            release {
+                storeFile rootProject.file(keystoreProperties.getProperty('RELEASE_STORE_FILE'))
+                storePassword keystoreProperties.getProperty('RELEASE_STORE_PASSWORD')
+                keyAlias keystoreProperties.getProperty('RELEASE_KEY_ALIAS')
+                keyPassword keystoreProperties.getProperty('RELEASE_KEY_PASSWORD')
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }

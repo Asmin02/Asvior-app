@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { buildScopedStorageKey, GUEST_STORAGE_SCOPE } from "@/lib/app-session";
 
 // ---------- Types ----------
 export type VisaCardData = {
@@ -548,28 +549,40 @@ export type BookmarkedConversation = {
   messages: unknown[];
 };
 const BOOKMARKS_KEY = "vp_ai_bookmarks_v1";
-export function loadBookmarks(): BookmarkedConversation[] {
+export function loadBookmarks(scope = GUEST_STORAGE_SCOPE): BookmarkedConversation[] {
   if (typeof window === "undefined") return [];
   try {
-    return JSON.parse(localStorage.getItem(BOOKMARKS_KEY) || "[]");
+    const scoped = localStorage.getItem(buildScopedStorageKey(BOOKMARKS_KEY, scope));
+    if (scoped) return JSON.parse(scoped);
+
+    // One-time compatibility path for older installs that used a global key.
+    if (scope === GUEST_STORAGE_SCOPE) {
+      const legacy = localStorage.getItem(BOOKMARKS_KEY);
+      if (legacy) return JSON.parse(legacy);
+    }
+
+    return [];
   } catch (error) {
     void error;
     return [];
   }
 }
-export function saveBookmark(b: BookmarkedConversation) {
-  const all = loadBookmarks().filter((x) => x.id !== b.id);
+export function saveBookmark(b: BookmarkedConversation, scope = GUEST_STORAGE_SCOPE) {
+  const all = loadBookmarks(scope).filter((x) => x.id !== b.id);
   all.unshift(b);
   try {
-    localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(all.slice(0, 50)));
+    localStorage.setItem(
+      buildScopedStorageKey(BOOKMARKS_KEY, scope),
+      JSON.stringify(all.slice(0, 50)),
+    );
   } catch (error) {
     void error;
   }
 }
-export function removeBookmark(id: string) {
-  const all = loadBookmarks().filter((x) => x.id !== id);
+export function removeBookmark(id: string, scope = GUEST_STORAGE_SCOPE) {
+  const all = loadBookmarks(scope).filter((x) => x.id !== id);
   try {
-    localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(all));
+    localStorage.setItem(buildScopedStorageKey(BOOKMARKS_KEY, scope), JSON.stringify(all));
   } catch (error) {
     void error;
   }

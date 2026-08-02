@@ -29,6 +29,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { recordVisaCheckSuccess } from "@/lib/in-app-review";
 import { toast } from "sonner";
+import { GUEST_STORAGE_SCOPE } from "@/lib/app-session";
 
 export const Route = createFileRoute("/visa-check")({
   head: () => ({
@@ -106,6 +107,7 @@ function VisaCheckPage() {
     supabase
       .from("favorite_destinations")
       .select("id")
+      .eq("user_id", userId)
       .eq("country_code", destination)
       .maybeSingle()
       .then(({ data }) => setIsFav(!!data));
@@ -127,12 +129,15 @@ function VisaCheckPage() {
     setResult(r);
     setChecking(false);
     if (r) {
-      saveRecentSearch({
-        passport,
-        destination,
-        status: r.status,
-        timestamp: Date.now(),
-      });
+      saveRecentSearch(
+        {
+          passport,
+          destination,
+          status: r.status,
+          timestamp: Date.now(),
+        },
+        userId || GUEST_STORAGE_SCOPE,
+      );
     }
     if (userId && r) {
       await supabase.from("visa_history").insert({
@@ -155,7 +160,11 @@ function VisaCheckPage() {
       return;
     }
     if (isFav) {
-      await supabase.from("favorite_destinations").delete().eq("country_code", destination);
+      await supabase
+        .from("favorite_destinations")
+        .delete()
+        .eq("user_id", userId)
+        .eq("country_code", destination);
       setIsFav(false);
       toast.success("Removed from favorites");
     } else {

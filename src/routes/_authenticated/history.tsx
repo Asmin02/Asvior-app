@@ -1,8 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { CheckCircle2, Clock3, Compass, Heart, MessageCircle, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { loadBookmarks, removeBookmark, type BookmarkedConversation } from "@/components/ai-cards";
+import { buildScopedStorageKey } from "@/lib/app-session";
+import { loadRecentSearches, type RecentSearch } from "@/lib/visa";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/history")({
   head: () => ({ meta: [{ title: "Travel History — Asvior" }] }),
@@ -35,64 +40,377 @@ interface TripRow {
   created_at: string;
 }
 
+interface FavoriteRow {
+  id: string;
+  country_code: string;
+  created_at: string;
+}
+
+type HistoryTab = "all" | "visa" | "trips" | "recent" | "ai" | "favorites";
+
+type HistoryItem = {
+  key: string;
+  id: string;
+  kind: Exclude<HistoryTab, "all">;
+  createdAt: number;
+  title: string;
+  subtitle: string;
+  status?: string;
+  destinationCode?: string;
+  payload?: unknown;
+};
+
+const SCOPED_CHAT_KEY = "vp_ai_chat_v1";
+const SCOPED_RECENT_KEY = "vp_recent_searches";
+
+function toTimestamp(iso: string): number {
+  const time = new Date(iso).getTime();
+  return Number.isFinite(time) ? time : 0;
+}
+
+function saveRecentSearches(scope: string, items: RecentSearch[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(buildScopedStorageKey(SCOPED_RECENT_KEY, scope), JSON.stringify(items));
+  } catch {
+    // Ignore local write failures to avoid blocking UI.
+  }
+}
+
 function HistoryPage() {
+  const navigate = useNavigate();
+  const [userId, setUserId] = useState<string | null>(null);
   const [checks, setChecks] = useState<HistoryRow[]>([]);
   const [trips, setTrips] = useState<TripRow[]>([]);
-  const [tab, setTab] = useState<"visa" | "trips">("visa");
+  const [favorites, setFavorites] = useState<FavoriteRow[]>([]);
+  const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
+  const [bookmarks, setBookmarks] = useState<BookmarkedConversation[]>([]);
+  const [tab, setTab] = useState<HistoryTab>("all");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [processing, setProcessing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
 
-  useEffect(() => {
-    load();
-  }, []);
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoadError(false);
-    const [checksRes, tripsRes] = await Promise.all([
-      supabase.from("visa_history").select("*").order("created_at", { ascending: false }).limit(50),
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user) {
+      setChecks([]);
+      setTrips([]);
+      setFavorites([]);
+      setRecentSearches([]);
+      setBookmarks([]);
+      setUserId(null);
+      setLoading(false);
+      return;
+    }
+
+    const uid = userData.user.id;
+    setUserId(uid);
+
+    const [checksRes, tripsRes, favoritesRes] = await Promise.all([
+      supabase
+        .from("visa_history")
+        .select("*")
+        .eq("user_id", uid)
+        .order("created_at", { ascending: false })
+        .limit(50),
       supabase
         .from("saved_trips")
         .select("id, name, destination_code, created_at")
+        .eq("user_id", uid)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("favorite_destinations")
+        .select("id, country_code, created_at")
+        .eq("user_id", uid)
         .order("created_at", { ascending: false }),
     ]);
-    if (checksRes.error || tripsRes.error) {
+    if (checksRes.error || tripsRes.error || favoritesRes.error) {
       setLoadError(true);
       setLoading(false);
       return;
     }
+
     setChecks((checksRes.data as HistoryRow[]) || []);
     setTrips((tripsRes.data as TripRow[]) || []);
+    setFavorites((favoritesRes.data as FavoriteRow[]) || []);
+    setRecentSearches(loadRecentSearches(uid));
+    setBookmarks(loadBookmarks(uid));
     setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const allItems = useMemo<HistoryItem[]>(() => {
+    const visaItems: HistoryItem[] = checks.map((row) => ({
+      key: `visa:${row.id}`,
+      id: row.id,
+      kind: "visa",
+      createdAt: toTimestamp(row.created_at),
+      title: `${flag(row.passport_code)} ${getCountryName(row.passport_code)} -> ${flag(row.destination_code)} ${getCountryName(row.destination_code)}`,
+      subtitle: "Visa check",
+      status: row.status,
+      destinationCode: row.destination_code,
+    }));
+
+    const tripItems: HistoryItem[] = trips.map((row) => ({
+      key: `trip:${row.id}`,
+      id: row.id,
+      kind: "trips",
+      createdAt: toTimestamp(row.created_at),
+      title: row.name,
+      subtitle: row.destination_code
+        ? `${flag(row.destination_code)} ${getCountryName(row.destination_code)}`
+        : "Saved trip",
+      destinationCode: row.destination_code || undefined,
+    }));
+
+    const favoriteItems: HistoryItem[] = favorites.map((row) => ({
+      key: `favorite:${row.id}`,
+      id: row.id,
+      kind: "favorites",
+      createdAt: toTimestamp(row.created_at),
+      title: `${flag(row.country_code)} ${getCountryName(row.country_code)}`,
+      subtitle: "Saved country",
+      destinationCode: row.country_code,
+    }));
+
+    const recentItems: HistoryItem[] = recentSearches.map((row) => ({
+      key: `recent:${row.passport}-${row.destination}-${row.timestamp}`,
+      id: `${row.passport}-${row.destination}-${row.timestamp}`,
+      kind: "recent",
+      createdAt: row.timestamp,
+      title: `${flag(row.passport)} ${getCountryName(row.passport)} -> ${flag(row.destination)} ${getCountryName(row.destination)}`,
+      subtitle: "Recent local search",
+      status: row.status,
+      destinationCode: row.destination,
+      payload: row,
+    }));
+
+    const aiItems: HistoryItem[] = bookmarks.map((row) => ({
+      key: `ai:${row.id}`,
+      id: row.id,
+      kind: "ai",
+      createdAt: row.createdAt,
+      title: row.title || "AI conversation",
+      subtitle: row.preview || "Saved AI chat",
+      payload: row,
+    }));
+
+    return [...visaItems, ...tripItems, ...favoriteItems, ...recentItems, ...aiItems].sort(
+      (a, b) => b.createdAt - a.createdAt,
+    );
+  }, [bookmarks, checks, favorites, recentSearches, trips]);
+
+  const visibleItems = useMemo(
+    () => (tab === "all" ? allItems : allItems.filter((item) => item.kind === tab)),
+    [allItems, tab],
+  );
+
+  const selectedItems = useMemo(
+    () => visibleItems.filter((item) => selected.has(item.key)),
+    [selected, visibleItems],
+  );
+
+  const toggleSelected = (key: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const clearSelection = () => setSelected(new Set());
+
+  const deleteItems = async (items: HistoryItem[]) => {
+    if (!userId || items.length === 0) return;
+    setProcessing(true);
+    try {
+      const visaIds = items.filter((item) => item.kind === "visa").map((item) => item.id);
+      const tripIds = items.filter((item) => item.kind === "trips").map((item) => item.id);
+      const favoriteIds = items.filter((item) => item.kind === "favorites").map((item) => item.id);
+      const recentIds = new Set(
+        items.filter((item) => item.kind === "recent").map((item) => item.id),
+      );
+      const aiIds = items.filter((item) => item.kind === "ai").map((item) => item.id);
+
+      if (visaIds.length > 0) {
+        await supabase.from("visa_history").delete().eq("user_id", userId).in("id", visaIds);
+      }
+      if (tripIds.length > 0) {
+        await supabase.from("saved_trips").delete().eq("user_id", userId).in("id", tripIds);
+      }
+      if (favoriteIds.length > 0) {
+        await supabase
+          .from("favorite_destinations")
+          .delete()
+          .eq("user_id", userId)
+          .in("id", favoriteIds);
+      }
+
+      if (recentIds.size > 0) {
+        const nextRecent = recentSearches.filter(
+          (row) => !recentIds.has(`${row.passport}-${row.destination}-${row.timestamp}`),
+        );
+        setRecentSearches(nextRecent);
+        saveRecentSearches(userId, nextRecent);
+      }
+
+      if (aiIds.length > 0) {
+        aiIds.forEach((id) => removeBookmark(id, userId));
+        setBookmarks(loadBookmarks(userId));
+      }
+
+      clearSelection();
+      await load();
+      toast.success(items.length === 1 ? "History item deleted" : "History updated");
+    } catch (error) {
+      void error;
+      toast.error("Couldn't update history. Please try again.");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const restoreAiConversation = (item: HistoryItem) => {
+    if (!userId || item.kind !== "ai") return;
+    const bookmark = item.payload as BookmarkedConversation;
+    try {
+      localStorage.setItem(
+        buildScopedStorageKey(SCOPED_CHAT_KEY, userId),
+        JSON.stringify(bookmark.messages || []),
+      );
+      toast.success("Conversation restored");
+      navigate({ to: "/assistant" });
+    } catch {
+      toast.error("Couldn't restore conversation");
+    }
   };
 
   return (
     <div className="px-5 pt-8 pb-6">
       <h1 className="text-2xl font-bold text-foreground">Travel History</h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        Your visa checks and saved trips, all in one timeline.
+        Manage all your travel activity in one place.
       </p>
 
       <div
-        className="mt-5 grid grid-cols-2 gap-2 rounded-xl bg-muted p-1"
+        className="mt-5 grid grid-cols-3 gap-2 rounded-xl bg-muted p-1"
         role="tablist"
         aria-label="History type"
       >
         <button
           role="tab"
+          aria-selected={tab === "all"}
+          onClick={() => {
+            setTab("all");
+            clearSelection();
+          }}
+          className={`rounded-lg py-2 text-xs font-semibold transition-colors ${tab === "all" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
+        >
+          All
+        </button>
+        <button
+          role="tab"
+          aria-selected={tab === "recent"}
+          onClick={() => {
+            setTab("recent");
+            clearSelection();
+          }}
+          className={`rounded-lg py-2 text-xs font-semibold transition-colors ${tab === "recent" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
+        >
+          Recent
+        </button>
+        <button
+          role="tab"
+          aria-selected={tab === "ai"}
+          onClick={() => {
+            setTab("ai");
+            clearSelection();
+          }}
+          className={`rounded-lg py-2 text-xs font-semibold transition-colors ${tab === "ai" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
+        >
+          AI
+        </button>
+      </div>
+
+      <div
+        className="mt-2 grid grid-cols-3 gap-2 rounded-xl bg-muted p-1"
+        role="tablist"
+        aria-label="History type secondary"
+      >
+        <button
+          role="tab"
           aria-selected={tab === "visa"}
-          onClick={() => setTab("visa")}
+          onClick={() => {
+            setTab("visa");
+            clearSelection();
+          }}
           className={`rounded-lg py-2 text-xs font-semibold transition-colors ${tab === "visa" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
         >
-          Visa Checks
+          Visa
         </button>
         <button
           role="tab"
           aria-selected={tab === "trips"}
-          onClick={() => setTab("trips")}
+          onClick={() => {
+            setTab("trips");
+            clearSelection();
+          }}
           className={`rounded-lg py-2 text-xs font-semibold transition-colors ${tab === "trips" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
         >
-          Trip Plans
+          Trips
+        </button>
+        <button
+          role="tab"
+          aria-selected={tab === "favorites"}
+          onClick={() => {
+            setTab("favorites");
+            clearSelection();
+          }}
+          className={`rounded-lg py-2 text-xs font-semibold transition-colors ${tab === "favorites" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
+        >
+          Favorites
         </button>
       </div>
+
+      {!loading && !loadError && visibleItems.length > 0 && (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              if (selected.size === visibleItems.length) {
+                clearSelection();
+                return;
+              }
+              setSelected(new Set(visibleItems.map((item) => item.key)));
+            }}
+          >
+            {selected.size === visibleItems.length ? "Deselect all" : "Select all"}
+          </Button>
+          <Button
+            size="sm"
+            variant="destructive"
+            disabled={selectedItems.length === 0 || processing}
+            onClick={() => void deleteItems(selectedItems)}
+          >
+            Delete selected
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={visibleItems.length === 0 || processing}
+            onClick={() => void deleteItems(visibleItems)}
+          >
+            Clear current tab
+          </Button>
+        </div>
+      )}
 
       <div className="mt-4 space-y-2">
         {loading ? (
@@ -117,76 +435,98 @@ function HistoryPage() {
                 className="mt-4"
                 onClick={() => {
                   setLoading(true);
-                  load();
+                  void load();
                 }}
               >
                 Retry
               </Button>
             </CardContent>
           </Card>
-        ) : tab === "visa" ? (
-          checks.length === 0 ? (
-            <Card className="ring-1 ring-border">
-              <CardContent className="p-8 text-center">
-                <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-travel-sky text-2xl">
-                  🛂
-                </div>
-                <p className="text-sm font-semibold text-foreground">No visa checks yet.</p>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                  Run your first visa search and it will appear here.
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            checks.map((c) => (
-              <Card key={c.id} className="ring-1 ring-border animate-fade-in">
-                <CardContent className="flex items-center gap-3 p-3">
-                  <div className="text-xl">
-                    {flag(c.passport_code)}→{flag(c.destination_code)}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold">
-                      {getCountryName(c.passport_code)} → {getCountryName(c.destination_code)}
-                    </p>
-                    <p className="text-[11px] text-muted-foreground">
-                      {new Date(c.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                    {c.status}
-                  </span>
-                </CardContent>
-              </Card>
-            ))
-          )
-        ) : trips.length === 0 ? (
+        ) : visibleItems.length === 0 ? (
           <Card className="ring-1 ring-border">
             <CardContent className="p-8 text-center">
-              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-travel-sky text-2xl">
-                🧳
+              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-travel-sky text-travel-blue-dark text-2xl">
+                ✈️
               </div>
-              <p className="text-sm font-semibold text-foreground">No saved trips yet.</p>
+              <p className="text-sm font-semibold text-foreground">No travel history yet.</p>
               <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                Start planning your first adventure.
+                Start exploring and your activity will appear here.
               </p>
+              <Link
+                to="/"
+                className="mt-4 inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground"
+              >
+                Start Exploring
+              </Link>
             </CardContent>
           </Card>
         ) : (
-          trips.map((t) => (
-            <Card key={t.id} className="ring-1 ring-border animate-fade-in">
-              <CardContent className="flex items-center gap-3 p-3">
-                <div className="text-2xl">
-                  {t.destination_code ? flag(t.destination_code) : "🧳"}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{t.name}</p>
-                  <p className="text-[11px] text-muted-foreground">
-                    {new Date(t.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+          visibleItems.map((item) => {
+            const isSelected = selected.has(item.key);
+            return (
+              <Card key={item.key} className="ring-1 ring-border animate-fade-in">
+                <CardContent className="flex items-center gap-3 p-3">
+                  <button
+                    onClick={() => toggleSelected(item.key)}
+                    aria-label={isSelected ? "Deselect history item" : "Select history item"}
+                    className="text-primary"
+                  >
+                    {isSelected ? (
+                      <CheckCircle2 className="h-5 w-5" />
+                    ) : (
+                      <Clock3 className="h-5 w-5" />
+                    )}
+                  </button>
+                  <div className="text-xl">
+                    {item.kind === "favorites" && <Heart className="h-5 w-5 text-rose-500" />}
+                    {item.kind === "ai" && <MessageCircle className="h-5 w-5 text-primary" />}
+                    {(item.kind === "visa" || item.kind === "recent") && (
+                      <Compass className="h-5 w-5 text-primary" />
+                    )}
+                    {item.kind === "trips" && "🧳"}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold">{item.title}</p>
+                    <p className="text-[11px] text-muted-foreground">{item.subtitle}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {new Date(item.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {item.status && (
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                        {item.status}
+                      </span>
+                    )}
+                    {item.destinationCode && (
+                      <Link
+                        to="/country/$code"
+                        params={{ code: item.destinationCode }}
+                        className="rounded-md border border-border px-2 py-1 text-[10px] font-semibold"
+                      >
+                        Open
+                      </Link>
+                    )}
+                    {item.kind === "ai" && (
+                      <button
+                        onClick={() => restoreAiConversation(item)}
+                        className="rounded-md border border-border px-2 py-1 text-[10px] font-semibold"
+                      >
+                        Open
+                      </button>
+                    )}
+                    <button
+                      onClick={() => void deleteItems([item])}
+                      className="rounded-md p-1 text-destructive"
+                      aria-label="Delete history item"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })
         )}
       </div>
     </div>

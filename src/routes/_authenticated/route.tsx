@@ -16,27 +16,34 @@ function AuthenticatedGate() {
     let cancelled = false;
 
     const verify = async () => {
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (cancelled) return;
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (cancelled) return;
 
-      if (sessionData.session?.user) {
+        if (sessionData.session?.user) {
+          setAllowed(true);
+          setChecking(false);
+          return;
+        }
+
+        const { data, error } = await supabase.auth.getUser();
+        if (cancelled) return;
+
+        if (error || !data.user) {
+          setAllowed(false);
+          setChecking(false);
+          navigate({ to: "/auth", replace: true });
+          return;
+        }
+
         setAllowed(true);
         setChecking(false);
-        return;
-      }
-
-      const { data, error } = await supabase.auth.getUser();
-      if (cancelled) return;
-
-      if (error || !data.user) {
+      } catch {
+        if (cancelled) return;
         setAllowed(false);
         setChecking(false);
         navigate({ to: "/auth", replace: true });
-        return;
       }
-
-      setAllowed(true);
-      setChecking(false);
     };
 
     void verify();

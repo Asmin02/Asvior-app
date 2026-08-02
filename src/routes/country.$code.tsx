@@ -119,6 +119,7 @@ function CountryHubPage() {
     supabase
       .from("favorite_destinations")
       .select("id")
+      .eq("user_id", userId)
       .eq("country_code", code)
       .maybeSingle()
       .then(({ data }) => setIsFav(!!data));
@@ -135,7 +136,11 @@ function CountryHubPage() {
       return;
     }
     if (isFav) {
-      await supabase.from("favorite_destinations").delete().eq("country_code", code);
+      await supabase
+        .from("favorite_destinations")
+        .delete()
+        .eq("user_id", userId)
+        .eq("country_code", code);
       setIsFav(false);
       toast.success(`Removed ${name} from favorites`);
     } else {
