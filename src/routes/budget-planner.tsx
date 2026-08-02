@@ -100,18 +100,18 @@ function BudgetPlannerPage() {
     n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   return (
-    <div className="relative overflow-hidden">
+    <div className="time-hero-surface phase-evening relative overflow-hidden">
       <div
         className="pointer-events-none absolute inset-x-0 top-0 h-72 gradient-hero-bg"
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute -top-16 -left-10 h-52 w-52 rounded-full bg-emerald/20 blur-3xl"
+        className="pointer-events-none absolute -top-16 -left-10 h-52 w-52 rounded-full bg-champagne/25 blur-3xl"
         aria-hidden
       />
 
       <header className="relative px-6 pt-10">
-        <div className="glass inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold text-emerald">
+        <div className="premium-card inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold text-champagne">
           <Wallet className="h-3.5 w-3.5" /> Live budget tracker
         </div>
         <h1 className="mt-3 text-display text-3xl text-foreground">Budget Planner</h1>
@@ -157,7 +157,7 @@ function BudgetPlannerPage() {
         {categories.map((c, i) => (
           <div
             key={c.key}
-            className="glass flex items-center gap-3 rounded-2xl p-3 animate-fade-up"
+            className="premium-card flex items-center gap-3 rounded-2xl p-3 animate-fade-up"
             style={{ animationDelay: `${i * 40}ms` }}
           >
             <div

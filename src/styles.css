@@ -5,20 +5,20 @@
 @custom-variant dark (&:is(.dark *));
 
 /* =========================================================
-   Asvior — Premium Design System
+   ASVIOR — Premium Design System
    Palette:
-     Deep Navy   #0F172A
-     Royal Blue  #2563EB
-     Emerald     #10B981
-     Soft White  #F8FAFC
-     Light Gray  #E2E8F0
-   Typography: Plus Jakarta Sans (loaded in __root.tsx)
+     Midnight Navy  #0B1220
+     Royal Blue     #2457D6
+     Champagne Gold #D4B377
+     Soft White     #F6F7FB
+     Deep Slate     #151E31
+   Typography: Manrope (loaded in __root.tsx)
    Radius: 20–24px baseline
    ========================================================= */
 
 @theme inline {
-  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Manrope", ui-sans-serif, system-ui, sans-serif;
 
   --radius-sm: calc(var(--radius) - 8px);
   --radius-md: calc(var(--radius) - 4px);
@@ -67,6 +67,8 @@
   --color-royal-deep: var(--royal-deep);
   --color-emerald: var(--emerald);
   --color-emerald-soft: var(--emerald-soft);
+  --color-champagne: var(--champagne);
+  --color-deep-slate: var(--deep-slate);
   --color-mist: var(--mist);
   --color-fog: var(--fog);
 
@@ -81,11 +83,13 @@
 :root {
   --radius: 1.25rem; /* 20px baseline; -lg gives 20, +xl → 24 */
 
-  --navy: oklch(0.205 0.042 265); /* #0F172A */
-  --royal: oklch(0.556 0.221 262); /* #2563EB */
+  --navy: oklch(0.17 0.03 262); /* #0B1220 */
+  --royal: oklch(0.52 0.2 262); /* #2457D6 */
   --royal-deep: oklch(0.44 0.2 262);
   --emerald: oklch(0.696 0.156 162); /* #10B981 */
   --emerald-soft: oklch(0.94 0.06 162);
+  --champagne: oklch(0.79 0.07 84);
+  --deep-slate: oklch(0.24 0.03 264);
   --mist: oklch(0.965 0.012 250); /* very soft blue-white */
   --fog: oklch(0.91 0.015 250); /* #E2E8F0 */
 
@@ -130,7 +134,7 @@
     0 8px 24px -12px color-mix(in oklab, var(--navy) 25%, transparent);
   --shadow-soft: 0 6px 20px -8px color-mix(in oklab, var(--navy) 15%, transparent);
 
-  --gradient-primary: linear-gradient(135deg, oklch(0.62 0.22 258) 0%, oklch(0.48 0.22 262) 100%);
+  --gradient-primary: linear-gradient(135deg, oklch(0.58 0.2 258) 0%, oklch(0.44 0.2 262) 100%);
   --gradient-hero: linear-gradient(
     160deg,
     oklch(0.97 0.02 250) 0%,
@@ -139,6 +143,11 @@
   );
   --gradient-navy: linear-gradient(160deg, oklch(0.28 0.06 265) 0%, oklch(0.18 0.04 265) 100%);
   --gradient-emerald: linear-gradient(135deg, oklch(0.75 0.15 165) 0%, oklch(0.6 0.16 160) 100%);
+  --gradient-champagne: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--champagne) 95%, white 5%) 0%,
+    color-mix(in oklab, var(--champagne) 72%, var(--royal) 28%) 100%
+  );
 }
 
 .dark {
@@ -248,6 +257,10 @@
   background: var(--gradient-emerald);
 }
 
+@utility gradient-champagne {
+  background: var(--gradient-champagne);
+}
+
 @utility text-display {
   font-family: var(--font-display);
   letter-spacing: -0.03em;
@@ -265,6 +278,45 @@
 
 @utility shadow-soft {
   box-shadow: var(--shadow-soft);
+}
+
+@utility premium-card {
+  background: color-mix(in oklab, var(--card) 90%, var(--deep-slate) 10%);
+  border: 1px solid color-mix(in oklab, var(--champagne) 18%, transparent);
+  box-shadow:
+    0 12px 34px -20px color-mix(in oklab, var(--navy) 55%, transparent),
+    inset 0 1px 0 color-mix(in oklab, var(--champagne) 22%, transparent);
+}
+
+@utility time-hero-surface {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: background 900ms ease, box-shadow 900ms ease, color 500ms ease;
+}
+
+@utility phase-morning {
+  background:
+    radial-gradient(circle at 14% 16%, color-mix(in oklab, var(--champagne) 68%, white 32%) 0%, transparent 32%),
+    linear-gradient(150deg, #fff8ed 0%, #ffe7c9 36%, #d9ebff 100%);
+}
+
+@utility phase-afternoon {
+  background:
+    radial-gradient(circle at 84% 12%, #fff8da 0%, transparent 26%),
+    linear-gradient(155deg, #e9f3ff 0%, #cfe8ff 42%, #e9f1ff 100%);
+}
+
+@utility phase-evening {
+  background:
+    radial-gradient(circle at 22% 12%, #ffd8a2 0%, transparent 28%),
+    linear-gradient(155deg, #3a2c71 0%, #8d4c8e 38%, #fd8e62 100%);
+}
+
+@utility phase-night {
+  background:
+    radial-gradient(circle at 78% 16%, #cbd8ff 0%, transparent 23%),
+    linear-gradient(155deg, #090f1f 0%, #101a32 45%, #17253e 100%);
 }
 
 /* Animations */

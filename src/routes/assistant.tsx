@@ -27,11 +27,11 @@ export const Route = createFileRoute("/assistant")({
   }),
   head: () => ({
     meta: [
-      { title: "AI Travel Assistant — Asvior" },
+      { title: "Concierge Assistant — ASVIOR" },
       {
         name: "description",
         content:
-          "Chat with Asvior AI for instant visa, document, budget, weather, and travel guidance.",
+          "Chat with the ASVIOR concierge assistant for instant visa, document, budget, weather, and travel guidance.",
       },
     ],
   }),
@@ -351,12 +351,12 @@ function AssistantPage() {
   const lastIsUserOrSubmitted = status === "submitted";
 
   return (
-    <div className="relative flex h-dvh max-h-dvh flex-col overflow-hidden">
+    <div className="time-hero-surface phase-night relative flex h-dvh max-h-dvh flex-col overflow-hidden">
       <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-travel-sky/40 via-background to-background dark:from-travel-blue/10" />
       <div className="pointer-events-none fixed -top-32 -right-20 -z-10 h-72 w-72 rounded-full bg-primary/30 blur-3xl" />
       <div className="pointer-events-none fixed top-40 -left-20 -z-10 h-72 w-72 rounded-full bg-travel-blue-light/40 blur-3xl" />
 
-      <header className="sticky top-0 z-20 border-b border-white/20 bg-background/60 px-4 py-3 backdrop-blur-xl">
+      <header className="sticky top-0 z-20 border-b border-champagne/15 bg-background/60 px-4 py-3 backdrop-blur-xl">
         <div className="flex items-center gap-2">
           <Link
             to="/"
@@ -379,9 +379,11 @@ function AssistantPage() {
                 <span className="absolute inset-0 animate-ping rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
               </span>
-              <h1 className="text-base font-semibold tracking-tight">Asvior AI</h1>
+              <h1 className="text-base font-semibold tracking-tight">ASVIOR Concierge</h1>
             </div>
-            <p className="text-[11px] text-muted-foreground">Your premium travel concierge</p>
+            <p className="text-[11px] text-muted-foreground">
+              Premium travel intelligence, on demand
+            </p>
           </div>
           <button
             onClick={() => setShowBookmarks(true)}
@@ -456,7 +458,7 @@ function AssistantPage() {
       )}
 
       <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-1/2 z-30 w-full max-w-md -translate-x-1/2 px-3">
-        <div className="rounded-2xl border border-white/30 bg-background/80 p-2 shadow-2xl shadow-primary/10 ring-1 ring-border backdrop-blur-2xl">
+        <div className="premium-card rounded-2xl p-2 backdrop-blur-2xl">
           <div className="flex items-end gap-2">
             <button
               onClick={handleVoice}

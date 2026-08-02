@@ -114,6 +114,8 @@ const PUBLISHED_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
   timeZone: "UTC",
 });
 
+type DayPhase = "morning" | "afternoon" | "evening" | "night";
+
 function greetingFor(date = new Date()): string {
   const h = date.getHours();
   if (h < 5) return "Still up?";
@@ -121,6 +123,14 @@ function greetingFor(date = new Date()): string {
   if (h < 17) return "Good afternoon";
   if (h < 22) return "Good evening";
   return "Good night";
+}
+
+function dayPhaseFor(date = new Date()): DayPhase {
+  const hour = date.getHours();
+  if (hour >= 5 && hour < 12) return "morning";
+  if (hour >= 12 && hour < 17) return "afternoon";
+  if (hour >= 17 && hour < 22) return "evening";
+  return "night";
 }
 
 function buildContinueActivity(
@@ -285,6 +295,15 @@ function HomePage() {
   const [homeNow, setHomeNow] = useState<Date | null>(null);
   const referenceDate = homeNow ?? HOME_REFERENCE_DATE;
   const greeting = useMemo(() => (homeNow ? greetingFor(homeNow) : "Welcome"), [homeNow]);
+  const phase = useMemo(() => dayPhaseFor(homeNow ?? new Date()), [homeNow]);
+  const phaseClass =
+    phase === "morning"
+      ? "phase-morning"
+      : phase === "afternoon"
+        ? "phase-afternoon"
+        : phase === "evening"
+          ? "phase-evening"
+          : "phase-night";
   const dailyTrending = useMemo(
     () => getDailyTrendingDestinations(referenceDate, 6),
     [referenceDate],
@@ -410,21 +429,33 @@ function HomePage() {
   }, [popularApi]);
 
   return (
-    <div className="relative overflow-hidden pb-24">
+    <div className={`time-hero-surface ${phaseClass} relative overflow-hidden pb-24`}>
       {/* Hero background */}
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-[640px] gradient-hero-bg"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[640px] bg-gradient-to-b from-transparent via-background/30 to-background"
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute -top-24 -right-16 h-80 w-80 rounded-full bg-primary/25 blur-3xl animate-float"
+        className="pointer-events-none absolute -top-24 -right-16 h-80 w-80 rounded-full bg-primary/25 blur-3xl animate-float transition-opacity duration-700"
+        style={{ opacity: phase === "night" ? 0.32 : 0.55 }}
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute top-52 -left-24 h-72 w-72 rounded-full bg-emerald/25 blur-3xl animate-float"
-        style={{ animationDelay: "1.2s" }}
+        className="pointer-events-none absolute top-52 -left-24 h-72 w-72 rounded-full bg-amber-300/20 blur-3xl animate-float transition-opacity duration-700"
+        style={{ animationDelay: "1.2s", opacity: phase === "night" ? 0.2 : 0.72 }}
         aria-hidden
       />
+      {phase === "night" && (
+        <div
+          className="pointer-events-none absolute inset-0 opacity-50"
+          aria-hidden
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 14% 20%, #fff 1px, transparent 1.5px), radial-gradient(circle at 82% 24%, #fff 1px, transparent 1.5px), radial-gradient(circle at 60% 42%, #dbe7ff 1px, transparent 1.4px)",
+            backgroundSize: "170px 170px, 190px 190px, 210px 210px",
+          }}
+        />
+      )}
 
       {/* Header */}
       <header className="relative flex items-center justify-between px-6 pt-8 animate-fade-up">
@@ -434,9 +465,9 @@ function HomePage() {
             <span className="absolute -inset-1 -z-10 rounded-3xl gradient-primary opacity-40 blur-md" />
           </div>
           <div>
-            <p className="text-display text-lg leading-none text-foreground">Asvior</p>
+            <p className="text-display text-lg leading-none text-foreground">ASVIOR</p>
             <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-              Travel Smarter
+              Your Premium Travel Concierge
             </p>
           </div>
         </div>
@@ -460,19 +491,20 @@ function HomePage() {
       {/* Greeting + Hero */}
       <section className="relative px-6 pt-10">
         <div className="animate-fade-up" style={{ animationDelay: "60ms" }}>
-          <p className="text-sm font-semibold text-muted-foreground">
+          <p className="text-sm font-semibold text-muted-foreground/90">
             {greeting}
             {name ? `, ${name.split(" ")[0]}` : ""} ✦
           </p>
-          <h1 className="mt-2 text-display text-[42px] leading-[1.02] text-foreground">
-            Where to
+          <h1 className="mt-2 text-display text-[44px] leading-[1.02] text-foreground">
+            Design your
             <br />
-            <span className="relative inline-block bg-gradient-to-r from-primary via-royal-deep to-emerald bg-clip-text text-transparent animate-gradient-shift">
-              next?
+            <span className="relative inline-block bg-gradient-to-r from-primary via-royal-deep to-champagne bg-clip-text text-transparent animate-gradient-shift">
+              next journey.
             </span>
           </h1>
-          <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-muted-foreground">
-            Your personal AI concierge for visas, budgets, packing lists, and everything in between.
+          <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-muted-foreground/90">
+            Curated travel intelligence, visa confidence, budgeting clarity, and concierge-level
+            planning in one luxury workspace.
           </p>
         </div>
 
@@ -482,11 +514,13 @@ function HomePage() {
           className="glass mt-6 flex items-center gap-3 rounded-2xl px-4 py-3.5 shadow-soft animate-fade-up transition-transform active:scale-[0.98] hover:-translate-y-0.5"
           style={{ animationDelay: "120ms" }}
         >
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl gradient-primary text-primary-foreground shadow-soft">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl gradient-champagne text-navy shadow-soft">
             <Search className="h-4 w-4" strokeWidth={2.4} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-foreground">Where do you want to fly?</p>
+            <p className="text-sm font-semibold text-foreground">
+              Search by destination, visa need, or itinerary
+            </p>
             <p className="mt-0.5 text-[11px] text-muted-foreground">
               Instant visa check · 199 countries
             </p>
@@ -500,7 +534,7 @@ function HomePage() {
             className="group inline-flex flex-1 items-center justify-center gap-2 rounded-2xl gradient-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-float transition-transform active:scale-95 hover:-translate-y-0.5"
           >
             <Sparkles className="h-4 w-4" />
-            Ask Asvior AI
+            Ask Concierge
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Link>
           <Link

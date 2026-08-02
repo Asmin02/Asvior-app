@@ -115,19 +115,19 @@ function ChecklistPage() {
   const progress = Math.round((checked.size / defaultItems.length) * 100);
 
   return (
-    <div className="relative overflow-hidden">
+    <div className="time-hero-surface phase-afternoon relative overflow-hidden">
       <div
         className="pointer-events-none absolute inset-x-0 top-0 h-72 gradient-hero-bg"
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute -top-10 -right-10 h-52 w-52 rounded-full bg-emerald/25 blur-3xl"
+        className="pointer-events-none absolute -top-10 -right-10 h-52 w-52 rounded-full bg-champagne/35 blur-3xl"
         aria-hidden
       />
 
       <header className="relative flex items-start justify-between px-6 pt-10">
         <div>
-          <div className="glass inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold text-emerald">
+          <div className="premium-card inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold text-champagne">
             <CheckCircle2 className="h-3.5 w-3.5" /> Autosaved
           </div>
           <h1 className="mt-3 text-display text-3xl text-foreground">Checklist</h1>
@@ -147,7 +147,7 @@ function ChecklistPage() {
 
       {/* Progress ring card */}
       <section className="relative mt-6 px-6 animate-fade-up">
-        <div className="glass flex items-center gap-4 rounded-3xl p-5">
+        <div className="premium-card flex items-center gap-4 rounded-3xl p-5">
           <div className="relative flex h-20 w-20 shrink-0 items-center justify-center">
             <svg className="absolute inset-0 -rotate-90" viewBox="0 0 80 80">
               <circle
@@ -172,8 +172,8 @@ function ChecklistPage() {
               />
               <defs>
                 <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="oklch(0.62 0.22 258)" />
-                  <stop offset="100%" stopColor="oklch(0.70 0.16 162)" />
+                  <stop offset="0%" stopColor="oklch(0.79 0.07 84)" />
+                  <stop offset="100%" stopColor="oklch(0.52 0.2 262)" />
                 </linearGradient>
               </defs>
             </svg>
@@ -198,13 +198,15 @@ function ChecklistPage() {
               key={item.id}
               onClick={() => toggleItem(item.id)}
               style={{ animationDelay: `${i * 30}ms` }}
-              className={`glass group flex w-full items-center gap-3 rounded-2xl p-4 text-left transition-all animate-fade-up active:scale-[0.99] hover:-translate-y-0.5 ${
+              className={`premium-card group flex w-full items-center gap-3 rounded-2xl p-4 text-left transition-all animate-fade-up active:scale-[0.99] hover:-translate-y-0.5 ${
                 isChecked ? "opacity-70" : ""
               }`}
             >
               <div
                 className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition-all ${
-                  isChecked ? "gradient-emerald text-white shadow-soft" : "bg-muted text-primary"
+                  isChecked
+                    ? "gradient-primary text-primary-foreground shadow-soft"
+                    : "bg-muted text-champagne"
                 }`}
               >
                 {isChecked ? <CheckCircle2 className="h-5 w-5" /> : item.icon}
@@ -225,7 +227,7 @@ function ChecklistPage() {
 
       {progress === 100 && (
         <section className="relative mt-5 px-6 animate-scale-in">
-          <div className="flex items-center gap-3 rounded-3xl gradient-emerald p-4 text-white shadow-float">
+          <div className="flex items-center gap-3 rounded-3xl gradient-primary p-4 text-primary-foreground shadow-float">
             <Sparkles className="h-5 w-5" />
             <div className="flex-1">
               <p className="text-sm font-bold">You're all set!</p>
