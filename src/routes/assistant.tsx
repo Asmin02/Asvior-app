@@ -4,8 +4,8 @@ import { DefaultChatTransport, type UIMessage } from "ai";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
+import { ArrowLeft, Bookmark, Copy, Mic, Paperclip, Send, Share2, Sparkles, Square, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { AsviorMark } from "@/components/AsviorMark";
 import { resolveApiUrl } from "@/lib/api-base";
 import { buildScopedStorageKey, GUEST_STORAGE_SCOPE } from "@/lib/app-session";
 import {
@@ -22,6 +22,8 @@ import {
   saveBookmark,
   type BookmarkedConversation,
 } from "@/components/ai-cards";
+import { consumePendingAiPrompt, peekPendingAiPrompt, stashPendingAiPrompt } from "@/lib/ai-prompt";
+import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/assistant")({
   validateSearch: (search: Record<string, unknown>): { q?: string } => ({
@@ -350,18 +352,48 @@ function AssistantPage() {
 
   const { q } = Route.useSearch();
   const navigate = Route.useNavigate();
-  const autoAskedRef = useRef(false);
+  const autoSendRef = useRef<{ token: string | null; sent: boolean }>({ token: null, sent: false });
+
   useEffect(() => {
-    if (q && !autoAskedRef.current) {
-      autoAskedRef.current = true;
+    if (!authResolved) return;
+
+    const pending = q?.trim() || peekPendingAiPrompt();
+    if (!pending) return;
+
+    const token = q?.trim() ? `q:${pending}` : `stash:${pending}`;
+    if (autoSendRef.current.token === token && autoSendRef.current.sent) return;
+
+    autoSendRef.current.token = token;
+
+    if (q?.trim()) {
+      stashPendingAiPrompt(pending);
       navigate({ search: {}, replace: true });
-      handleSend(q, { focusAfter: false });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q]);
+
+    setInput(pending);
+    stickToBottomRef.current = true;
+
+    const timer = window.setTimeout(() => {
+      autoSendRef.current.sent = true;
+      consumePendingAiPrompt();
+      void handleSend(pending, { focusAfter: false });
+    }, 220);
+
+    return () => window.clearTimeout(timer);
+  }, [authResolved, q, navigate, handleSend]);
+
+  useEffect(() => {
+    return () => {
+      autoSendRef.current = { token: null, sent: false };
+    };
+  }, []);
 
   const handleVoice = () => {
     toast.info("Voice input coming soon — type your question for now.");
+  };
+
+  const handleAttachment = () => {
+    toast.info("Attachments are coming soon. You can paste text and links for now.");
   };
 
   const clearChat = () => {
@@ -380,6 +412,22 @@ function AssistantPage() {
       toast.success("Copied to clipboard");
     } catch {
       toast.error("Couldn't copy");
+    }
+  };
+
+  const shareText = async (text: string) => {
+    try {
+      const shareNavigator = navigator as Navigator & {
+        share?: (data: { title: string; text: string }) => Promise<void>;
+      };
+      if (shareNavigator.share) {
+        await shareNavigator.share({ title: "Asvior AI", text });
+        return;
+      }
+      await navigator.clipboard.writeText(text);
+      toast.success("Response copied for sharing");
+    } catch {
+      toast.error("Couldn't share this response");
     }
   };
 
@@ -420,69 +468,75 @@ function AssistantPage() {
     setBookmarks(loadBookmarks(authScope));
   };
 
+  const t = useT();
   const isEmpty = messages.length === 0;
   const lastIsUserOrSubmitted = status === "submitted";
 
   return (
-    <div className="relative flex h-[calc(100dvh-env(safe-area-inset-top,0px)-calc(4.5rem+env(safe-area-inset-bottom,0px)))] max-h-[calc(100dvh-env(safe-area-inset-top,0px)-calc(4.5rem+env(safe-area-inset-bottom,0px)))] flex-col overflow-hidden bg-background">
-      <header className="ai-chat-header sticky top-0 z-20 px-4 py-3">
-        <div className="flex items-center gap-2">
-          <Link
-            to="/"
-            aria-label="Back to home"
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-background"
-          >
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
+    <div className="asv-app relative flex h-[calc(100dvh-var(--asv-tab-height)-env(safe-area-inset-bottom,0px))] max-h-[calc(100dvh-var(--asv-tab-height)-env(safe-area-inset-bottom,0px))] flex-col overflow-hidden">
+      <header className="relative shrink-0 border-b border-[var(--asv-divider)] bg-[var(--asv-surface-overlay)] backdrop-blur-xl">
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 h-full bg-gradient-to-r from-[var(--asv-primary-soft)] via-transparent to-[var(--asv-primary-soft)] opacity-60"
+          aria-hidden
+        />
+        <div className="relative flex items-center gap-2 px-[var(--asv-space-page)] pb-3 pt-[calc(var(--asv-safe-top)+8px)]">
+          <Link to="/" aria-label={t("common.back")} className="asv-btn asv-btn-icon shrink-0">
+            <ArrowLeft className="h-4 w-4" />
           </Link>
-          <div className="flex min-w-0 flex-1 items-center gap-2.5">
-            <div className="ai-chat-avatar h-9 w-9">
-              <AsviorMark className="h-6 w-6" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="truncate text-base font-semibold text-foreground">Asvior AI</h1>
-              <p className="truncate text-xs text-muted-foreground">Premium travel assistant</p>
+
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span className="asv-tool-icon !h-9 !w-9 shrink-0">
+                <Sparkles className="h-4 w-4" />
+              </span>
+              <div className="min-w-0">
+                <h1 className="asv-title truncate">{t("ai.title")}</h1>
+                <p className="truncate text-[11px] text-[var(--asv-ink-tertiary)]">
+                  {isEmpty ? t("ai.subtitle") : isLoading ? "Thinking…" : "Ready to help"}
+                </p>
+              </div>
             </div>
           </div>
-          <button
-            onClick={() => setShowBookmarks(true)}
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-background"
-            aria-label="Bookmarks"
-          >
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
-            </svg>
-          </button>
-          {messages.length > 0 && (
-            <>
-              <button
-                onClick={bookmarkConversation}
-                className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium"
-              >
-                Save
-              </button>
-              <button
-                onClick={clearChat}
-                className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium"
-              >
-                New
-              </button>
-            </>
-          )}
+
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              onClick={() => setShowBookmarks(true)}
+              className="asv-btn asv-btn-icon"
+              aria-label="Bookmarks"
+            >
+              <Bookmark className="h-4 w-4" />
+            </button>
+            {messages.length > 0 && (
+              <>
+                <button
+                  onClick={bookmarkConversation}
+                  className="asv-btn asv-btn-ghost !min-h-9 px-2.5 text-xs"
+                >
+                  Save
+                </button>
+                <button onClick={clearChat} className="asv-btn asv-btn-ghost !min-h-9 px-2.5 text-xs">
+                  New
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
-      <div ref={scrollRef} className="min-h-0 flex-1 scroll-smooth overflow-y-auto px-4 pb-40 pt-5">
+      <div
+        ref={scrollRef}
+        className="min-h-0 flex-1 scroll-smooth overflow-y-auto px-[var(--asv-space-page)] pb-[calc(9.5rem+env(safe-area-inset-bottom,0px))] pt-4"
+      >
         {isEmpty ? (
           <EmptyState onPick={handleSuggestedPick} />
         ) : (
-          <div className="space-y-4" data-chat-scroll-content>
+          <div className="space-y-5" data-chat-scroll-content>
             {messages.map((m) => (
               <MessageBubble
                 key={m.id}
                 message={m}
                 onCopy={copyText}
+                onShare={shareText}
                 onSuggestionPick={handleSuggestedPick}
                 isStreaming={
                   isLoading && m.id === messages[messages.length - 1]?.id && m.role === "assistant"
@@ -507,128 +561,108 @@ function AssistantPage() {
         />
       )}
 
-      <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-1/2 z-30 w-full max-w-md -translate-x-1/2 px-3">
-        <div className="ai-chat-input-shell rounded-2xl p-2">
-          <div className="flex items-end gap-2">
-            <button
-              onClick={handleVoice}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary text-navy"
-              aria-label="Voice input"
-            >
-              <svg
-                className="h-5 w-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"
-                />
-              </svg>
-            </button>
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend(input);
-                }
-              }}
-              rows={1}
-              placeholder="Ask anything about your trip..."
-              className="max-h-32 min-h-[2.75rem] flex-1 resize-none bg-transparent px-2 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-            />
-            {isLoading ? (
-              <button
-                onClick={() => stop()}
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-destructive text-destructive-foreground"
-                aria-label="Stop"
-              >
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                  <rect x="6" y="6" width="12" height="12" rx="2" />
-                </svg>
-              </button>
-            ) : (
-              <button
-                onClick={() => handleSend(input)}
-                disabled={!input.trim()}
-                className="ai-chat-send-btn flex h-11 w-11 shrink-0 items-center justify-center disabled:opacity-40"
-                aria-label="Send"
-              >
-                <svg
-                  className="h-5 w-5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
+      <div className="pointer-events-none fixed bottom-[calc(var(--asv-tab-height)+env(safe-area-inset-bottom,0px)+8px)] left-1/2 z-30 w-full max-w-md -translate-x-1/2 px-[var(--asv-space-page)]">
+        <div className="pointer-events-auto">
+          {isEmpty && (
+            <div className="scrollbar-hide mb-2.5 flex gap-2 overflow-x-auto pb-1">
+              {SUGGESTIONS.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => handleSuggestedPick(s)}
+                  className="asv-chip shrink-0 !cursor-pointer whitespace-nowrap transition-transform active:scale-95"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"
-                  />
-                </svg>
+                  {s.length > 42 ? `${s.slice(0, 42)}…` : s}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div className="asv-card asv-card-glass rounded-[var(--asv-radius-xl)] p-2 shadow-[var(--asv-shadow-md)]">
+            <div className="flex items-end gap-2">
+              <button
+                onClick={handleVoice}
+                className="asv-btn asv-btn-icon shrink-0 !min-h-10 !min-w-10"
+                aria-label="Voice input"
+              >
+                <Mic className="h-4 w-4" />
               </button>
-            )}
+              <button
+                onClick={handleAttachment}
+                className="asv-btn asv-btn-icon shrink-0 !min-h-10 !min-w-10"
+                aria-label="Attach"
+              >
+                <Paperclip className="h-4 w-4" />
+              </button>
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend(input);
+                  }
+                }}
+                rows={1}
+                placeholder={t("ai.placeholder")}
+                className="max-h-32 min-h-[2.75rem] flex-1 resize-none bg-transparent px-1 py-2.5 text-sm text-[var(--asv-ink)] placeholder:text-[var(--asv-ink-tertiary)] focus:outline-none"
+              />
+              {isLoading ? (
+                <button
+                  onClick={() => stop()}
+                  className="asv-btn asv-btn-primary flex !h-10 !w-10 shrink-0 items-center justify-center !min-h-10 !min-w-10 !rounded-[var(--asv-radius-md)] !p-0 !bg-[var(--asv-danger)]"
+                  aria-label="Stop"
+                >
+                  <Square className="h-3.5 w-3.5 fill-current" />
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleSend(input)}
+                  disabled={!input.trim()}
+                  className="asv-btn asv-btn-primary flex !h-10 !w-10 shrink-0 items-center justify-center !min-h-10 !min-w-10 !rounded-[var(--asv-radius-md)] !p-0 disabled:opacity-40"
+                  aria-label="Send"
+                >
+                  <Send className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           </div>
+          <p className="mt-1.5 text-center text-[10px] text-[var(--asv-ink-tertiary)]">
+            Always verify with official embassy or government sources.
+          </p>
         </div>
-        <p className="mt-1.5 text-center text-[10px] text-muted-foreground">
-          Always verify with official embassy or government sources.
-        </p>
       </div>
     </div>
   );
 }
 
 function EmptyState({ onPick }: { onPick: (prompt: string) => void }) {
+  const t = useT();
   return (
-    <div>
-      <div className="mb-6 mt-2 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#faf8f4] shadow-soft">
-          <AsviorMark className="h-10 w-10" />
+    <div className="asv-animate-in pb-4">
+      <div className="asv-ai-banner mb-6 mt-1 block text-center">
+        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-[var(--asv-radius-xl)] bg-white/15">
+          <Sparkles className="h-7 w-7" />
         </div>
-        <h2 className="mt-4 text-xl font-bold text-foreground">Hi, I'm Asvior AI</h2>
-        <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-muted-foreground">
+        <h2 className="asv-display text-xl text-white">{t("ai.hello")}</h2>
+        <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-white/80">
           Tell me your nationality and destination — I'll guide you through visas, documents, and
           trip planning.
         </p>
       </div>
 
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        Quick actions
-      </p>
-      <div className="grid grid-cols-2 gap-2">
+      <p className="asv-overline mb-3">Quick actions</p>
+      <div className="asv-stagger grid grid-cols-2 gap-2.5">
         {QUICK_ACTIONS.map((a) => (
           <button
             key={a.label}
+            type="button"
             onClick={() => onPick(a.prompt)}
-            className="premium-card flex items-center gap-2 rounded-xl p-3 text-left transition-colors hover:bg-secondary/40"
+            className="asv-card asv-card-pad flex flex-col items-start gap-2 text-left transition-transform active:scale-[0.98]"
           >
-            <span className="text-lg">{a.icon}</span>
-            <span className="text-xs font-semibold leading-tight">{a.label}</span>
-          </button>
-        ))}
-      </div>
-
-      <p className="mb-2 mt-5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        Try asking
-      </p>
-      <div className="space-y-2">
-        {SUGGESTIONS.map((s) => (
-          <button
-            key={s}
-            onClick={() => onPick(s)}
-            className="premium-card flex w-full items-center justify-between gap-2 rounded-xl p-3 text-left text-sm transition-colors hover:bg-secondary/40"
-          >
-            <span className="line-clamp-2">{s}</span>
-            <svg className="h-4 w-4 shrink-0 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
+            <span className="text-xl">{a.icon}</span>
+            <span className="asv-title text-sm">{a.label}</span>
           </button>
         ))}
       </div>
@@ -639,11 +673,13 @@ function EmptyState({ onPick }: { onPick: (prompt: string) => void }) {
 function MessageBubble({
   message,
   onCopy,
+  onShare,
   onSuggestionPick,
   isStreaming,
 }: {
   message: UIMessage;
   onCopy: (text: string) => void;
+  onShare: (text: string) => void;
   onSuggestionPick: (q: string) => void;
   isStreaming: boolean;
 }) {
@@ -653,8 +689,8 @@ function MessageBubble({
 
   if (isUser) {
     return (
-      <div className="flex justify-end">
-        <div className="ai-chat-user-bubble max-w-[85%] px-4 py-3 text-sm">
+      <div className="animate-bubble-in flex justify-end">
+        <div className="max-w-[85%] rounded-[var(--asv-radius-xl)] rounded-br-[var(--asv-radius-xs)] bg-gradient-to-br from-[var(--asv-primary)] to-[#7c3aed] px-4 py-3 text-sm leading-relaxed text-white shadow-[var(--asv-shadow-md),0_4px_16px_var(--asv-primary-glow)]">
           {text}
         </div>
       </div>
@@ -668,15 +704,15 @@ function MessageBubble({
     .trim();
 
   return (
-    <div className="flex gap-2">
-      <div className="ai-chat-avatar h-9 w-9 shrink-0">
-        <AsviorMark className="h-5 w-5" />
+    <div className="animate-bubble-in flex gap-2.5">
+      <div className="asv-tool-icon !h-9 !w-9 shrink-0">
+        <Sparkles className="h-4 w-4" />
       </div>
       <div className="min-w-0 flex-1 space-y-2">
         {segments.length === 0 ||
         (segments.length === 1 && segments[0].kind === "text" && !segments[0].content.trim()) ? (
-          <div className="ai-chat-assistant-bubble premium-card rounded-2xl rounded-tl-md px-4 py-3 text-sm">
-            <span className="text-muted-foreground">…</span>
+          <div className="asv-card asv-card-glass asv-card-pad rounded-[var(--asv-radius-xl)] rounded-tl-[var(--asv-radius-xs)] text-sm">
+            <span className="text-[var(--asv-ink-tertiary)]">…</span>
           </div>
         ) : (
           segments.map((seg, i) => {
@@ -686,7 +722,7 @@ function MessageBubble({
               return (
                 <div
                   key={i}
-                  className="ai-chat-assistant-bubble prose prose-sm max-w-none rounded-2xl rounded-tl-md px-4 py-3 text-sm text-foreground prose-headings:mt-2 prose-headings:mb-1 prose-p:my-1.5 prose-ul:my-1.5 prose-li:my-0 prose-a:text-navy dark:prose-invert"
+                  className="asv-card asv-card-glass asv-card-pad prose prose-sm max-w-none rounded-[var(--asv-radius-xl)] rounded-tl-[var(--asv-radius-xs)] text-sm text-[var(--asv-ink)] prose-headings:mt-2 prose-headings:mb-1 prose-p:my-1.5 prose-ul:my-1.5 prose-li:my-0 prose-a:text-[var(--asv-primary)] dark:prose-invert"
                 >
                   <ReactMarkdown>{content}</ReactMarkdown>
                 </div>
@@ -705,22 +741,17 @@ function MessageBubble({
           <div className="ml-1 flex items-center gap-2">
             <button
               onClick={() => onCopy(textOnlyForCopy)}
-              className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] text-muted-foreground hover:bg-accent hover:text-foreground"
+              className="asv-btn asv-btn-ghost !min-h-7 px-1.5 py-0.5 text-[10px] text-[var(--asv-ink-tertiary)]"
             >
-              <svg
-                className="h-3 w-3"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                />
-              </svg>
+              <Copy className="h-3 w-3" />
               Copy
+            </button>
+            <button
+              onClick={() => onShare(textOnlyForCopy)}
+              className="asv-btn asv-btn-ghost !min-h-7 px-1.5 py-0.5 text-[10px] text-[var(--asv-ink-tertiary)]"
+            >
+              <Share2 className="h-3 w-3" />
+              Share
             </button>
             <RatingBar messageId={message.id} />
           </div>
@@ -746,16 +777,16 @@ function BookmarksSheet({
       className="fixed inset-0 z-50 flex items-end sm:items-center sm:justify-center"
       onClick={onClose}
     >
-      <div className="absolute inset-0 bg-background/50" />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
       <div
-        className="premium-card relative max-h-[80vh] w-full overflow-y-auto rounded-t-2xl p-4 sm:max-w-md sm:rounded-2xl"
+        className="asv-card relative max-h-[80vh] w-full overflow-y-auto rounded-t-[var(--asv-radius-xl)] p-5 sm:max-w-md sm:rounded-[var(--asv-radius-xl)]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-base font-semibold">Saved conversations</h2>
+          <h2 className="asv-title">Saved conversations</h2>
           <button
             onClick={onClose}
-            className="rounded-full p-1.5 hover:bg-accent"
+            className="asv-btn asv-btn-icon !min-h-9 !min-w-9"
             aria-label="Close"
           >
             <svg
@@ -770,41 +801,31 @@ function BookmarksSheet({
           </button>
         </div>
         {bookmarks.length === 0 ? (
-          <p className="py-10 text-center text-sm text-muted-foreground">
+          <p className="py-10 text-center text-sm text-[var(--asv-ink-tertiary)]">
             No saved conversations yet.
           </p>
         ) : (
           <ul className="space-y-2">
             {bookmarks.map((b) => (
-              <li key={b.id} className="premium-card rounded-[1.3rem] p-3">
+              <li key={b.id} className="asv-card asv-card-pad">
                 <div className="flex items-start gap-2">
                   <button onClick={() => onRestore(b)} className="flex-1 text-left">
-                    <div className="line-clamp-1 text-sm font-semibold">{b.title}</div>
-                    <div className="mt-0.5 line-clamp-2 text-[11px] text-muted-foreground">
+                    <div className="line-clamp-1 text-sm font-semibold text-[var(--asv-ink)]">
+                      {b.title}
+                    </div>
+                    <div className="mt-0.5 line-clamp-2 text-[11px] text-[var(--asv-ink-tertiary)]">
                       {b.preview}
                     </div>
-                    <div className="mt-1 text-[10px] text-muted-foreground">
+                    <div className="mt-1 text-[10px] text-[var(--asv-ink-tertiary)]">
                       {new Date(b.createdAt).toLocaleString()}
                     </div>
                   </button>
                   <button
                     onClick={() => onDelete(b.id)}
-                    className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                    className="asv-btn asv-btn-icon !min-h-9 !min-w-9 text-[var(--asv-ink-tertiary)] hover:!text-[var(--asv-danger)]"
                     aria-label="Delete"
                   >
-                    <svg
-                      className="h-3.5 w-3.5"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-                      />
-                    </svg>
+                    <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </li>
