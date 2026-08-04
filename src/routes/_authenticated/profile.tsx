@@ -204,22 +204,22 @@ function ProfilePage() {
       <PageShell className="pb-6">
         <div data-testid="profile-error" className="space-y-4 px-4 pt-6">
           <h1 className="text-2xl font-bold text-foreground">Could not load profile</h1>
-        <p className="text-sm text-muted-foreground">
-          {loadError ?? "We couldn't find your profile. Try signing out and back in."}
-        </p>
-        <div className="flex gap-2">
-          <Button data-testid="profile-retry-btn" onClick={load} className="rounded-2xl">
-            Retry
-          </Button>
-          <Button
-            data-testid="profile-signout-btn"
-            variant="outline"
-            onClick={signOut}
-            className="rounded-2xl"
-          >
-            Sign out
-          </Button>
-        </div>
+          <p className="text-sm text-muted-foreground">
+            {loadError ?? "We couldn't find your profile. Try signing out and back in."}
+          </p>
+          <div className="flex gap-2">
+            <Button data-testid="profile-retry-btn" onClick={load} className="rounded-2xl">
+              Retry
+            </Button>
+            <Button
+              data-testid="profile-signout-btn"
+              variant="outline"
+              onClick={signOut}
+              className="rounded-2xl"
+            >
+              Sign out
+            </Button>
+          </div>
         </div>
       </PageShell>
     );
@@ -291,119 +291,119 @@ function ProfilePage() {
 
         <div className="mt-4 px-4">
           <div className="premium-card grid grid-cols-3 gap-2 rounded-2xl p-2">
-          <QuickLink
-            to="/trips"
-            icon={<Luggage className="h-5 w-5" />}
-            label="Trips"
-            testId="quicklink-trips"
-          />
-          <QuickLink
-            to="/favorites"
-            icon={<Heart className="h-5 w-5" />}
-            label="Favorites"
-            testId="quicklink-favorites"
-          />
-          <QuickLink
-            to="/history"
-            icon={<History className="h-5 w-5" />}
-            label="History"
-            testId="quicklink-history"
-          />
-        </div>
-      </div>
-
-      {expiryWarn && (
-        <div className="mx-4 mt-4 flex items-center gap-2 rounded-2xl bg-amber-100 p-3 text-xs font-medium text-amber-900 ring-1 ring-amber-200 dark:bg-amber-950/50 dark:text-amber-200 dark:ring-amber-900/60">
-          <AlertTriangle className="h-4 w-4 shrink-0" />
-          Your passport expires in {daysToExpiry} days. Many countries require 6+ months validity.
-        </div>
-      )}
-
-      <div className="mt-5 space-y-3 px-4">
-        <div className="premium-card rounded-2xl p-5">
-          <p className="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-            <BookUser className="h-3.5 w-3.5 text-navy" /> Account
-          </p>
-          <Field label="Full name">
-            <Input
-              data-testid="profile-fullname-input"
-              value={profile.full_name || ""}
-              onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
-              className="rounded-xl"
+            <QuickLink
+              to="/trips"
+              icon={<Luggage className="h-5 w-5" />}
+              label="Trips"
+              testId="quicklink-trips"
             />
-          </Field>
-          <div className="mt-3">
-            <Field label="Email" icon={<Mail className="h-3.5 w-3.5" />}>
+            <QuickLink
+              to="/favorites"
+              icon={<Heart className="h-5 w-5" />}
+              label="Favorites"
+              testId="quicklink-favorites"
+            />
+            <QuickLink
+              to="/history"
+              icon={<History className="h-5 w-5" />}
+              label="History"
+              testId="quicklink-history"
+            />
+          </div>
+        </div>
+
+        {expiryWarn && (
+          <div className="mx-4 mt-4 flex items-center gap-2 rounded-2xl bg-amber-100 p-3 text-xs font-medium text-amber-900 ring-1 ring-amber-200 dark:bg-amber-950/50 dark:text-amber-200 dark:ring-amber-900/60">
+            <AlertTriangle className="h-4 w-4 shrink-0" />
+            Your passport expires in {daysToExpiry} days. Many countries require 6+ months validity.
+          </div>
+        )}
+
+        <div className="mt-5 space-y-3 px-4">
+          <div className="premium-card rounded-2xl p-5">
+            <p className="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+              <BookUser className="h-3.5 w-3.5 text-navy" /> Account
+            </p>
+            <Field label="Full name">
               <Input
-                data-testid="profile-email-input"
-                value={profile.email || ""}
-                disabled
+                data-testid="profile-fullname-input"
+                value={profile.full_name || ""}
+                onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
+                className="rounded-xl"
+              />
+            </Field>
+            <div className="mt-3">
+              <Field label="Email" icon={<Mail className="h-3.5 w-3.5" />}>
+                <Input
+                  data-testid="profile-email-input"
+                  value={profile.email || ""}
+                  disabled
+                  className="rounded-xl"
+                />
+              </Field>
+            </div>
+          </div>
+
+          <div className="premium-card space-y-3 rounded-2xl p-5">
+            <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+              <BookUser className="h-3.5 w-3.5 text-emerald" /> Passport
+            </p>
+            <Field label="Nationality">
+              <CountryCombobox
+                value={profile.nationality || ""}
+                onChange={(v) => setProfile({ ...profile, nationality: v })}
+                options={COUNTRY_OPTIONS}
+                placeholder="Select nationality..."
+              />
+            </Field>
+            <Field label="Passport country">
+              <CountryCombobox
+                value={profile.passport_country || ""}
+                onChange={(v) => setProfile({ ...profile, passport_country: v })}
+                options={COUNTRY_OPTIONS}
+                placeholder="Select passport country..."
+              />
+            </Field>
+            <Field label="Passport number (optional)">
+              <Input
+                data-testid="profile-passport-number-input"
+                value={profile.passport_number || ""}
+                onChange={(e) => setProfile({ ...profile, passport_number: e.target.value })}
+                placeholder="••••••••"
+                className="rounded-xl"
+              />
+            </Field>
+            <Field label="Passport expiry">
+              <Input
+                data-testid="profile-passport-expiry-input"
+                type="date"
+                value={profile.passport_expiry || ""}
+                onChange={(e) => setProfile({ ...profile, passport_expiry: e.target.value })}
                 className="rounded-xl"
               />
             </Field>
           </div>
+
+          <Button
+            data-testid="profile-save-btn"
+            onClick={save}
+            disabled={busy}
+            className="h-12 w-full rounded-2xl text-sm font-semibold"
+          >
+            {busy ? "Saving…" : "Save profile"}
+          </Button>
+
+          <Link
+            data-testid="profile-settings-link"
+            to="/settings"
+            className="premium-card flex items-center justify-between rounded-2xl p-4 text-sm font-semibold text-foreground"
+          >
+            <span className="flex items-center gap-2">
+              <SettingsIcon className="h-4 w-4 text-navy" /> Settings & notifications
+            </span>
+            <span className="text-muted-foreground">›</span>
+          </Link>
         </div>
-
-        <div className="premium-card space-y-3 rounded-2xl p-5">
-          <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-            <BookUser className="h-3.5 w-3.5 text-emerald" /> Passport
-          </p>
-          <Field label="Nationality">
-            <CountryCombobox
-              value={profile.nationality || ""}
-              onChange={(v) => setProfile({ ...profile, nationality: v })}
-              options={COUNTRY_OPTIONS}
-              placeholder="Select nationality..."
-            />
-          </Field>
-          <Field label="Passport country">
-            <CountryCombobox
-              value={profile.passport_country || ""}
-              onChange={(v) => setProfile({ ...profile, passport_country: v })}
-              options={COUNTRY_OPTIONS}
-              placeholder="Select passport country..."
-            />
-          </Field>
-          <Field label="Passport number (optional)">
-            <Input
-              data-testid="profile-passport-number-input"
-              value={profile.passport_number || ""}
-              onChange={(e) => setProfile({ ...profile, passport_number: e.target.value })}
-              placeholder="••••••••"
-              className="rounded-xl"
-            />
-          </Field>
-          <Field label="Passport expiry">
-            <Input
-              data-testid="profile-passport-expiry-input"
-              type="date"
-              value={profile.passport_expiry || ""}
-              onChange={(e) => setProfile({ ...profile, passport_expiry: e.target.value })}
-              className="rounded-xl"
-            />
-          </Field>
-        </div>
-
-        <Button
-          data-testid="profile-save-btn"
-          onClick={save}
-          disabled={busy}
-          className="h-12 w-full rounded-2xl text-sm font-semibold"
-        >
-          {busy ? "Saving…" : "Save profile"}
-        </Button>
-
-        <Link
-          data-testid="profile-settings-link"
-          to="/settings"
-          className="premium-card flex items-center justify-between rounded-2xl p-4 text-sm font-semibold text-foreground"
-        >
-          <span className="flex items-center gap-2">
-            <SettingsIcon className="h-4 w-4 text-navy" /> Settings & notifications
-          </span>
-          <span className="text-muted-foreground">›</span>
-        </Link>
-      </div>
       </div>
     </PageShell>
   );

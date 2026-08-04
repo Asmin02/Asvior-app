@@ -446,10 +446,7 @@ function HistoryPage() {
           visibleItems.map((item) => {
             const isSelected = selected.has(item.key);
             return (
-              <div
-                key={item.key}
-                className="premium-card rounded-2xl p-4"
-              >
+              <div key={item.key} className="premium-card rounded-2xl p-4">
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => toggleSelected(item.key)}

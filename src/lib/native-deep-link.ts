@@ -19,7 +19,11 @@ export function parseDeepLinkTarget(rawUrl: string): DeepLinkTarget {
 }
 
 /** Apply hash fragment to the current document URL before the router mounts a route. */
-export function applyDeepLinkHash(pathname: string, search: Record<string, string>, hash: string): void {
+export function applyDeepLinkHash(
+  pathname: string,
+  search: Record<string, string>,
+  hash: string,
+): void {
   if (!hash || typeof window === "undefined") return;
   const query = new URLSearchParams(search).toString();
   const path = query ? `${pathname}?${query}` : pathname;

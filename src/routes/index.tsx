@@ -109,7 +109,6 @@ const PUBLISHED_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
   timeZone: "UTC",
 });
 
-
 function greetingFor(date = new Date()): string {
   const h = date.getHours();
   if (h < 5) return "Still up?";
@@ -468,10 +467,30 @@ function HomePage() {
         <section>
           <h2 className="section-title mb-3">Travel tools</h2>
           <div className="grid grid-cols-2 gap-3">
-            <ToolCard to="/visa-check" title="Visa Check" desc="199 countries" icon={<Plane className="h-5 w-5" />} />
-            <ToolCard to="/checklist" title="Checklist" desc="Pre-departure" icon={<CheckSquare className="h-5 w-5" />} />
-            <ToolCard to="/budget-planner" title="Budget" desc="Plan costs" icon={<Wallet className="h-5 w-5" />} />
-            <ToolCard to="/countries" title="Explore" desc="Country guides" icon={<Globe2 className="h-5 w-5" />} />
+            <ToolCard
+              to="/visa-check"
+              title="Visa Check"
+              desc="199 countries"
+              icon={<Plane className="h-5 w-5" />}
+            />
+            <ToolCard
+              to="/checklist"
+              title="Checklist"
+              desc="Pre-departure"
+              icon={<CheckSquare className="h-5 w-5" />}
+            />
+            <ToolCard
+              to="/budget-planner"
+              title="Budget"
+              desc="Plan costs"
+              icon={<Wallet className="h-5 w-5" />}
+            />
+            <ToolCard
+              to="/countries"
+              title="Explore"
+              desc="Country guides"
+              icon={<Globe2 className="h-5 w-5" />}
+            />
           </div>
         </section>
 
@@ -623,11 +642,21 @@ function HomePage() {
             aria-label="Legal"
             className="flex flex-wrap items-center justify-center gap-3 text-xs text-muted-foreground"
           >
-            <Link to="/about" className="hover:text-foreground">About</Link>
-            <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
-            <Link to="/terms" className="hover:text-foreground">Terms</Link>
-            <Link to="/contact" className="hover:text-foreground">Contact</Link>
-            <Link to="/support" className="hover:text-foreground">Support</Link>
+            <Link to="/about" className="hover:text-foreground">
+              About
+            </Link>
+            <Link to="/privacy" className="hover:text-foreground">
+              Privacy
+            </Link>
+            <Link to="/terms" className="hover:text-foreground">
+              Terms
+            </Link>
+            <Link to="/contact" className="hover:text-foreground">
+              Contact
+            </Link>
+            <Link to="/support" className="hover:text-foreground">
+              Support
+            </Link>
           </nav>
         </footer>
       </div>
@@ -651,7 +680,9 @@ function ToolCard({
       to={to}
       className="premium-card flex flex-col gap-3 rounded-2xl p-4 transition-colors hover:bg-secondary/30"
     >
-      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-navy">{icon}</div>
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-navy">
+        {icon}
+      </div>
       <div>
         <p className="text-sm font-semibold text-foreground">{title}</p>
         <p className="text-xs text-muted-foreground">{desc}</p>

@@ -87,66 +87,63 @@ function ResetPasswordPage() {
   return (
     <PageShell className="pb-6">
       <div data-testid="reset-password-page">
-        <PageHeader
-          title="Create New Password"
-          subtitle="Enter and confirm your new password."
-        />
+        <PageHeader title="Create New Password" subtitle="Enter and confirm your new password." />
         <form onSubmit={submit} className="mt-6 space-y-3 px-4">
           <div className="premium-card flex items-center gap-2 rounded-2xl px-3 py-2">
-          <Input
-            data-testid="reset-password-input"
-            type={showNewPassword ? "text" : "password"}
-            required
-            minLength={6}
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            placeholder="New password"
-            autoComplete="new-password"
-            className="border-0 bg-transparent shadow-none focus-visible:ring-0"
-          />
-          <button
-            type="button"
-            data-testid="reset-password-toggle-btn"
-            onClick={() => setShowNewPassword((v) => !v)}
-            aria-label={showNewPassword ? "Hide password" : "Show password"}
-            aria-pressed={showNewPassword}
-            className="rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+            <Input
+              data-testid="reset-password-input"
+              type={showNewPassword ? "text" : "password"}
+              required
+              minLength={6}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="New password"
+              autoComplete="new-password"
+              className="border-0 bg-transparent shadow-none focus-visible:ring-0"
+            />
+            <button
+              type="button"
+              data-testid="reset-password-toggle-btn"
+              onClick={() => setShowNewPassword((v) => !v)}
+              aria-label={showNewPassword ? "Hide password" : "Show password"}
+              aria-pressed={showNewPassword}
+              className="rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+            >
+              {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+          <div className="premium-card flex items-center gap-2 rounded-2xl px-3 py-2">
+            <Input
+              data-testid="reset-password-confirm-input"
+              type={showConfirmPassword ? "text" : "password"}
+              required
+              minLength={6}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Confirm new password"
+              autoComplete="new-password"
+              className="border-0 bg-transparent shadow-none focus-visible:ring-0"
+            />
+            <button
+              type="button"
+              data-testid="reset-password-confirm-toggle-btn"
+              onClick={() => setShowConfirmPassword((v) => !v)}
+              aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+              aria-pressed={showConfirmPassword}
+              className="rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+            >
+              {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+          <Button
+            data-testid="reset-password-submit-btn"
+            type="submit"
+            disabled={busy}
+            className="w-full rounded-2xl py-5 font-semibold"
           >
-            {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-          </button>
-        </div>
-        <div className="premium-card flex items-center gap-2 rounded-2xl px-3 py-2">
-          <Input
-            data-testid="reset-password-confirm-input"
-            type={showConfirmPassword ? "text" : "password"}
-            required
-            minLength={6}
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Confirm new password"
-            autoComplete="new-password"
-            className="border-0 bg-transparent shadow-none focus-visible:ring-0"
-          />
-          <button
-            type="button"
-            data-testid="reset-password-confirm-toggle-btn"
-            onClick={() => setShowConfirmPassword((v) => !v)}
-            aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
-            aria-pressed={showConfirmPassword}
-            className="rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-          >
-            {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-          </button>
-        </div>
-        <Button
-          data-testid="reset-password-submit-btn"
-          type="submit"
-          disabled={busy}
-          className="w-full rounded-2xl py-5 font-semibold"
-        >
-          {busy ? "Updating…" : "Update password"}
-        </Button>
-      </form>
+            {busy ? "Updating…" : "Update password"}
+          </Button>
+        </form>
       </div>
     </PageShell>
   );

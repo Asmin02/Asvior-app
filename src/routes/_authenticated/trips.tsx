@@ -155,10 +155,7 @@ function TripsPage() {
         ) : (
           <div className="space-y-3">
             {trips.map((t) => (
-              <div
-                key={t.id}
-                className="premium-card rounded-2xl p-5"
-              >
+              <div key={t.id} className="premium-card rounded-2xl p-5">
                 {editing === t.id ? (
                   <div className="space-y-3">
                     <Input
