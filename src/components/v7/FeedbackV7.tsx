@@ -24,9 +24,19 @@ export function SkeletonList({ rows = 3, className }: { rows?: number; className
   );
 }
 
-export function SpinnerV7({ className, label = "Loading" }: { className?: string; label?: string }) {
+export function SpinnerV7({
+  className,
+  label = "Loading",
+}: {
+  className?: string;
+  label?: string;
+}) {
   return (
-    <span role="status" aria-label={label} className={cn("spinner-ring h-5 w-5 block", className)} />
+    <span
+      role="status"
+      aria-label={label}
+      className={cn("spinner-ring h-5 w-5 block", className)}
+    />
   );
 }
 

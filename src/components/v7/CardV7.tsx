@@ -41,8 +41,7 @@ const cardV7 = cva("card-base", {
 });
 
 export interface CardV7Props
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof cardV7> {}
+  extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof cardV7> {}
 
 export const CardV7 = forwardRef<HTMLDivElement, CardV7Props>(function CardV7(
   { className, tone, size, radius, interactive, glow, ...props },

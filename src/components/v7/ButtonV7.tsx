@@ -36,8 +36,7 @@ const buttonV7 = cva("btn-base ripple", {
 });
 
 export interface ButtonV7Props
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonV7> {
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonV7> {
   asChild?: boolean;
   loading?: boolean;
   succeeded?: boolean;

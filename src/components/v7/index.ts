@@ -19,10 +19,4 @@ export {
   ErrorStateV7,
   SectionHeaderV7,
 } from "./FeedbackV7";
-export {
-  OverlayRoot,
-  OverlayTrigger,
-  OverlayClose,
-  ModalV7,
-  SheetV7,
-} from "./OverlayV7";
+export { OverlayRoot, OverlayTrigger, OverlayClose, ModalV7, SheetV7 } from "./OverlayV7";

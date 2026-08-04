@@ -24,8 +24,7 @@ const chipV7 = cva("chip-base", {
 });
 
 export interface ChipV7Props
-  extends React.HTMLAttributes<HTMLSpanElement>,
-    VariantProps<typeof chipV7> {
+  extends React.HTMLAttributes<HTMLSpanElement>, VariantProps<typeof chipV7> {
   icon?: ReactNode;
 }
 
@@ -53,8 +52,7 @@ const iconTile = cva("icon-tile", {
 });
 
 export interface IconTileProps
-  extends React.HTMLAttributes<HTMLSpanElement>,
-    VariantProps<typeof iconTile> {}
+  extends React.HTMLAttributes<HTMLSpanElement>, VariantProps<typeof iconTile> {}
 
 export function IconTile({ className, size, tone, children, ...props }: IconTileProps) {
   return (
@@ -74,8 +72,7 @@ const inputV7 = cva("input-base", {
 });
 
 export interface InputV7Props
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size">,
-    VariantProps<typeof inputV7> {}
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size">, VariantProps<typeof inputV7> {}
 
 export const InputV7 = forwardRef<HTMLInputElement, InputV7Props>(function InputV7(
   { className, tone, invalid, ...props },
