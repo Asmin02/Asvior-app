@@ -117,9 +117,7 @@ function SummaryPage() {
 
       <div className="no-print">
         <PageHeader
-          badge={
-            <PageBadge icon={<FileText className="h-3.5 w-3.5" />}>Ready to share</PageBadge>
-          }
+          badge={<PageBadge icon={<FileText className="h-3.5 w-3.5" />}>Ready to share</PageBadge>}
           title="Trip Summary"
           subtitle="Share with your travel buddies or save as PDF."
         />

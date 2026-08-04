@@ -369,7 +369,9 @@
   background: var(--card);
   box-shadow: var(--shadow-soft);
   padding: 0.75rem 1rem;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
   &:focus-within {
     border-color: color-mix(in oklab, var(--navy) 40%, var(--border));
     box-shadow: 0 0 0 3px color-mix(in oklab, var(--navy) 8%, transparent);

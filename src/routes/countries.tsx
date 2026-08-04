@@ -61,9 +61,7 @@ function CountriesPage() {
   return (
     <PageShell className="pb-6">
       <PageHeader
-        badge={
-          <PageBadge icon={<Compass className="h-3.5 w-3.5" />}>Smart Country Hub</PageBadge>
-        }
+        badge={<PageBadge icon={<Compass className="h-3.5 w-3.5" />}>Smart Country Hub</PageBadge>}
         title="Explore the world"
         subtitle="199 interactive country dashboards — visas, costs, attractions, and insider tips."
       />

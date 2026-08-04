@@ -113,7 +113,9 @@ function BudgetPlannerPage() {
 
       <section className="mt-4 px-4">
         <div className="rounded-2xl bg-navy p-6 text-primary-foreground shadow-soft">
-          <p className="text-xs font-semibold uppercase tracking-wide opacity-75">Total trip budget</p>
+          <p className="text-xs font-semibold uppercase tracking-wide opacity-75">
+            Total trip budget
+          </p>
           <p className="mt-2 text-4xl font-bold">${fmt(total)}</p>
           {total > 0 ? (
             <div className="mt-4 flex h-2 w-full overflow-hidden rounded-full bg-white/20">
@@ -139,7 +141,9 @@ function BudgetPlannerPage() {
       <section className="mt-4 space-y-2 px-4">
         {categories.map((c) => (
           <div key={c.key} className="premium-card flex items-center gap-3 rounded-2xl p-3">
-            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${c.gradient}`}>
+            <div
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${c.gradient}`}
+            >
               {c.icon}
             </div>
             <div className="flex-1">

@@ -12,9 +12,7 @@ describe("parseDeepLinkTarget", () => {
   });
 
   it("parses https app link callback", () => {
-    const target = parseDeepLinkTarget(
-      "https://asvior.app/auth/callback?code=xyz&type=signup",
-    );
+    const target = parseDeepLinkTarget("https://asvior.app/auth/callback?code=xyz&type=signup");
     expect(target.pathname).toBe("/auth/callback");
     expect(target.search).toEqual({ code: "xyz", type: "signup" });
   });

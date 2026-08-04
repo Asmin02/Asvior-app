@@ -32,7 +32,10 @@ function NotFoundComponent() {
         <h1 className="text-6xl font-bold text-foreground">404</h1>
         <h2 className="mt-3 text-xl font-semibold text-foreground">Page not found</h2>
         <p className="mt-2 text-sm text-muted-foreground">That destination isn't on our map.</p>
-        <Link to="/" className="mt-6 inline-flex items-center justify-center rounded-xl bg-navy px-5 py-2.5 text-sm font-semibold text-primary-foreground">
+        <Link
+          to="/"
+          className="mt-6 inline-flex items-center justify-center rounded-xl bg-navy px-5 py-2.5 text-sm font-semibold text-primary-foreground"
+        >
           Go home
         </Link>
       </div>
