@@ -7,7 +7,7 @@
 /* =========================================================
    ASVIOR V7 — DESIGN SYSTEM
    ---------------------------------------------------------
-   Brand:      Midnight Indigo
+   Brand:      Skyline — sky blue / ocean blue / pearl white / gold accent
    Ink         #0a0a1a   Void black-blue, the deepest ground
    Abyss       #141432   Elevated night surface
    Depth       #1e1e5a   Structural indigo
@@ -108,6 +108,7 @@
   --color-aurora: var(--aurora);
   --color-aurora-soft: var(--aurora-soft);
   --color-violet: var(--violet);
+  --color-gold: var(--violet);
 
   /* ---------- SEMANTIC STATUS ---------- */
   --color-success: var(--success);
@@ -156,15 +157,15 @@
   --radius: 1.25rem;
 
   /* Brand ramp */
-  --ink: oklch(0.16 0.035 279);
-  --abyss: oklch(0.23 0.065 280);
-  --depth: oklch(0.31 0.115 278);
-  --signal: oklch(0.52 0.225 277);
-  --signal-soft: oklch(0.94 0.035 277);
-  --signal-deep: oklch(0.4 0.2 278);
-  --aurora: oklch(0.75 0.13 205);
-  --aurora-soft: oklch(0.95 0.04 205);
-  --violet: oklch(0.62 0.2 300);
+  --ink: oklch(0.22 0.06 248);
+  --abyss: oklch(0.3 0.085 246);
+  --depth: oklch(0.4 0.11 244);
+  --signal: oklch(0.56 0.16 242);
+  --signal-soft: oklch(0.95 0.03 236);
+  --signal-deep: oklch(0.43 0.14 248);
+  --aurora: oklch(0.78 0.12 226);
+  --aurora-soft: oklch(0.955 0.035 226);
+  --violet: oklch(0.79 0.13 84);
 
   /* Status */
   --success: oklch(0.63 0.15 158);
@@ -179,35 +180,35 @@
   /* Neutrals */
   --surface: oklch(1 0 0);
   --surface-raised: oklch(1 0 0);
-  --surface-sunken: oklch(0.968 0.008 275);
-  --hairline: oklch(0.915 0.012 275);
+  --surface-sunken: oklch(0.972 0.012 232);
+  --hairline: oklch(0.915 0.018 232);
 
   /* shadcn contract */
-  --background: oklch(0.985 0.005 275);
-  --foreground: oklch(0.18 0.04 279);
+  --background: oklch(0.988 0.008 232);
+  --foreground: oklch(0.22 0.055 248);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.04 279);
+  --card-foreground: oklch(0.22 0.055 248);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.04 279);
-  --primary: oklch(0.52 0.225 277);
-  --primary-foreground: oklch(0.99 0.003 275);
-  --secondary: oklch(0.962 0.01 275);
-  --secondary-foreground: oklch(0.24 0.05 279);
-  --muted: oklch(0.962 0.01 275);
-  --muted-foreground: oklch(0.5 0.03 277);
-  --accent: oklch(0.94 0.035 277);
-  --accent-foreground: oklch(0.36 0.16 278);
+  --popover-foreground: oklch(0.22 0.055 248);
+  --primary: oklch(0.56 0.16 242);
+  --primary-foreground: oklch(0.99 0.004 232);
+  --secondary: oklch(0.965 0.014 232);
+  --secondary-foreground: oklch(0.28 0.07 246);
+  --muted: oklch(0.965 0.014 232);
+  --muted-foreground: oklch(0.53 0.035 244);
+  --accent: oklch(0.94 0.045 230);
+  --accent-foreground: oklch(0.38 0.13 244);
   --destructive: oklch(0.58 0.21 22);
   --destructive-foreground: oklch(0.99 0.003 275);
-  --border: oklch(0.915 0.012 275);
-  --input: oklch(0.915 0.012 275);
-  --ring: oklch(0.52 0.225 277);
+  --border: oklch(0.915 0.018 232);
+  --input: oklch(0.915 0.018 232);
+  --ring: oklch(0.56 0.16 242);
 
-  --chart-1: oklch(0.52 0.225 277);
-  --chart-2: oklch(0.7 0.14 205);
-  --chart-3: oklch(0.63 0.15 158);
-  --chart-4: oklch(0.72 0.15 72);
-  --chart-5: oklch(0.62 0.2 300);
+  --chart-1: oklch(0.56 0.16 242);
+  --chart-2: oklch(0.78 0.12 226);
+  --chart-3: oklch(0.68 0.13 190);
+  --chart-4: oklch(0.79 0.13 84);
+  --chart-5: oklch(0.62 0.14 262);
 
   --sidebar: oklch(1 0 0);
   --sidebar-foreground: oklch(0.18 0.04 279);
@@ -238,15 +239,15 @@
   --elev-inset: inset 0 1px 0 0 color-mix(in oklab, white 70%, transparent);
 
   /* ---------- GRADIENT SYSTEM ---------- */
-  --grad-signal: linear-gradient(135deg, oklch(0.58 0.22 285) 0%, oklch(0.46 0.22 272) 100%);
-  --grad-aurora: linear-gradient(135deg, oklch(0.78 0.13 200) 0%, oklch(0.56 0.19 262) 100%);
-  --grad-violet: linear-gradient(135deg, oklch(0.66 0.2 300) 0%, oklch(0.48 0.22 278) 100%);
-  --grad-ink: linear-gradient(160deg, oklch(0.26 0.075 280) 0%, oklch(0.14 0.035 279) 100%);
+  --grad-signal: linear-gradient(135deg, oklch(0.68 0.14 230) 0%, oklch(0.48 0.15 250) 100%);
+  --grad-aurora: linear-gradient(135deg, oklch(0.86 0.09 214) 0%, oklch(0.6 0.15 240) 100%);
+  --grad-violet: linear-gradient(135deg, oklch(0.85 0.12 88) 0%, oklch(0.7 0.14 62) 100%);
+  --grad-ink: linear-gradient(160deg, oklch(0.34 0.1 246) 0%, oklch(0.19 0.055 250) 100%);
   --grad-canvas: linear-gradient(
     180deg,
-    oklch(0.985 0.008 275) 0%,
-    oklch(0.955 0.02 277) 45%,
-    oklch(0.985 0.005 275) 100%
+    oklch(0.99 0.012 228) 0%,
+    oklch(0.955 0.03 232) 45%,
+    oklch(0.99 0.008 232) 100%
   );
   --grad-glow: radial-gradient(
     120% 120% at 50% 0%,
@@ -272,15 +273,15 @@
    surfaces built by lightening, borders built by opacity.
    ========================================================= */
 .dark {
-  --ink: oklch(0.11 0.025 279);
-  --abyss: oklch(0.17 0.045 280);
-  --depth: oklch(0.26 0.09 278);
-  --signal: oklch(0.64 0.2 278);
-  --signal-soft: oklch(0.27 0.09 278);
-  --signal-deep: oklch(0.48 0.22 278);
-  --aurora: oklch(0.82 0.14 200);
-  --aurora-soft: oklch(0.28 0.07 205);
-  --violet: oklch(0.7 0.18 300);
+  --ink: oklch(0.15 0.035 250);
+  --abyss: oklch(0.21 0.05 249);
+  --depth: oklch(0.3 0.08 246);
+  --signal: oklch(0.7 0.14 236);
+  --signal-soft: oklch(0.3 0.07 240);
+  --signal-deep: oklch(0.54 0.15 244);
+  --aurora: oklch(0.85 0.1 220);
+  --aurora-soft: oklch(0.3 0.06 224);
+  --violet: oklch(0.83 0.12 86);
 
   --success: oklch(0.74 0.15 158);
   --success-soft: oklch(0.28 0.07 158);
@@ -291,33 +292,33 @@
   --info: oklch(0.7 0.15 240);
   --info-soft: oklch(0.28 0.07 240);
 
-  --surface: oklch(0.17 0.04 280);
-  --surface-raised: oklch(0.21 0.05 280);
-  --surface-sunken: oklch(0.135 0.03 279);
+  --surface: oklch(0.2 0.045 250);
+  --surface-raised: oklch(0.24 0.05 250);
+  --surface-sunken: oklch(0.165 0.035 250);
   --hairline: oklch(1 0 0 / 10%);
 
-  --background: oklch(0.11 0.025 279);
-  --foreground: oklch(0.97 0.006 275);
-  --card: oklch(0.17 0.04 280);
-  --card-foreground: oklch(0.97 0.006 275);
-  --popover: oklch(0.19 0.045 280);
-  --popover-foreground: oklch(0.97 0.006 275);
-  --primary: oklch(0.64 0.2 278);
-  --primary-foreground: oklch(0.99 0.004 275);
-  --secondary: oklch(0.22 0.045 280);
-  --secondary-foreground: oklch(0.96 0.008 275);
-  --muted: oklch(0.22 0.045 280);
-  --muted-foreground: oklch(0.72 0.025 275);
-  --accent: oklch(0.27 0.09 278);
-  --accent-foreground: oklch(0.88 0.08 278);
+  --background: oklch(0.14 0.03 250);
+  --foreground: oklch(0.97 0.008 232);
+  --card: oklch(0.2 0.045 250);
+  --card-foreground: oklch(0.97 0.008 232);
+  --popover: oklch(0.22 0.05 250);
+  --popover-foreground: oklch(0.97 0.008 232);
+  --primary: oklch(0.7 0.14 236);
+  --primary-foreground: oklch(0.16 0.04 250);
+  --secondary: oklch(0.25 0.05 250);
+  --secondary-foreground: oklch(0.96 0.01 232);
+  --muted: oklch(0.25 0.05 250);
+  --muted-foreground: oklch(0.74 0.03 236);
+  --accent: oklch(0.3 0.07 240);
+  --accent-foreground: oklch(0.89 0.07 232);
   --destructive: oklch(0.68 0.19 22);
   --destructive-foreground: oklch(0.99 0.004 275);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 14%);
-  --ring: oklch(0.64 0.2 278);
+  --ring: oklch(0.7 0.14 236);
 
-  --chart-1: oklch(0.64 0.2 278);
-  --chart-2: oklch(0.82 0.14 200);
+  --chart-1: oklch(0.7 0.14 236);
+  --chart-2: oklch(0.85 0.1 220);
   --chart-3: oklch(0.74 0.15 158);
   --chart-4: oklch(0.8 0.15 78);
   --chart-5: oklch(0.7 0.18 300);
