@@ -405,63 +405,104 @@ function HomePage() {
 
   return (
     <div className="pb-6">
-      {/* Top bar */}
-      <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-border bg-card px-4 py-3">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <AsviorMark className="h-9 w-9 shrink-0" />
-          <div className="min-w-0">
-            <p className="truncate text-base font-bold text-foreground">ASVIOR</p>
-            <p className="truncate text-xs text-muted-foreground">
+      {/* Immersive hero */}
+      <header className="relative overflow-hidden rounded-b-[2.25rem]">
+        <img
+          src={heroSkyline}
+          alt="Aerial view of a turquoise coastline at golden hour"
+          width={1280}
+          height={1600}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-ink/70 via-ink/35 to-ink/85" />
+
+        <div className="relative px-4 pb-24 pt-[calc(env(safe-area-inset-top)+1rem)]">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <AsviorMark className="h-9 w-9 shrink-0" />
+              <p className="truncate text-base font-bold tracking-[0.18em] text-white">ASVIOR</p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <Link
+                to="/settings"
+                aria-label="Open settings"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/25 bg-white/12 text-white backdrop-blur-md transition-colors hover:bg-white/20"
+              >
+                <Settings className="h-4 w-4" />
+              </Link>
+              <Link
+                to={signedIn ? "/profile" : "/auth"}
+                className="inline-flex h-10 items-center rounded-xl border border-white/25 bg-white/12 px-3.5 text-xs font-semibold text-white backdrop-blur-md transition-colors hover:bg-white/20"
+              >
+                {signedIn ? "Profile" : "Sign in"}
+              </Link>
+            </div>
+          </div>
+
+          <div className="mt-10 animate-fade-in">
+            <p className="text-eyebrow text-white/70">
               {greeting}
               {name ? `, ${name.split(" ")[0]}` : ""}
             </p>
+            <h1 className="mt-2 max-w-[15ch] text-3xl leading-tight font-semibold text-white">
+              The world is closer than you think.
+            </h1>
+            <p className="mt-2.5 max-w-[32ch] text-sm leading-relaxed text-white/75">
+              Visas, budgets and itineraries — planned by your AI travel companion.
+            </p>
           </div>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <Link
-            to="/settings"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-background text-foreground"
-            aria-label="Open settings"
-          >
-            <Settings className="h-4 w-4" />
-          </Link>
-          <Link
-            to={signedIn ? "/profile" : "/auth"}
-            className="inline-flex h-10 items-center rounded-xl bg-navy px-3 text-xs font-semibold text-primary-foreground"
-          >
-            {signedIn ? "Profile" : "Sign in"}
-          </Link>
         </div>
       </header>
 
       <div className="space-y-6 px-4 pt-4">
-        {/* Search */}
+        {/* Floating premium search */}
         <Link
           to="/visa-check"
           aria-label="Search destinations, visas, or travel plans"
-          className="search-bar"
+          className="-mt-[4.5rem] relative z-10 flex items-center gap-3 rounded-2xl border border-white/50 bg-card/90 p-4 elev-4 backdrop-blur-xl transition-transform duration-200 hover:-translate-y-0.5"
         >
-          <Search className="h-5 w-5 shrink-0 text-muted-foreground" />
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl grad-signal text-white">
+            <Search className="h-5 w-5" />
+          </span>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-foreground">Where would you like to go?</p>
-            <p className="text-xs text-muted-foreground">Search destinations, visas, or plans</p>
+            <p className="text-xs text-muted-foreground">Destinations · Visas · Budgets</p>
+          </div>
+          <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </Link>
+
+        {/* AI travel companion */}
+        <Link
+          to="/assistant"
+          className="group relative block overflow-hidden rounded-2xl grad-ink p-5 text-white elev-3 transition-transform duration-200 hover:-translate-y-0.5"
+        >
+          <span className="pointer-events-none absolute -right-10 -top-12 h-40 w-40 rounded-full bg-aurora/25 blur-2xl" />
+          <span className="pointer-events-none absolute -bottom-16 -left-8 h-40 w-40 rounded-full bg-gold/20 blur-2xl" />
+          <div className="relative flex items-start gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/12">
+              <Sparkles className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-eyebrow text-white/60">Asvior AI</p>
+              <p className="mt-1 text-base font-semibold">Your personal travel companion</p>
+              <p className="mt-1 text-xs leading-relaxed text-white/70">
+                Ask anything — entry rules, 7-day plans, what a week really costs.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {["Plan my trip", "Do I need a visa?", "Best time to go"].map((q) => (
+                  <span
+                    key={q}
+                    className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-2xs font-medium text-white/85"
+                  >
+                    {q}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <ArrowRight className="h-4 w-4 shrink-0 opacity-70 transition-transform duration-200 group-hover:translate-x-0.5" />
           </div>
         </Link>
 
-        {/* AI Concierge shortcut */}
-        <Link
-          to="/assistant"
-          className="flex items-center gap-3 rounded-2xl bg-navy p-4 text-primary-foreground shadow-soft"
-        >
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10">
-            <Sparkles className="h-5 w-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold">AI Concierge</p>
-            <p className="text-xs text-primary-foreground/75">Ask anything about your trip</p>
-          </div>
-          <ArrowRight className="h-4 w-4 shrink-0 opacity-75" />
-        </Link>
 
         {/* Quick tools */}
         <section>
