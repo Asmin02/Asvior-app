@@ -16,6 +16,7 @@ import {
   Settings,
 } from "lucide-react";
 import regionEurope from "@/assets/region-europe.jpg";
+import heroSkyline from "@/assets/hero-skyline.jpg";
 import regionAsia from "@/assets/region-asia.jpg";
 import regionAmericas from "@/assets/region-americas.jpg";
 import regionOceania from "@/assets/region-oceania.jpg";
