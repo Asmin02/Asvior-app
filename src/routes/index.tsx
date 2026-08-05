@@ -504,7 +504,6 @@ function HomePage() {
           </div>
         </Link>
 
-
         {/* Quick tools */}
         <section>
           <h2 className="section-title mb-3">Travel tools</h2>
