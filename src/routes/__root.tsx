@@ -370,10 +370,11 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <main className="mx-auto min-h-dvh max-w-md bg-background pb-[calc(6rem+env(safe-area-inset-bottom))] font-sans antialiased">
-        <Outlet />
+      <main className="mx-auto min-h-dvh max-w-md bg-background pb-[calc(7rem+env(safe-area-inset-bottom))] font-sans antialiased">
+        <PageTransition>
+          <Outlet />
+        </PageTransition>
       </main>
-      <FloatingAIButton />
       <MobileNav />
       <Toaster />
     </QueryClientProvider>
