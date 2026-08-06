@@ -1,34 +1,28 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
-
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold cursor-pointer transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.99] [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap font-semibold cursor-pointer transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--asv-primary)]/30 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-navy text-primary-foreground shadow-soft hover:bg-navy/90",
-        gold: "btn-gold font-semibold hover:brightness-[1.03]",
-        destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
-        outline:
-          "border border-border bg-card text-foreground hover:bg-secondary",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-secondary hover:text-foreground",
-        link: "text-navy underline-offset-4 hover:underline",
+        default: "asv-btn asv-btn-primary",
+        destructive: "asv-btn bg-[var(--asv-danger)] text-white",
+        outline: "asv-btn asv-btn-secondary",
+        secondary: "asv-btn asv-btn-secondary",
+        ghost: "asv-btn asv-btn-ghost",
+        link: "text-[var(--asv-primary)] underline-offset-4 hover:underline bg-transparent min-h-0 p-0",
       },
       size: {
-        default: "min-h-11 px-5 py-2.5",
-        sm: "min-h-9 rounded-lg px-3.5 text-xs",
-        lg: "min-h-12 rounded-xl px-8 text-[15px]",
-        icon: "h-11 w-11 rounded-xl",
+        default: "min-h-12 px-5 text-sm rounded-[var(--asv-radius-md)]",
+        sm: "min-h-10 px-4 text-xs rounded-[var(--asv-radius-sm)]",
+        lg: "min-h-[52px] px-6 text-base rounded-[var(--asv-radius-md)]",
+        icon: "asv-btn asv-btn-icon min-h-11 w-11",
       },
     },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
-    },
+    defaultVariants: { variant: "default", size: "default" },
   },
 );
 

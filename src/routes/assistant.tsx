@@ -1,10 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
-import { ArrowLeft, Bookmark, Copy, Mic, Paperclip, Send, Share2, Sparkles, Square, Trash2 } from "lucide-react";
+import { Bookmark, Copy, Send, Share2, Sparkles, Square, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveApiUrl } from "@/lib/api-base";
 import { buildScopedStorageKey, GUEST_STORAGE_SCOPE } from "@/lib/app-session";
@@ -44,40 +44,12 @@ export const Route = createFileRoute("/assistant")({
 
 const STORAGE_KEY = "vp_ai_chat_v1";
 
-const QUICK_ACTIONS = [
-  {
-    label: "Check Visa",
-    icon: "🛂",
-    prompt: "Help me check if I need a visa. Ask me my passport country and destination.",
-  },
-  {
-    label: "Required Documents",
-    icon: "📄",
-    prompt:
-      "What documents do I typically need for an international trip? Walk me through a checklist.",
-  },
-  {
-    label: "Travel Checklist",
-    icon: "✅",
-    prompt: "Build me a smart pre-departure travel checklist.",
-  },
-  {
-    label: "Budget Planner",
-    icon: "💰",
-    prompt:
-      "Help me estimate a realistic travel budget. Ask me destination, duration, and travel style.",
-  },
-  {
-    label: "Embassy Finder",
-    icon: "🏛️",
-    prompt: "How do I find the nearest embassy or consulate for a country I'm visiting?",
-  },
-  {
-    label: "Travel Tips",
-    icon: "🌍",
-    prompt: "Give me your top 10 smart travel tips for international travelers.",
-  },
-];
+const CATEGORY_CHIPS = [
+  { label: "Itinerary", prompt: "Plan a 7-day Kyoto trip under €2,000" },
+  { label: "Visa check", prompt: "Do I need a visa for Morocco on a UK passport?" },
+  { label: "Budget", prompt: "Estimate a 7-day budget for Lisbon, mid-range." },
+  { label: "Documents", prompt: "What documents do I typically need for an international trip?" },
+] as const;
 
 const SUGGESTIONS = [
   "Do I need a visa for Japan with a US passport?",
@@ -388,14 +360,6 @@ function AssistantPage() {
     };
   }, []);
 
-  const handleVoice = () => {
-    toast.info("Voice input coming soon — type your question for now.");
-  };
-
-  const handleAttachment = () => {
-    toast.info("Attachments are coming soon. You can paste text and links for now.");
-  };
-
   const clearChat = () => {
     setMessages([]);
     try {
@@ -474,34 +438,23 @@ function AssistantPage() {
 
   return (
     <div className="asv-app relative flex h-[calc(100dvh-var(--asv-tab-height)-env(safe-area-inset-bottom,0px))] max-h-[calc(100dvh-var(--asv-tab-height)-env(safe-area-inset-bottom,0px))] flex-col overflow-hidden">
-      <header className="relative shrink-0 border-b border-[var(--asv-divider)] bg-[var(--asv-surface-overlay)] backdrop-blur-xl">
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-full bg-gradient-to-r from-[var(--asv-primary-soft)] via-transparent to-[var(--asv-primary-soft)] opacity-60"
-          aria-hidden
-        />
-        <div className="relative flex items-center gap-2 px-[var(--asv-space-page)] pb-3 pt-[calc(var(--asv-safe-top)+8px)]">
-          <Link to="/" aria-label={t("common.back")} className="asv-btn asv-btn-icon shrink-0">
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-
+      <header className="ai-chat-header relative shrink-0">
+        <div className="relative flex items-center gap-3 px-[var(--asv-space-page)] pb-3 pt-[calc(var(--asv-safe-top)+10px)]">
+          <div className="ai-chat-avatar !h-11 !w-11 shrink-0">
+            <img src="/asvior-mark.png" alt="" className="h-6 w-6" />
+          </div>
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <span className="asv-tool-icon !h-9 !w-9 shrink-0">
-                <Sparkles className="h-4 w-4" />
-              </span>
-              <div className="min-w-0">
-                <h1 className="asv-title truncate">{t("ai.title")}</h1>
-                <p className="truncate text-[11px] text-[var(--asv-ink-tertiary)]">
-                  {isEmpty ? t("ai.subtitle") : isLoading ? "Thinking…" : "Ready to help"}
-                </p>
-              </div>
-            </div>
+            <h1 className="asv-title">{t("ai.title")}</h1>
+            <p className="mt-0.5 flex items-center gap-1.5 text-[11px] font-semibold text-[var(--asv-success)]">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--asv-success)] shadow-[0_0_0_3px_var(--asv-success-soft)]" />
+              Online · travel intelligence
+            </p>
           </div>
 
           <div className="flex shrink-0 items-center gap-1">
             <button
               onClick={() => setShowBookmarks(true)}
-              className="asv-btn asv-btn-icon"
+              className="asv-btn asv-btn-icon !min-h-9 !min-w-9"
               aria-label="Bookmarks"
             >
               <Bookmark className="h-4 w-4" />
@@ -565,68 +518,52 @@ function AssistantPage() {
         <div className="pointer-events-auto">
           {isEmpty && (
             <div className="scrollbar-hide mb-2.5 flex gap-2 overflow-x-auto pb-1">
-              {SUGGESTIONS.map((s) => (
+              {CATEGORY_CHIPS.map((chip) => (
                 <button
-                  key={s}
+                  key={chip.label}
                   type="button"
-                  onClick={() => handleSuggestedPick(s)}
+                  onClick={() => handleSuggestedPick(chip.prompt)}
                   className="asv-chip shrink-0 !cursor-pointer whitespace-nowrap transition-transform active:scale-95"
                 >
-                  {s.length > 42 ? `${s.slice(0, 42)}…` : s}
+                  {chip.label}
                 </button>
               ))}
             </div>
           )}
 
-          <div className="asv-card asv-card-glass rounded-[var(--asv-radius-xl)] p-2 shadow-[var(--asv-shadow-md)]">
-            <div className="flex items-end gap-2">
+          <div className="ai-chat-input-shell flex items-center gap-2 px-3 py-2">
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend(input);
+                }
+              }}
+              rows={1}
+              placeholder={t("ai.placeholder")}
+              className="max-h-32 min-h-[2.5rem] flex-1 resize-none bg-transparent px-1 py-2 text-sm text-[var(--asv-ink)] placeholder:text-[var(--asv-ink-tertiary)] focus:outline-none"
+            />
+            {isLoading ? (
               <button
-                onClick={handleVoice}
-                className="asv-btn asv-btn-icon shrink-0 !min-h-10 !min-w-10"
-                aria-label="Voice input"
+                onClick={() => stop()}
+                className="ai-chat-send-btn flex !h-10 !w-10 shrink-0 items-center justify-center !min-h-10 !min-w-10 !p-0 !bg-[var(--asv-danger)]"
+                aria-label="Stop"
               >
-                <Mic className="h-4 w-4" />
+                <Square className="h-3.5 w-3.5 fill-current" />
               </button>
+            ) : (
               <button
-                onClick={handleAttachment}
-                className="asv-btn asv-btn-icon shrink-0 !min-h-10 !min-w-10"
-                aria-label="Attach"
+                onClick={() => handleSend(input)}
+                disabled={!input.trim()}
+                className="ai-chat-send-btn flex !h-10 !w-10 shrink-0 items-center justify-center !min-h-10 !min-w-10 !p-0 disabled:opacity-40"
+                aria-label="Send"
               >
-                <Paperclip className="h-4 w-4" />
+                <Send className="h-4 w-4" />
               </button>
-              <textarea
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSend(input);
-                  }
-                }}
-                rows={1}
-                placeholder={t("ai.placeholder")}
-                className="max-h-32 min-h-[2.75rem] flex-1 resize-none bg-transparent px-1 py-2.5 text-sm text-[var(--asv-ink)] placeholder:text-[var(--asv-ink-tertiary)] focus:outline-none"
-              />
-              {isLoading ? (
-                <button
-                  onClick={() => stop()}
-                  className="asv-btn asv-btn-primary flex !h-10 !w-10 shrink-0 items-center justify-center !min-h-10 !min-w-10 !rounded-[var(--asv-radius-md)] !p-0 !bg-[var(--asv-danger)]"
-                  aria-label="Stop"
-                >
-                  <Square className="h-3.5 w-3.5 fill-current" />
-                </button>
-              ) : (
-                <button
-                  onClick={() => handleSend(input)}
-                  disabled={!input.trim()}
-                  className="asv-btn asv-btn-primary flex !h-10 !w-10 shrink-0 items-center justify-center !min-h-10 !min-w-10 !rounded-[var(--asv-radius-md)] !p-0 disabled:opacity-40"
-                  aria-label="Send"
-                >
-                  <Send className="h-4 w-4" />
-                </button>
-              )}
-            </div>
+            )}
           </div>
           <p className="mt-1.5 text-center text-[10px] text-[var(--asv-ink-tertiary)]">
             Always verify with official embassy or government sources.
@@ -641,28 +578,36 @@ function EmptyState({ onPick }: { onPick: (prompt: string) => void }) {
   const t = useT();
   return (
     <div className="asv-animate-in pb-4">
-      <div className="asv-ai-banner mb-6 mt-1 block text-center">
-        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-[var(--asv-radius-xl)] bg-white/15">
-          <Sparkles className="h-7 w-7" />
+      <div className="ai-empty-hero mb-6 mt-1 p-5">
+        <div className="flex gap-3">
+          <div className="ai-chat-avatar !h-10 !w-10 shrink-0">
+            <img src="/asvior-mark.png" alt="" className="h-6 w-6" />
+          </div>
+          <div className="min-w-0">
+            <h2 className="asv-title">{t("ai.hello")}</h2>
+            <p className="asv-subtitle mt-2 leading-relaxed">
+              I&apos;m Asvior. Tell me where you&apos;re headed and I&apos;ll handle the visa rules,
+              the daily budget and the day-by-day plan.
+            </p>
+            <p className="asv-subtitle mt-2 italic">
+              You can also just say something like &ldquo;five days in Kyoto in November,
+              mid-range&rdquo;.
+            </p>
+          </div>
         </div>
-        <h2 className="asv-display text-xl text-white">{t("ai.hello")}</h2>
-        <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-white/80">
-          Tell me your nationality and destination — I'll guide you through visas, documents, and
-          trip planning.
-        </p>
       </div>
 
-      <p className="asv-overline mb-3">Quick actions</p>
-      <div className="asv-stagger grid grid-cols-2 gap-2.5">
-        {QUICK_ACTIONS.map((a) => (
+      <p className="ai-suggestion-kicker mb-3">Try one of these</p>
+      <div className="space-y-2">
+        {SUGGESTIONS.slice(0, 4).map((s) => (
           <button
-            key={a.label}
+            key={s}
             type="button"
-            onClick={() => onPick(a.prompt)}
-            className="asv-card asv-card-pad flex flex-col items-start gap-2 text-left transition-transform active:scale-[0.98]"
+            onClick={() => onPick(s)}
+            className="ai-suggestion-card"
           >
-            <span className="text-xl">{a.icon}</span>
-            <span className="asv-title text-sm">{a.label}</span>
+            <Sparkles className="ai-suggestion-icon h-4 w-4" aria-hidden />
+            <span className="min-w-0 flex-1">{s}</span>
           </button>
         ))}
       </div>
@@ -690,7 +635,7 @@ function MessageBubble({
   if (isUser) {
     return (
       <div className="animate-bubble-in flex justify-end">
-        <div className="max-w-[85%] rounded-[var(--asv-radius-xl)] rounded-br-[var(--asv-radius-xs)] bg-gradient-to-br from-[var(--asv-primary)] to-[#7c3aed] px-4 py-3 text-sm leading-relaxed text-white shadow-[var(--asv-shadow-md),0_4px_16px_var(--asv-primary-glow)]">
+        <div className="max-w-[85%] rounded-[var(--asv-radius-xl)] rounded-br-[var(--asv-radius-xs)] bg-gradient-to-br from-[#00a3ff] to-[#14b8a6] px-4 py-3 text-sm leading-relaxed text-white shadow-[var(--asv-shadow-md),0_4px_16px_var(--asv-primary-glow)]">
           {text}
         </div>
       </div>

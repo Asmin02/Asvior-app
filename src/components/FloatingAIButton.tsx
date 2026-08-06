@@ -1,26 +1,27 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import { AsviorMark } from "@/components/AsviorMark";
+import { Link, useRouter } from "@tanstack/react-router";
+import { Sparkles } from "lucide-react";
+
+const HIDDEN = [
+  "/",
+  "/assistant",
+  "/auth",
+  "/reset-password",
+  "/about",
+  "/privacy",
+  "/terms",
+  "/contact",
+  "/support",
+];
 
 export function FloatingAIButton() {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  if (
-    pathname.startsWith("/assistant") ||
-    pathname.startsWith("/auth") ||
-    pathname.startsWith("/reset-password")
-  ) {
-    return null;
-  }
+  const { state } = useRouter();
+  const path = state.location.pathname;
+
+  if (HIDDEN.some((p) => path === p || path.startsWith(`${p}/`))) return null;
 
   return (
-    <Link
-      to="/assistant"
-      aria-label="Open Asvior AI"
-      className="floating-ai-btn bottom-[calc(5.75rem+env(safe-area-inset-bottom))] right-4"
-    >
-      <span className="floating-ai-btn-icon">
-        <AsviorMark className="floating-ai-btn-mark" aria-hidden />
-      </span>
-      <span className="text-sm font-semibold tracking-tight text-white">Asvior AI</span>
+    <Link to="/assistant" className="asv-fab" aria-label="Open Asvior AI">
+      <Sparkles className="h-6 w-6" />
     </Link>
   );
 }

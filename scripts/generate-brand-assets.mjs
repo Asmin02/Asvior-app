@@ -1,6 +1,10 @@
 /**
- * Generates Android launcher icons and splash assets from the official ASVIOR logo.
- * Run: node scripts/generate-brand-assets.mjs
+ * Generates V6 premium brand assets:
+ * - Royal blue adaptive launcher icon with gold "A" + airplane mark
+ * - Animated-style splash frames (royal blue + mark)
+ * - Web/PWA icons and favicons
+ *
+ * Run: npm run brand:assets
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -9,13 +13,18 @@ import sharp from "sharp";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..");
-const logoPath = path.join(root, "src/assets/asvior-logo-full.png");
-const markSvgPath = path.join(root, "scripts/assets/asvior-mark.svg");
+const markSvgPath = path.join(__dirname, "assets/asvior-icon-foreground.svg");
+const markPngPath = path.join(root, "src/assets/asvior-mark.png");
 const androidRes = path.join(root, "android/app/src/main/res");
 const publicDir = path.join(root, "public");
 
-const WARM_WHITE = { r: 250, g: 248, b: 244, alpha: 1 };
-const NAVY = "#0B1F3A";
+const ROYAL_BLUE = "#6D28D9";
+const ROYAL_BLUE_DEEP = "#5B21B6";
+const ACCENT_CYAN = "#22D3EE";
+const GOLD = "#F59E0B";
+const SPLASH_BG = ROYAL_BLUE;
+
+const LAUNCHER_MARK_FILL = 0.72;
 
 const mipmapSizes = {
   mdpi: 48,
@@ -37,45 +46,95 @@ async function ensureDir(dir) {
   await fs.promises.mkdir(dir, { recursive: true });
 }
 
-async function createMarkBuffer(size, { padding = 0.05, background = null } = {}) {
-  const inner = Math.round(size * (1 - padding * 2));
-  let pipeline = sharp(markSvgPath).resize(inner, inner, { fit: "contain" });
+async function createLauncherBackground(size) {
+  const radius = Math.round(size * 0.223);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
+    <defs>
+      <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#3B82F6"/>
+        <stop offset="52%" stop-color="${ROYAL_BLUE}"/>
+        <stop offset="100%" stop-color="${ROYAL_BLUE_DEEP}"/>
+      </linearGradient>
+      <radialGradient id="shine" cx="28%" cy="18%" r="62%">
+        <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.28"/>
+        <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="${size}" height="${size}" rx="${radius}" fill="url(#bg)"/>
+    <rect width="${size}" height="${size}" rx="${radius}" fill="url(#shine)"/>
+  </svg>`;
+  return sharp(Buffer.from(svg)).png().toBuffer();
+}
 
-  if (background) {
-    pipeline = pipeline.extend({
-      top: Math.round(size * padding),
-      bottom: Math.round(size * padding),
-      left: Math.round(size * padding),
-      right: Math.round(size * padding),
-      background,
-    });
-  } else {
-    pipeline = pipeline.extend({
-      top: Math.round(size * padding),
-      bottom: Math.round(size * padding),
-      left: Math.round(size * padding),
-      right: Math.round(size * padding),
-      background: { r: 0, g: 0, b: 0, alpha: 0 },
-    });
+async function renderMarkPng(size) {
+  return sharp(markSvgPath)
+    .resize(size, size, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .png({ compressionLevel: 9, quality: 100 })
+    .toBuffer();
+}
+
+async function loadMarkBuffer() {
+  const size = 512;
+  const buffer = await renderMarkPng(size);
+  await fs.promises.writeFile(markPngPath, buffer);
+  return buffer;
+}
+
+async function createLauncherBuffer(size, { transparent = false } = {}) {
+  const markSize = Math.round(size * LAUNCHER_MARK_FILL);
+  const mark = await renderMarkPng(markSize);
+  const offset = Math.round((size - markSize) / 2);
+
+  if (transparent) {
+    return sharp({
+      create: { width: size, height: size, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } },
+    })
+      .composite([{ input: mark, left: offset, top: offset }])
+      .png({ compressionLevel: 9, quality: 100 })
+      .toBuffer();
   }
 
-  return pipeline.png().toBuffer();
+  const background = await createLauncherBackground(size);
+  return sharp(background)
+    .composite([{ input: mark, left: offset, top: offset }])
+    .png({ compressionLevel: 9, quality: 100 })
+    .toBuffer();
 }
 
-/** Legacy/full launcher tile — warm white background, ~87% mark fill. */
-async function createLegacyLauncherBuffer(size) {
-  return createMarkBuffer(size, { padding: 0.065, background: WARM_WHITE });
-}
+async function createSplashLogo(maxWidth) {
+  const markWidth = Math.round(maxWidth * 0.42);
+  const mark = await renderMarkPng(markWidth);
 
-/** Adaptive foreground — transparent background, mark fills safe zone. */
-async function createAdaptiveForegroundBuffer(size) {
-  return createMarkBuffer(size, { padding: 0.035, background: null });
-}
+  const wordSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${maxWidth}" height="${Math.round(maxWidth * 0.22)}">
+    <text x="50%" y="72%" text-anchor="middle"
+      font-family="Manrope, Inter, system-ui, sans-serif"
+      font-size="${Math.round(maxWidth * 0.11)}"
+      font-weight="800"
+      letter-spacing="-0.03em"
+      fill="#FFFFFF">Asvior</text>
+  </svg>`;
+  const word = await sharp(Buffer.from(wordSvg)).png().toBuffer();
+  const wordMeta = await sharp(word).metadata();
+  const markMeta = await sharp(mark).metadata();
 
-async function createFullLogoBuffer(maxWidth) {
-  return sharp(logoPath)
-    .resize({ width: maxWidth, withoutEnlargement: true })
-    .png()
+  const canvasW = maxWidth;
+  const canvasH = Math.round(maxWidth * 0.55);
+  const markLeft = Math.round((canvasW - (markMeta.width ?? markWidth)) / 2);
+  const wordTop = (markMeta.height ?? markWidth) + Math.round(maxWidth * 0.04);
+
+  return sharp({
+    create: {
+      width: canvasW,
+      height: canvasH,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    },
+  })
+    .composite([
+      { input: mark, left: markLeft, top: 0 },
+      { input: word, left: 0, top: wordTop },
+    ])
+    .png({ compressionLevel: 9, quality: 100 })
     .toBuffer();
 }
 
@@ -83,8 +142,8 @@ async function writeLauncherIcons() {
   for (const [folder, size] of Object.entries(mipmapSizes)) {
     const dir = path.join(androidRes, `mipmap-${folder}`);
     await ensureDir(dir);
-    const legacy = await createLegacyLauncherBuffer(size);
-    const foreground = await createAdaptiveForegroundBuffer(size);
+    const legacy = await createLauncherBuffer(size);
+    const foreground = await createLauncherBuffer(size, { transparent: true });
     await fs.promises.writeFile(path.join(dir, "ic_launcher.png"), legacy);
     await fs.promises.writeFile(path.join(dir, "ic_launcher_round.png"), legacy);
     await fs.promises.writeFile(path.join(dir, "ic_launcher_foreground.png"), foreground);
@@ -92,11 +151,22 @@ async function writeLauncherIcons() {
 }
 
 async function createSplashBackground(width, height) {
-  return sharp({
-    create: { width, height, channels: 4, background: WARM_WHITE },
-  })
-    .png()
-    .toBuffer();
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
+    <defs>
+      <linearGradient id="splash" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#3B82F6"/>
+        <stop offset="50%" stop-color="${ROYAL_BLUE}"/>
+        <stop offset="100%" stop-color="${ROYAL_BLUE_DEEP}"/>
+      </linearGradient>
+      <radialGradient id="glow" cx="50%" cy="38%" r="55%">
+        <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.14"/>
+        <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="${width}" height="${height}" fill="url(#splash)"/>
+    <rect width="${width}" height="${height}" fill="url(#glow)"/>
+  </svg>`;
+  return sharp(Buffer.from(svg)).png().toBuffer();
 }
 
 async function writeSplashAssets() {
@@ -105,14 +175,14 @@ async function writeSplashAssets() {
     await ensureDir(dir);
     const height = Math.round(width * 2.1);
     const bg = await createSplashBackground(width, height);
-    const logo = await createFullLogoBuffer(Math.round(width * 0.58));
+    const logo = await createSplashLogo(Math.round(width * 0.52));
     const logoMeta = await sharp(logo).metadata();
-    const left = Math.round((width - logoMeta.width) / 2);
-    const top = Math.round((height - logoMeta.height) / 2);
+    const left = Math.round((width - (logoMeta.width ?? width)) / 2);
+    const top = Math.round((height - (logoMeta.height ?? width)) / 2);
 
     const splash = await sharp(bg)
       .composite([{ input: logo, left, top }])
-      .png()
+      .png({ compressionLevel: 9, quality: 100 })
       .toBuffer();
 
     await fs.promises.writeFile(path.join(dir, "splash.png"), splash);
@@ -134,59 +204,64 @@ async function writeSplashAssets() {
 `,
   );
 
-  const splashLogo = await createFullLogoBuffer(640);
+  const splashLogo = await createSplashLogo(720);
   await fs.promises.writeFile(path.join(drawableDir, "splash_logo.png"), splashLogo);
 }
 
 async function writeWebIcons() {
-  const symbol512 = await createLegacyLauncherBuffer(512);
-  const symbol192 = await createLegacyLauncherBuffer(192);
-  await fs.promises.writeFile(path.join(publicDir, "icon-512.png"), symbol512);
-  await fs.promises.writeFile(path.join(publicDir, "icon-192.png"), symbol192);
+  const icon512 = await createLauncherBuffer(512);
+  const icon192 = await createLauncherBuffer(192);
+  const favicon32 = await createLauncherBuffer(32);
+  const favicon48 = await createLauncherBuffer(48);
 
-  const symbolSvg = await fs.promises.readFile(path.join(publicDir, "favicon.svg"), "utf8");
-  await fs.promises.writeFile(path.join(publicDir, "icon-192.svg"), symbolSvg);
-  await fs.promises.writeFile(path.join(publicDir, "icon-512.svg"), symbolSvg);
+  await fs.promises.writeFile(path.join(publicDir, "icon-512.png"), icon512);
+  await fs.promises.writeFile(path.join(publicDir, "icon-192.png"), icon192);
+  await fs.promises.writeFile(path.join(publicDir, "favicon.png"), favicon32);
+  await fs.promises.writeFile(path.join(publicDir, "favicon-48.png"), favicon48);
+
+  const mark = await loadMarkBuffer();
+  const notifMark = await sharp(mark)
+    .resize(96, 96, { fit: "contain", background: { r: 37, g: 99, b: 235, alpha: 1 } })
+    .extend({
+      top: 16,
+      bottom: 16,
+      left: 16,
+      right: 16,
+      background: { r: 37, g: 99, b: 235, alpha: 1 },
+    })
+    .png()
+    .toBuffer();
+  await fs.promises.writeFile(path.join(publicDir, "notification-icon.png"), notifMark);
+  await fs.promises.writeFile(path.join(publicDir, "asvior-mark.png"), mark);
 }
 
 async function writeAndroidColors() {
   const valuesDir = path.join(androidRes, "values");
   await ensureDir(valuesDir);
-  const colorsPath = path.join(valuesDir, "colors.xml");
-  let existing = "";
-  try {
-    existing = await fs.promises.readFile(colorsPath, "utf8");
-  } catch {
-    existing = '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n</resources>\n';
-  }
-
-  if (!existing.includes("splash_background")) {
-    const updated = existing.replace(
-      "</resources>",
-      `    <color name="splash_background">#FAF8F4</color>\n    <color name="colorPrimary">${NAVY}</color>\n    <color name="colorPrimaryDark">${NAVY}</color>\n    <color name="colorAccent">#D4AF37</color>\n</resources>`,
-    );
-    await fs.promises.writeFile(colorsPath, updated);
-  }
-
-  if (!existing.includes("ic_launcher_background")) {
-    const updated = existing.replace(
-      "</resources>",
-      `    <color name="ic_launcher_background">#FAF8F4</color>\n</resources>`,
-    );
-    await fs.promises.writeFile(colorsPath, updated);
-  }
+  const colors = `<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="splash_background">${SPLASH_BG}</color>
+    <color name="colorPrimary">${ROYAL_BLUE}</color>
+    <color name="colorPrimaryDark">${ROYAL_BLUE_DEEP}</color>
+    <color name="colorAccent">${GOLD}</color>
+    <color name="ic_launcher_background">${ROYAL_BLUE}</color>
+</resources>
+`;
+  await fs.promises.writeFile(path.join(valuesDir, "colors.xml"), colors);
 }
 
 async function main() {
-  if (!fs.existsSync(logoPath)) {
-    throw new Error(`Missing logo at ${logoPath}`);
+  if (!fs.existsSync(markSvgPath)) {
+    throw new Error(`Missing icon SVG at ${markSvgPath}`);
   }
 
+  console.log("Generating V6 premium brand assets…");
+  await loadMarkBuffer();
   await writeAndroidColors();
   await writeLauncherIcons();
   await writeSplashAssets();
   await writeWebIcons();
-  console.log("Brand assets generated.");
+  console.log("V6 brand assets generated (royal blue + gold A mark).");
 }
 
 main().catch((error) => {

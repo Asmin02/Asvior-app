@@ -13,11 +13,14 @@ import {
   ExternalLink,
   FileText,
   Plane,
+  Stamp,
+  MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CountryCombobox, type CountryOption } from "@/components/CountryCombobox";
 import { VISA_CODES } from "@/data/visa-data";
 import {
+  flagEmoji,
   getCountryName,
   getVisaRequirement,
   loadSavedPassport,
@@ -30,7 +33,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { recordVisaCheckSuccess } from "@/lib/in-app-review";
 import { toast } from "sonner";
 import { GUEST_STORAGE_SCOPE } from "@/lib/app-session";
-import { PageBadge } from "@/components/PageShell";
+import { PageBadge, PageHeader, PageShell } from "@/components/PageShell";
 
 export const Route = createFileRoute("/visa-check")({
   head: () => ({
@@ -47,36 +50,45 @@ const COUNTRY_OPTIONS: CountryOption[] = VISA_CODES.map((code) => ({
   name: getCountryName(code),
 })).sort((a, b) => a.name.localeCompare(b.name));
 
-const statusMeta: Record<VisaStatus, { tone: string; icon: React.ReactNode; label: string }> = {
+const statusMeta: Record<
+  VisaStatus,
+  { pill: string; icon: React.ReactNode; label: string; tone: string }
+> = {
   "Visa Free": {
-    tone: "gradient-emerald text-white",
-    icon: <ShieldCheck className="h-4 w-4" />,
+    pill: "asv-pill asv-pill--success",
+    icon: <ShieldCheck className="h-3.5 w-3.5" />,
     label: "Visa Free",
+    tone: "var(--asv-success)",
   },
   "Visa on Arrival": {
-    tone: "bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200",
-    icon: <Clock className="h-4 w-4" />,
+    pill: "asv-pill asv-pill--warning",
+    icon: <Clock className="h-3.5 w-3.5" />,
     label: "Visa on Arrival",
+    tone: "var(--asv-warning)",
   },
   ETA: {
-    tone: "bg-primary/10 text-primary",
-    icon: <Globe2 className="h-4 w-4" />,
+    pill: "asv-pill asv-pill--accent",
+    icon: <Globe2 className="h-3.5 w-3.5" />,
     label: "ETA Required",
+    tone: "var(--asv-accent)",
   },
   eVisa: {
-    tone: "gradient-primary text-primary-foreground",
-    icon: <Globe2 className="h-4 w-4" />,
+    pill: "asv-pill asv-pill--accent",
+    icon: <Globe2 className="h-3.5 w-3.5" />,
     label: "eVisa",
+    tone: "var(--asv-accent)",
   },
   "Visa Required": {
-    tone: "bg-destructive/10 text-destructive",
-    icon: <X className="h-4 w-4" />,
+    pill: "asv-pill asv-pill--warning",
+    icon: <X className="h-3.5 w-3.5" />,
     label: "Visa Required",
+    tone: "var(--asv-danger)",
   },
   "No Admission": {
-    tone: "gradient-navy text-white",
-    icon: <X className="h-4 w-4" />,
+    pill: "asv-pill asv-pill--warning",
+    icon: <X className="h-3.5 w-3.5" />,
     label: "No Admission",
+    tone: "var(--asv-danger)",
   },
 };
 
@@ -85,6 +97,13 @@ const LOADING_STEPS = [
   "Reviewing entry rules...",
   "Preparing document checklist...",
   "Finalizing your results...",
+];
+
+const VISA_TIMELINE = [
+  { icon: <ShieldCheck className="h-4 w-4" />, label: "Verify status" },
+  { icon: <FileText className="h-4 w-4" />, label: "Gather documents" },
+  { icon: <Stamp className="h-4 w-4" />, label: "Apply if needed" },
+  { icon: <Plane className="h-4 w-4" />, label: "Travel ready" },
 ];
 
 function VisaCheckPage() {
@@ -149,8 +168,6 @@ function VisaCheckPage() {
       });
     }
     if (r) {
-      // Fire-and-forget: bumps the success counter and, on the 3rd hit while
-      // running under Capacitor Android, opens the Play in-app review sheet.
       recordVisaCheckSuccess().catch(() => undefined);
     }
   };
@@ -178,58 +195,77 @@ function VisaCheckPage() {
   };
 
   return (
-    <div>
-      <header className="border-b border-border bg-card px-4 py-5">
-        <PageBadge icon={<Plane className="h-3.5 w-3.5" />}>199 countries</PageBadge>
-        <h1 className="mt-2 text-2xl font-bold text-foreground">Visa Check</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Instantly see if you need a visa, how long you can stay, and what to bring.
-        </p>
-      </header>
+    <PageShell className="asv-scroll-page" showProfileAvatar>
+      <PageHeader
+        badge={<PageBadge icon={<Plane className="h-3.5 w-3.5" />}>199 countries</PageBadge>}
+        title="Visa Check"
+        subtitle="Instantly see if you need a visa, how long you can stay, and what to bring."
+      />
 
-      <section className="mt-4 px-4">
-        <div className="premium-card space-y-4 rounded-2xl p-5">
-          <div>
-            <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-              Passport
-            </label>
-            <CountryCombobox
-              value={passport}
-              onChange={(v) => {
-                setPassport(v);
-                savePassport(v);
-                setResult(null);
-              }}
-              options={options}
-              placeholder="Search passport country..."
-            />
-          </div>
+      {/* Journey selector */}
+      <section className="asv-page-pad mt-1">
+        <div className="asv-card asv-card-pad">
+          <p className="asv-overline mb-4">Your journey</p>
 
-          <div className="flex justify-center">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <ArrowRight className="h-4 w-4 rotate-90" />
+          <div className="relative flex flex-col gap-0">
+            <div className="absolute left-[22px] top-10 bottom-10 w-0.5 bg-gradient-to-b from-[var(--asv-primary)] via-[var(--asv-accent)] to-[var(--asv-primary-soft)]" />
+
+            <div className="relative flex items-start gap-4 pb-6">
+              <div className="asv-row-icon z-10 shrink-0 !h-11 !w-11">
+                <MapPin className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1 pt-1">
+                <label className="asv-label">Passport country</label>
+                <div className="mt-2">
+                  <CountryCombobox
+                    value={passport}
+                    onChange={(v) => {
+                      setPassport(v);
+                      savePassport(v);
+                      setResult(null);
+                    }}
+                    options={options}
+                    placeholder="Search passport country..."
+                  />
+                </div>
+                {passport && (
+                  <p className="sr-only">
+                    Selected: {getCountryName(passport)}
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-              Destination
-            </label>
-            <CountryCombobox
-              value={destination}
-              onChange={(v) => {
-                setDestination(v);
-                setResult(null);
-              }}
-              options={options}
-              placeholder="Search destination..."
-            />
+            <div className="relative flex items-start gap-4">
+              <div className="asv-row-icon z-10 shrink-0 !h-11 !w-11 !bg-[var(--asv-accent-soft)] !text-[var(--asv-accent)]">
+                <Globe2 className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1 pt-1">
+                <label className="asv-label">Destination</label>
+                <div className="mt-2">
+                  <CountryCombobox
+                    value={destination}
+                    onChange={(v) => {
+                      setDestination(v);
+                      setResult(null);
+                    }}
+                    options={options}
+                    placeholder="Search destination..."
+                  />
+                </div>
+                {destination && (
+                  <p className="sr-only">
+                    Selected: {getCountryName(destination)}
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
 
           <Button
             onClick={handleCheck}
             disabled={!passport || !destination || checking}
-            className="mt-2 h-12 w-full"
+            className="mt-5 h-12 w-full"
           >
             {checking ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -241,125 +277,185 @@ function VisaCheckPage() {
         </div>
       </section>
 
+      {/* Loading timeline */}
       {checking && (
-        <section className="mt-4 px-4 pb-4" aria-live="polite">
-          <div className="premium-card flex items-center gap-4 rounded-2xl p-5">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy text-primary-foreground">
-              <Loader2 className="h-5 w-5 animate-spin" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-foreground">{LOADING_STEPS[loadingStep]}</p>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-                <div
-                  className="h-full rounded-full bg-navy transition-all duration-500 ease-out"
-                  style={{ width: `${((loadingStep + 1) / LOADING_STEPS.length) * 100}%` }}
-                />
+        <section className="asv-page-pad mt-4 pb-2" aria-live="polite">
+          <div className="asv-card asv-card-pad">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--asv-radius-md)] bg-[var(--asv-primary)] text-white">
+                <Loader2 className="h-5 w-5 animate-spin" />
               </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {result && !checking && (
-        <section className="mt-4 px-4 pb-6">
-          <div className="premium-card overflow-hidden rounded-2xl">
-            {/* Status header */}
-            <div className={`${statusMeta[result.status].tone} px-5 py-4`}>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="inline-flex items-center gap-1.5 rounded-full bg-white/25 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm">
-                    {statusMeta[result.status].icon}
-                    {statusMeta[result.status].label}
-                  </div>
-                  <p className="mt-2 text-[13px] font-semibold opacity-95">
-                    {getCountryName(passport)} → {getCountryName(destination)}
-                  </p>
-                </div>
-                <button
-                  onClick={toggleFav}
-                  aria-label={isFav ? "Remove favorite" : "Add favorite"}
-                  className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm transition-transform active:scale-95"
-                >
-                  <Heart className={`h-4 w-4 ${isFav ? "fill-current" : ""}`} />
-                </button>
-              </div>
-            </div>
-
-            {/* Body */}
-            <div className="space-y-4 p-5">
-              <p className="text-sm leading-relaxed text-foreground">{result.explanation}</p>
-
-              <div className="grid grid-cols-2 gap-3">
-                <InfoTile
-                  icon={<Clock className="h-4 w-4" />}
-                  label="Max stay"
-                  value={result.maxStay}
-                />
-                <InfoTile
-                  icon={<Globe2 className="h-4 w-4" />}
-                  label="Processing"
-                  value={result.processingTime}
-                />
-              </div>
-
-              <div className="rounded-2xl bg-muted/60 p-4">
-                <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                  <FileText className="h-3.5 w-3.5" /> Required documents
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-[var(--asv-ink)]">
+                  {LOADING_STEPS[loadingStep]}
                 </p>
-                <ul className="mt-2.5 space-y-1.5">
-                  {result.documents.map((doc) => (
-                    <li key={doc} className="flex items-start gap-2 text-sm text-foreground">
-                      <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald/15 text-emerald">
-                        <Check className="h-3 w-3" strokeWidth={3} />
-                      </span>
-                      {doc}
-                    </li>
-                  ))}
-                </ul>
+                <div className="asv-progress mt-2.5">
+                  <div
+                    className="asv-progress-bar"
+                    style={{ width: `${((loadingStep + 1) / LOADING_STEPS.length) * 100}%` }}
+                  />
+                </div>
               </div>
+            </div>
 
-              <a
-                href={result.officialUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-navy px-4 py-3 text-sm font-semibold text-primary-foreground"
-              >
-                <Globe2 className="h-4 w-4" />
-                Visit official portal
-                <ExternalLink className="h-3.5 w-3.5" />
-              </a>
-
-              <Link
-                to="/country/$code"
-                params={{ code: destination }}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground"
-              >
-                <Compass className="h-4 w-4 text-primary" />
-                Explore {getCountryName(destination)} guide
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-
-              <p className="rounded-2xl bg-muted/60 p-3 text-center text-[10px] leading-relaxed text-muted-foreground">
-                Visa requirements may change at any time. Always verify the latest information with
-                the official embassy, immigration authority or government before making travel
-                arrangements. Source: Passport Index.
-              </p>
+            <div className="mt-5 flex justify-between gap-2">
+              {LOADING_STEPS.map((step, i) => (
+                <div key={step} className="flex flex-1 flex-col items-center gap-1.5">
+                  <div
+                    className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-colors ${
+                      i <= loadingStep
+                        ? "bg-[var(--asv-primary)] text-white"
+                        : "bg-[var(--asv-border)] text-[var(--asv-ink-tertiary)]"
+                    }`}
+                  >
+                    {i < loadingStep ? <Check className="h-3.5 w-3.5" /> : i + 1}
+                  </div>
+                  <span className="hidden text-[9px] font-medium text-[var(--asv-ink-tertiary)] sm:block">
+                    Step {i + 1}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </section>
       )}
-    </div>
-  );
-}
 
-function InfoTile({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return (
-    <div className="rounded-2xl bg-muted/60 p-3">
-      <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-        <span className="text-primary">{icon}</span>
-        {label}
-      </p>
-      <p className="mt-1 text-sm font-semibold text-foreground">{value}</p>
-    </div>
+      {/* Results dashboard */}
+      {result && !checking && (
+        <section className="asv-page-pad mt-4 space-y-4 pb-6 asv-animate-in">
+          {/* Status hero */}
+          <div
+            className="asv-ai-banner p-5"
+            style={{
+              background: `linear-gradient(135deg, ${statusMeta[result.status].tone} 0%, var(--asv-primary) 100%)`,
+            }}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-1 text-xs font-bold text-white">
+                  {statusMeta[result.status].icon}
+                  {statusMeta[result.status].label}
+                </span>
+                <p className="asv-display mt-3 text-xl text-white">
+                  {flagEmoji(passport)} → {flagEmoji(destination)}
+                </p>
+                <p className="mt-1 text-sm text-white/80">
+                  {getCountryName(passport)} to {getCountryName(destination)}
+                </p>
+              </div>
+              <button
+                onClick={toggleFav}
+                aria-label={isFav ? "Remove favorite" : "Add favorite"}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-sm transition-transform active:scale-95"
+              >
+                <Heart className={`h-4 w-4 ${isFav ? "fill-white" : ""}`} />
+              </button>
+            </div>
+          </div>
+
+          {/* Process timeline */}
+          <div className="asv-card asv-card-pad">
+            <p className="asv-overline mb-4">Entry process</p>
+            <div className="relative flex items-start justify-between">
+              <div className="absolute left-[12%] right-[12%] top-5 h-0.5 bg-[var(--asv-border)]" />
+              {VISA_TIMELINE.map((step, i) => (
+                <div key={step.label} className="relative z-10 flex flex-1 flex-col items-center gap-2">
+                  <div
+                    className={`flex h-10 w-10 items-center justify-center rounded-full border-2 border-[var(--asv-surface)] ${
+                      i === 0
+                        ? "bg-[var(--asv-primary-soft)] text-[var(--asv-primary)]"
+                        : "bg-[var(--asv-canvas)] text-[var(--asv-ink-tertiary)]"
+                    }`}
+                  >
+                    {step.icon}
+                  </div>
+                  <span className="max-w-[4.5rem] text-center text-[10px] font-semibold leading-tight text-[var(--asv-ink-secondary)]">
+                    {step.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <p className="px-1 text-sm leading-relaxed text-[var(--asv-ink-secondary)]">
+            {result.explanation}
+          </p>
+
+          {/* Requirement stat cards */}
+          <div className="asv-stat-grid">
+            <div className="asv-stat">
+              <Clock className="mx-auto mb-1 h-4 w-4 text-[var(--asv-primary)]" />
+              <p className="asv-stat-value text-base">{result.maxStay}</p>
+              <p className="asv-stat-label">Max stay</p>
+            </div>
+            <div className="asv-stat">
+              <Globe2 className="mx-auto mb-1 h-4 w-4 text-[var(--asv-accent)]" />
+              <p className="asv-stat-value text-base">{result.processingTime}</p>
+              <p className="asv-stat-label">Processing</p>
+            </div>
+            <div className="asv-stat">
+              <FileText className="mx-auto mb-1 h-4 w-4 text-[var(--asv-success)]" />
+              <p className="asv-stat-value text-base">{result.documents.length}</p>
+              <p className="asv-stat-label">Documents</p>
+            </div>
+          </div>
+
+          {/* Document checklist */}
+          <div className="asv-card asv-card-pad">
+            <div className="flex items-center justify-between">
+              <p className="asv-title flex items-center gap-2">
+                <FileText className="h-4 w-4 text-[var(--asv-primary)]" />
+                Required documents
+              </p>
+              <span className="asv-pill asv-pill--primary">{result.documents.length} items</span>
+            </div>
+            <ul className="mt-4 space-y-2">
+              {result.documents.map((doc, i) => (
+                <li
+                  key={doc}
+                  className="flex items-center gap-3 rounded-[var(--asv-radius-md)] bg-[var(--asv-canvas)] p-3"
+                  style={{ animationDelay: `${i * 60}ms` }}
+                >
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--asv-success-soft)] text-[var(--asv-success)]">
+                    <Check className="h-3.5 w-3.5" strokeWidth={3} />
+                  </span>
+                  <span className="text-sm font-medium text-[var(--asv-ink)]">{doc}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Actions */}
+          <div className="space-y-2.5">
+            <a
+              href={result.officialUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="asv-btn asv-btn-primary w-full"
+            >
+              <Globe2 className="h-4 w-4" />
+              Visit official portal
+              <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+
+            <Link
+              to="/country/$code"
+              params={{ code: destination }}
+              className="asv-btn asv-btn-secondary w-full"
+            >
+              <Compass className="h-4 w-4 text-[var(--asv-primary)]" />
+              Explore {getCountryName(destination)} guide
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+
+          <p className="rounded-[var(--asv-radius-md)] bg-[var(--asv-canvas)] p-3 text-center text-[10px] leading-relaxed text-[var(--asv-ink-tertiary)]">
+            Visa requirements may change at any time. Always verify the latest information with the
+            official embassy, immigration authority or government before making travel arrangements.
+            Source: Passport Index.
+          </p>
+        </section>
+      )}
+    </PageShell>
   );
 }

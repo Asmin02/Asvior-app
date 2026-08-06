@@ -1,15 +1,38 @@
 import type { ReactNode } from "react";
+import { TopBar, ProfileAvatar, AppPageHeader } from "@/components/asvior";
+import { EmptyState, LoadingRows } from "@/components/asvior/EmptyState";
 import { cn } from "@/lib/utils";
 
 export function PageShell({
   children,
   className,
+  showBrandHeader = true,
+  headerLeftAction,
+  headerRightAction,
+  showProfileAvatar = false,
+  profileTo,
 }: {
   children: ReactNode;
   phase?: string;
   className?: string;
+  showBrandHeader?: boolean;
+  headerLeftAction?: ReactNode;
+  headerRightAction?: ReactNode;
+  showProfileAvatar?: boolean;
+  profileTo?: string;
 }) {
-  return <div className={cn("page-header-safe min-h-full bg-background", className)}>{children}</div>;
+  const right =
+    headerRightAction ??
+    (showProfileAvatar ? (
+      <ProfileAvatar to={profileTo ?? "/auth"} variant="solid" />
+    ) : undefined);
+
+  return (
+    <div className={cn("asv-page", className)}>
+      {showBrandHeader && <TopBar left={headerLeftAction} right={right} />}
+      {children}
+    </div>
+  );
 }
 
 export function PageHeader({
@@ -17,25 +40,22 @@ export function PageHeader({
   title,
   subtitle,
   action,
+  overline,
 }: {
   badge?: ReactNode;
   title: string;
   subtitle?: string;
   action?: ReactNode;
+  overline?: ReactNode;
 }) {
   return (
-    <header className="border-b border-border bg-card px-4 py-5">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          {badge}
-          <h1 className="mt-2 text-2xl font-bold tracking-tight text-foreground">{title}</h1>
-          {subtitle && (
-            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{subtitle}</p>
-          )}
-        </div>
-        {action}
-      </div>
-    </header>
+    <AppPageHeader
+      overline={overline}
+      badge={badge}
+      title={title}
+      subtitle={subtitle}
+      action={action}
+    />
   );
 }
 
@@ -48,10 +68,10 @@ export function PageBadge({
   tone?: "champagne" | "primary";
 }) {
   return (
-    <div className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+    <span className="asv-chip asv-chip--active inline-flex">
       {icon}
       {children}
-    </div>
+    </span>
   );
 }
 
@@ -60,30 +80,23 @@ export function EmptyStateCard({
   title,
   description,
   action,
+  illustration,
 }: {
-  icon: ReactNode;
+  icon?: ReactNode;
   title: string;
   description: string;
   action?: ReactNode;
+  illustration?: string;
 }) {
+  void illustration;
   return (
-    <div className="premium-card rounded-2xl p-8 text-center">
-      <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary text-2xl">
-        {icon}
-      </div>
-      <p className="text-sm font-semibold text-foreground">{title}</p>
-      <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{description}</p>
-      {action && <div className="mt-4">{action}</div>}
-    </div>
+    <EmptyState
+      icon={icon ?? <span className="text-2xl">✦</span>}
+      title={title}
+      description={description}
+      action={action}
+    />
   );
 }
 
-export function LoadingSkeleton({ rows = 3 }: { rows?: number }) {
-  return (
-    <div className="space-y-3" aria-hidden>
-      {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="skeleton h-20 rounded-2xl" />
-      ))}
-    </div>
-  );
-}
+export { LoadingRows as LoadingSkeleton };

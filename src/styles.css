@@ -87,7 +87,7 @@
   --card-foreground: var(--asv-ink);
   --popover: var(--asv-surface);
   --popover-foreground: var(--asv-ink);
-  --primary: #6d28d9;
+  --primary: #00a3ff;
   --primary-foreground: #ffffff;
   --secondary: var(--asv-canvas);
   --secondary-foreground: var(--asv-ink);
@@ -125,7 +125,7 @@
   --mist: var(--asv-canvas);
   --fog: var(--asv-border);
 
-  --gradient-primary: linear-gradient(135deg, #6d28d9 0%, #7c3aed 100%);
+  --gradient-primary: linear-gradient(135deg, #00a3ff 0%, #14b8a6 100%);
 }
 
 .dark {

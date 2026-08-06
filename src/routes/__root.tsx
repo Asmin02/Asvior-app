@@ -18,7 +18,7 @@ import {
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
-import { Home, Plane, Sparkles, Wallet, User, Compass } from "lucide-react";
+import { Home, Plane, Sparkles, Wallet, Compass } from "lucide-react";
 
 
 
@@ -152,7 +152,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
 
-      { name: "theme-color", content: "#6D28D9" },
+      { name: "theme-color", content: "#00A3FF" },
 
       { title: "Asvior — Travel, planned beautifully" },
 
@@ -284,61 +284,7 @@ function AppTabBar() {
 
   const pathname = router.state.location.pathname;
 
-  const [signedIn, setSignedIn] = useState(false);
-
   const t = useT();
-
-
-
-  useEffect(() => {
-
-    let cancelled = false;
-
-    const refresh = async () => {
-
-      try {
-
-        const { data } = await supabase.auth.getSession();
-
-        if (!cancelled) setSignedIn(!!data.session?.user);
-
-      } catch {
-
-        if (!cancelled) setSignedIn(false);
-
-      }
-
-    };
-
-    void refresh();
-
-    let unsub = () => {};
-
-    try {
-
-      const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-
-        if (!cancelled) setSignedIn(!!session?.user);
-
-      });
-
-      unsub = () => sub.subscription.unsubscribe();
-
-    } catch {
-
-      setSignedIn(false);
-
-    }
-
-    return () => {
-
-      cancelled = true;
-
-      unsub();
-
-    };
-
-  }, []);
 
 
 
@@ -364,18 +310,6 @@ function AppTabBar() {
         { to: "/visa-check", label: t("nav.visa"), icon: Plane },
 
         { to: "/budget-planner", label: t("nav.budget"), icon: Wallet },
-
-        {
-
-          to: signedIn ? "/profile" : "/auth",
-
-          label: t("nav.profile"),
-
-          icon: User,
-
-          match: (p) => p.startsWith("/profile") || p.startsWith("/auth"),
-
-        },
 
       ]}
 

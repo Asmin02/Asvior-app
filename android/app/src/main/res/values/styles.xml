@@ -16,7 +16,7 @@
         <item name="android:windowFullscreen">false</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:fitsSystemWindows">true</item>
-        <item name="android:statusBarColor">#0B1F3A</item>
+        <item name="android:statusBarColor">#2563EB</item>
     </style>
 
 

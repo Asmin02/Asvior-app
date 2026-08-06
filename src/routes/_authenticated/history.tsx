@@ -1,15 +1,17 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Clock3, Compass, Heart, History, MessageCircle, Trash2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import {
-  EmptyStateCard,
-  LoadingSkeleton,
-  PageBadge,
-  PageHeader,
-  PageShell,
-} from "@/components/PageShell";
+  CheckCircle2,
+  Clock3,
+  Compass,
+  Heart,
+  History,
+  MessageCircle,
+  Trash2,
+} from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { EmptyState, LoadingRows } from "@/components/asvior";
+import { PageBadge, PageHeader, PageShell } from "@/components/PageShell";
 import { loadBookmarks, removeBookmark, type BookmarkedConversation } from "@/components/ai-cards";
 import { buildScopedStorageKey } from "@/lib/app-session";
 import { loadRecentSearches, saveRecentSearches, type RecentSearch } from "@/lib/visa";
@@ -71,6 +73,23 @@ const SCOPED_CHAT_KEY = "vp_ai_chat_v1";
 function toTimestamp(iso: string): number {
   const time = new Date(iso).getTime();
   return Number.isFinite(time) ? time : 0;
+}
+
+function formatGroupDate(ts: number) {
+  const d = new Date(ts);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+  if (d.toDateString() === today.toDateString()) return "Today";
+  if (d.toDateString() === yesterday.toDateString()) return "Yesterday";
+  return d.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+}
+
+function timelineDotClass(kind: HistoryItem["kind"]) {
+  if (kind === "visa" || kind === "recent") return "asv-timeline-dot asv-timeline-dot--visa";
+  if (kind === "trips") return "asv-timeline-dot asv-timeline-dot--trip";
+  if (kind === "favorites") return "asv-timeline-dot asv-timeline-dot--favorite";
+  return "asv-timeline-dot asv-timeline-dot--ai";
 }
 
 function HistoryPage() {
@@ -146,7 +165,7 @@ function HistoryPage() {
       id: row.id,
       kind: "visa",
       createdAt: toTimestamp(row.created_at),
-      title: `${flag(row.passport_code)} ${getCountryName(row.passport_code)} -> ${flag(row.destination_code)} ${getCountryName(row.destination_code)}`,
+      title: `${flag(row.passport_code)} ${getCountryName(row.passport_code)} → ${flag(row.destination_code)} ${getCountryName(row.destination_code)}`,
       subtitle: "Visa check",
       status: row.status,
       destinationCode: row.destination_code,
@@ -179,7 +198,7 @@ function HistoryPage() {
       id: `${row.passport}-${row.destination}-${row.timestamp}`,
       kind: "recent",
       createdAt: row.timestamp,
-      title: `${flag(row.passport)} ${getCountryName(row.passport)} -> ${flag(row.destination)} ${getCountryName(row.destination)}`,
+      title: `${flag(row.passport)} ${getCountryName(row.passport)} → ${flag(row.destination)} ${getCountryName(row.destination)}`,
       subtitle: "Recent local search",
       status: row.status,
       destinationCode: row.destination,
@@ -205,6 +224,17 @@ function HistoryPage() {
     () => (tab === "all" ? allItems : allItems.filter((item) => item.kind === tab)),
     [allItems, tab],
   );
+
+  const groupedItems = useMemo(() => {
+    const groups = new Map<string, HistoryItem[]>();
+    for (const item of visibleItems) {
+      const label = formatGroupDate(item.createdAt);
+      const list = groups.get(label) ?? [];
+      list.push(item);
+      groups.set(label, list);
+    }
+    return Array.from(groups.entries());
+  }, [visibleItems]);
 
   const selectedItems = useMemo(
     () => visibleItems.filter((item) => selected.has(item.key)),
@@ -288,19 +318,15 @@ function HistoryPage() {
   };
 
   return (
-    <PageShell className="pb-6">
+    <PageShell className="app-scroll-page">
       <PageHeader
         badge={<PageBadge icon={<History className="h-3.5 w-3.5" />}>Unified activity</PageBadge>}
         title="Travel History"
         subtitle="Manage all your travel activity in one place."
       />
 
-      <div className="relative mt-5 space-y-2 px-4">
-        <div
-          className="premium-pill grid grid-cols-3 gap-1.5 p-1.5"
-          role="tablist"
-          aria-label="History type"
-        >
+      <div className="asv-page-pad mt-5 space-y-2">
+        <div className="flex flex-wrap gap-2" role="tablist" aria-label="History type">
           {(
             [
               ["all", "All"],
@@ -310,28 +336,21 @@ function HistoryPage() {
           ).map(([value, label]) => (
             <button
               key={value}
+              type="button"
               role="tab"
               aria-selected={tab === value}
               onClick={() => {
                 setTab(value);
                 clearSelection();
               }}
-              className={`rounded-2xl py-2 text-xs font-semibold transition-colors ${
-                tab === value
-                  ? "bg-navy text-primary-foreground shadow-soft"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              className={`asv-chip ${tab === value ? "asv-chip--active" : ""}`}
             >
               {label}
             </button>
           ))}
         </div>
 
-        <div
-          className="premium-pill grid grid-cols-3 gap-1.5 p-1.5"
-          role="tablist"
-          aria-label="History type secondary"
-        >
+        <div className="flex flex-wrap gap-2" role="tablist" aria-label="History type secondary">
           {(
             [
               ["visa", "Visa"],
@@ -341,17 +360,14 @@ function HistoryPage() {
           ).map(([value, label]) => (
             <button
               key={value}
+              type="button"
               role="tab"
               aria-selected={tab === value}
               onClick={() => {
                 setTab(value);
                 clearSelection();
               }}
-              className={`rounded-2xl py-2 text-xs font-semibold transition-colors ${
-                tab === value
-                  ? "bg-navy text-primary-foreground shadow-soft"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              className={`asv-chip ${tab === value ? "asv-chip--active" : ""}`}
             >
               {label}
             </button>
@@ -360,11 +376,10 @@ function HistoryPage() {
       </div>
 
       {!loading && !loadError && visibleItems.length > 0 && (
-        <div className="relative mt-3 flex flex-wrap items-center gap-2 px-4">
-          <Button
-            size="sm"
-            variant="outline"
-            className="rounded-2xl"
+        <div className="asv-page-pad mt-3 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            className="asv-btn asv-btn-secondary asv-btn-sm"
             onClick={() => {
               if (selected.size === visibleItems.length) {
                 clearSelection();
@@ -374,138 +389,151 @@ function HistoryPage() {
             }}
           >
             {selected.size === visibleItems.length ? "Deselect all" : "Select all"}
-          </Button>
-          <Button
-            size="sm"
-            variant="destructive"
-            className="rounded-2xl"
+          </button>
+          <button
+            type="button"
+            className="asv-btn asv-btn-sm bg-[var(--asv-danger)] text-white disabled:opacity-40"
             disabled={selectedItems.length === 0 || processing}
             onClick={() => void deleteItems(selectedItems)}
           >
             Delete selected
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="rounded-2xl"
+          </button>
+          <button
+            type="button"
+            className="asv-btn asv-btn-ghost asv-btn-sm"
             disabled={visibleItems.length === 0 || processing}
             onClick={() => void deleteItems(visibleItems)}
           >
             Clear current tab
-          </Button>
+          </button>
         </div>
       )}
 
-      <div className="relative mt-4 space-y-2.5 px-4">
+      <div className="asv-page-pad mt-4 pb-6">
         {loading ? (
-          <LoadingSkeleton rows={4} />
+          <LoadingRows rows={4} />
         ) : loadError ? (
-          <EmptyStateCard
-            icon="📡"
+          <EmptyState
+            icon={<span className="text-2xl">📡</span>}
             title="Couldn't load your history"
             description="Check your connection and try again."
             action={
-              <Button
-                variant="outline"
-                size="sm"
-                className="rounded-2xl"
+              <button
+                type="button"
+                className="asv-btn asv-btn-secondary asv-btn-sm"
                 onClick={() => {
                   setLoading(true);
                   void load();
                 }}
               >
                 Retry
-              </Button>
+              </button>
             }
           />
         ) : visibleItems.length === 0 ? (
-          <EmptyStateCard
-            icon="✈️"
+          <EmptyState
+            icon={<History className="h-8 w-8" />}
             title="No travel history yet"
             description="Start exploring and your activity will appear here."
             action={
-              <Link
-                to="/"
-                className="inline-flex items-center justify-center rounded-2xl bg-navy px-5 py-2.5 text-xs font-semibold text-primary-foreground shadow-soft"
-              >
+              <Link to="/" className="asv-btn asv-btn-primary">
                 Start Exploring
               </Link>
             }
           />
         ) : (
-          visibleItems.map((item) => {
-            const isSelected = selected.has(item.key);
-            return (
-              <div
-                key={item.key}
-                className="premium-card rounded-2xl p-4"
-              >
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => toggleSelected(item.key)}
-                    aria-label={isSelected ? "Deselect history item" : "Select history item"}
-                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors ${
-                      isSelected
-                        ? "bg-navy text-primary-foreground"
-                        : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    {isSelected ? (
-                      <CheckCircle2 className="h-4 w-4" />
-                    ) : (
-                      <Clock3 className="h-4 w-4" />
-                    )}
-                  </button>
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-secondary text-lg">
-                    {item.kind === "favorites" && <Heart className="h-4 w-4 text-rose-500" />}
-                    {item.kind === "ai" && <MessageCircle className="h-4 w-4 text-primary" />}
-                    {(item.kind === "visa" || item.kind === "recent") && (
-                      <Compass className="h-4 w-4 text-primary" />
-                    )}
-                    {item.kind === "trips" && "🧳"}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold text-foreground">{item.title}</p>
-                    <p className="text-[11px] text-muted-foreground">{item.subtitle}</p>
-                    <p className="text-[10px] font-medium text-muted-foreground">
-                      {new Date(item.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-1">
-                    {item.status && (
-                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
-                        {item.status}
-                      </span>
-                    )}
-                    {item.destinationCode && (
-                      <Link
-                        to="/country/$code"
-                        params={{ code: item.destinationCode }}
-                        className="premium-pill rounded-xl px-2.5 py-1 text-[10px] font-semibold"
-                      >
-                        Open
-                      </Link>
-                    )}
-                    {item.kind === "ai" && (
-                      <button
-                        onClick={() => restoreAiConversation(item)}
-                        className="premium-pill rounded-xl px-2.5 py-1 text-[10px] font-semibold"
-                      >
-                        Open
-                      </button>
-                    )}
-                    <button
-                      onClick={() => void deleteItems([item])}
-                      className="premium-pill flex h-8 w-8 items-center justify-center rounded-xl text-destructive"
-                      aria-label="Delete history item"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
+          <div className="asv-timeline">
+            {groupedItems.map(([dateLabel, items]) => (
+              <div key={dateLabel} className="asv-timeline-group">
+                <p className="asv-timeline-date">{dateLabel}</p>
+                {items.map((item) => {
+                  const isSelected = selected.has(item.key);
+                  return (
+                    <div key={item.key} className="asv-timeline-item">
+                      <span className={timelineDotClass(item.kind)} aria-hidden />
+                      <div className="asv-card asv-card-pad">
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => toggleSelected(item.key)}
+                            aria-label={isSelected ? "Deselect history item" : "Select history item"}
+                            className={`asv-btn asv-btn-icon !min-h-9 !w-9 shrink-0 ${
+                              isSelected
+                                ? "!border-transparent !bg-[var(--asv-primary)] !text-white"
+                                : ""
+                            }`}
+                          >
+                            {isSelected ? (
+                              <CheckCircle2 className="h-4 w-4" />
+                            ) : (
+                              <Clock3 className="h-4 w-4" />
+                            )}
+                          </button>
+                          <div className="asv-tool-icon shrink-0 !bg-[var(--asv-canvas)]">
+                            {item.kind === "favorites" && (
+                              <Heart className="h-4 w-4 text-[var(--asv-coral)]" />
+                            )}
+                            {item.kind === "ai" && (
+                              <MessageCircle className="h-4 w-4 text-[var(--asv-primary)]" />
+                            )}
+                            {(item.kind === "visa" || item.kind === "recent") && (
+                              <Compass className="h-4 w-4 text-[var(--asv-accent)]" />
+                            )}
+                            {item.kind === "trips" && <span className="text-lg">🧳</span>}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-bold text-[var(--asv-ink)]">
+                              {item.title}
+                            </p>
+                            <p className="text-[11px] text-[var(--asv-ink-secondary)]">
+                              {item.subtitle}
+                            </p>
+                            <p className="text-[10px] font-medium text-[var(--asv-ink-tertiary)]">
+                              {new Date(item.createdAt).toLocaleTimeString(undefined, {
+                                hour: "numeric",
+                                minute: "2-digit",
+                              })}
+                            </p>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-1">
+                            {item.status && (
+                              <span className="asv-pill asv-pill--info">{item.status}</span>
+                            )}
+                            {item.destinationCode && (
+                              <Link
+                                to="/country/$code"
+                                params={{ code: item.destinationCode }}
+                                className="asv-chip asv-chip--active !min-h-8 !px-2.5 !py-1 !text-[10px]"
+                              >
+                                Open
+                              </Link>
+                            )}
+                            {item.kind === "ai" && (
+                              <button
+                                type="button"
+                                onClick={() => restoreAiConversation(item)}
+                                className="asv-chip asv-chip--active !min-h-8 !px-2.5 !py-1 !text-[10px]"
+                              >
+                                Open
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => void deleteItems([item])}
+                              className="asv-btn asv-btn-icon !min-h-8 !w-8 text-[var(--asv-coral)]"
+                              aria-label="Delete history item"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })
+            ))}
+          </div>
         )}
       </div>
     </PageShell>

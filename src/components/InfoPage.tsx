@@ -1,14 +1,13 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import type { ReactNode } from "react";
-import { AsviorLogo } from "@/components/AsviorLogo";
+import { TopBar } from "@/components/asvior";
 
 export function InfoPage({
   badge,
   title,
   subtitle,
   children,
-  showLogo = true,
 }: {
   badge: ReactNode;
   title: string;
@@ -17,34 +16,56 @@ export function InfoPage({
   showLogo?: boolean;
 }) {
   return (
-    <div className="pb-8">
-      <header className="border-b border-border bg-card px-4 py-5">
-        <Link
-          to="/settings"
-          aria-label="Back to settings"
-          className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-background text-foreground transition-colors hover:bg-secondary"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Link>
-        {showLogo ? (
-          <AsviorLogo className="mx-auto mb-4 h-24 w-auto max-w-[220px]" showTagline={false} />
-        ) : null}
-        <div className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-muted-foreground">
-          {badge}
+    <div className="asv-page asv-scroll-page">
+      <TopBar
+        left={
+          <Link to="/settings" aria-label="Back to settings" className="asv-btn asv-btn-icon">
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+        }
+      />
+      <header className="asv-page-pad pb-2">
+        <div className="asv-card asv-card-featured asv-card-pad mt-2">
+          <div className="asv-chip asv-chip--active inline-flex !bg-white/15 !text-white">
+            {badge}
+          </div>
+          <h1 className="asv-display mt-4 text-2xl text-white">{title}</h1>
+          <p className="mt-2 text-sm leading-relaxed text-white/80">{subtitle}</p>
         </div>
-        <h1 className="mt-2 text-2xl font-bold tracking-tight text-foreground">{title}</h1>
-        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{subtitle}</p>
       </header>
-      <section className="mt-4 space-y-3 px-4">{children}</section>
+      <section className="asv-page-pad asv-stagger space-y-3 pb-8 pt-4">{children}</section>
     </div>
   );
 }
 
 export function InfoSection({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="premium-card rounded-2xl p-5">
-      <h2 className="text-sm font-semibold text-foreground">{title}</h2>
-      <div className="mt-2 space-y-2 text-sm leading-relaxed text-muted-foreground">{children}</div>
-    </div>
+    <article className="asv-card asv-card-pad">
+      <p className="asv-eyebrow">{title}</p>
+      <div className="asv-subtitle mt-3 space-y-2.5 text-sm leading-relaxed">{children}</div>
+    </article>
+  );
+}
+
+export function InfoLink({
+  href,
+  children,
+  variant = "secondary",
+}: {
+  href: string;
+  children: ReactNode;
+  variant?: "primary" | "secondary";
+}) {
+  return (
+    <a
+      href={href}
+      className={
+        variant === "primary"
+          ? "asv-btn asv-btn-primary inline-flex !min-h-11"
+          : "asv-btn asv-btn-secondary inline-flex !min-h-11"
+      }
+    >
+      {children}
+    </a>
   );
 }

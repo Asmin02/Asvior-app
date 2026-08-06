@@ -1,17 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Globe2, Heart, Plus, Trash2 } from "lucide-react";
+import { Heart, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CountryCombobox, type CountryOption } from "@/components/CountryCombobox";
 import { VISA_CODES } from "@/data/visa-data";
-import { Button } from "@/components/ui/button";
-import {
-  EmptyStateCard,
-  LoadingSkeleton,
-  PageBadge,
-  PageHeader,
-  PageShell,
-} from "@/components/PageShell";
+import { EmptyState, LoadingRows } from "@/components/asvior";
+import { PageBadge, PageHeader, PageShell } from "@/components/PageShell";
+import { getCountryHeroImage } from "@/lib/country-image";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/favorites")({
@@ -97,7 +92,7 @@ function FavoritesPage() {
   };
 
   return (
-    <PageShell className="pb-6">
+    <PageShell className="app-scroll-page">
       <PageHeader
         badge={
           <PageBadge icon={<Heart className="h-3.5 w-3.5" />}>
@@ -108,11 +103,9 @@ function FavoritesPage() {
         subtitle="Quick-access list of countries you love."
       />
 
-      <section className="relative mt-6 px-4">
-        <div className="premium-card rounded-2xl p-5">
-          <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-            Add a country
-          </label>
+      <section className="asv-page-pad mt-6">
+        <div className="asv-card asv-card-pad">
+          <p className="asv-eyebrow mb-3">Add destination</p>
           <div className="flex gap-2">
             <div className="flex-1">
               <CountryCombobox
@@ -122,61 +115,77 @@ function FavoritesPage() {
                 placeholder="Search country..."
               />
             </div>
-            <Button onClick={add} disabled={!adding} size="icon" aria-label="Add favorite">
-              <Plus className="h-4 w-4" />
-            </Button>
+            <button
+              type="button"
+              onClick={add}
+              disabled={!adding}
+              className="asv-btn asv-btn-primary asv-btn-icon !min-h-[52px] !w-[52px] disabled:opacity-40"
+              aria-label="Add favorite"
+            >
+              <Plus className="h-5 w-5" />
+            </button>
           </div>
         </div>
       </section>
 
-      <section className="relative mt-5 px-4">
+      <section className="asv-page-pad mt-5 pb-6">
         {loading ? (
-          <LoadingSkeleton rows={4} />
+          <div className="grid grid-cols-2 gap-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="asv-skeleton aspect-[3/4] rounded-[var(--asv-radius-xl)]" />
+            ))}
+          </div>
         ) : loadError ? (
-          <EmptyStateCard
-            icon="📡"
+          <EmptyState
+            icon={<span className="text-2xl">📡</span>}
             title="Couldn't load your favorites"
             description="Check your connection and try again."
             action={
-              <Button
-                variant="outline"
-                size="sm"
-                className="rounded-2xl"
+              <button
+                type="button"
+                className="asv-btn asv-btn-secondary asv-btn-sm"
                 onClick={() => {
                   setLoading(true);
                   load();
                 }}
               >
                 Retry
-              </Button>
+              </button>
             }
           />
         ) : favs.length === 0 ? (
-          <EmptyStateCard
-            icon={<Globe2 className="h-7 w-7 text-navy" />}
+          <EmptyState
+            icon={<Heart className="h-8 w-8" />}
             title="No favorites yet"
             description="Start planning your first adventure — add a dream destination above."
           />
         ) : (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="asv-stagger grid grid-cols-2 gap-3">
             {favs.map((code) => (
-              <div
-                key={code}
-                className="premium-card group relative overflow-hidden rounded-2xl p-4 text-center"
-              >
-                <Link to="/country/$code" params={{ code }} className="block">
-                  <div className="text-4xl drop-shadow">{flag(code)}</div>
-                  <p className="mt-2 truncate text-sm font-bold text-foreground">
-                    {getCountryName(code)}
-                  </p>
+              <div key={code} className="group relative">
+                <Link
+                  to="/country/$code"
+                  params={{ code }}
+                  className="asv-dest-card asv-card-interactive block"
+                >
+                  <img
+                    src={getCountryHeroImage(code)}
+                    alt={getCountryName(code)}
+                    loading="lazy"
+                  />
+                  <div className="asv-dest-card-overlay" />
+                  <div className="asv-dest-card-body">
+                    <div className="text-3xl drop-shadow">{flag(code)}</div>
+                    <p className="asv-dest-card-title mt-1 truncate">{getCountryName(code)}</p>
+                  </div>
                 </Link>
                 <button
+                  type="button"
                   onClick={() => remove(code)}
-                  className="mt-3 inline-flex items-center gap-1 rounded-full bg-destructive/10 px-3 py-1 text-[10px] font-semibold text-destructive transition-colors hover:bg-destructive/15"
+                  className="asv-btn asv-btn-ghost absolute right-2 top-2 !min-h-8 !rounded-full !bg-black/40 !px-2.5 !text-[10px] !text-white backdrop-blur-sm"
                   aria-label={`Remove ${getCountryName(code)} from favorites`}
                 >
                   <Trash2 className="h-3 w-3" />
-                  Remove
                 </button>
               </div>
             ))}

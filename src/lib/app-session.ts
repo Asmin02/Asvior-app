@@ -101,6 +101,14 @@ export function resetGuestAppearance(): void {
     language: guestPreferences.language,
   });
   cacheAppearancePreferences(guestPreferences);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent("asvior:language-change", { detail: { language: guestPreferences.language } }),
+    );
+    window.dispatchEvent(
+      new CustomEvent("asvior:currency-change", { detail: { currency: guestPreferences.currency } }),
+    );
+  }
 }
 
 export function clearSignedOutLocalState(userScopeToClear?: string): void {

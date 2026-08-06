@@ -84,28 +84,23 @@ export function hasAnyCardFence(markdown: string): boolean {
 
 // ---------- Visa Summary Card ----------
 export function VisaSummaryCard({ data }: { data: VisaCardData }) {
-  const statusColor = data.required
-    ? "from-amber-500/20 to-orange-500/10 text-amber-700 dark:text-amber-300 ring-amber-500/30"
-    : "from-emerald-500/20 to-teal-500/10 text-emerald-700 dark:text-emerald-300 ring-emerald-500/30";
+  const statusVariant = data.required ? "asv-pill--warning" : "asv-pill--success";
 
   return (
-    <div className="premium-card overflow-hidden rounded-[1.5rem] animate-bubble-in">
-      <div className="flex items-center gap-2 border-b border-champagne/12 bg-gradient-to-r from-primary/10 to-champagne/8 px-4 py-2.5">
+    <div className="asv-card overflow-hidden animate-bubble-in">
+      <div className="flex items-center gap-2 border-b border-[var(--asv-border)] bg-[var(--asv-primary-soft)] px-4 py-3">
         <span className="text-lg">🛂</span>
-        <h3 className="text-sm font-semibold tracking-tight">Visa Summary</h3>
+        <h3 className="asv-title text-sm">Visa Summary</h3>
         {data.passport && data.destination && (
-          <span className="ml-auto text-[10px] font-medium text-muted-foreground">
+          <span className="ml-auto text-[10px] font-semibold text-[var(--asv-ink-tertiary)]">
             {data.passport} → {data.destination}
           </span>
         )}
       </div>
       <div className="space-y-3 p-4">
-        <div
-          className={`inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r px-3 py-1 text-xs font-semibold ring-1 ${statusColor}`}
-        >
-          <span className="h-1.5 w-1.5 rounded-full bg-current" />
+        <span className={`asv-pill ${statusVariant}`}>
           {data.status || (data.required ? "Visa Required" : "Visa Free")}
-        </div>
+        </span>
 
         <div className="grid grid-cols-2 gap-2">
           <InfoTile icon="⏱️" label="Max stay" value={data.maxStay} />
@@ -115,7 +110,7 @@ export function VisaSummaryCard({ data }: { data: VisaCardData }) {
         </div>
 
         {data.notes && (
-          <p className="rounded-lg bg-muted/50 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
+          <p className="rounded-[var(--asv-radius-md)] bg-[var(--asv-canvas)] px-3 py-2 text-xs leading-relaxed text-[var(--asv-ink-secondary)]">
             {data.notes}
           </p>
         )}
@@ -125,7 +120,7 @@ export function VisaSummaryCard({ data }: { data: VisaCardData }) {
             href={data.officialUrl}
             target="_blank"
             rel="noreferrer noopener"
-            className="flex items-center justify-center gap-2 rounded-2xl premium-button px-4 py-2.5 text-xs font-semibold shadow-float transition-transform active:scale-[0.98]"
+            className="asv-btn asv-btn-primary flex w-full !min-h-10 !text-xs"
           >
             <svg
               className="h-3.5 w-3.5"
@@ -150,11 +145,11 @@ export function VisaSummaryCard({ data }: { data: VisaCardData }) {
 
 function InfoTile({ icon, label, value }: { icon: string; label: string; value?: string }) {
   return (
-    <div className="rounded-xl border border-border/60 bg-background/40 p-2.5">
-      <div className="flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+    <div className="asv-stat !px-2 !py-2.5 text-left">
+      <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[var(--asv-ink-tertiary)]">
         <span>{icon}</span> {label}
       </div>
-      <div className="mt-0.5 text-sm font-semibold text-foreground">{value || "—"}</div>
+      <div className="asv-stat-value mt-0.5 !text-sm">{value || "—"}</div>
     </div>
   );
 }
@@ -207,37 +202,33 @@ export function DocChecklistCard({ data }: { data: DocChecklistData }) {
   const pct = total ? Math.round((done / total) * 100) : 0;
 
   return (
-    <div className="premium-card overflow-hidden rounded-[1.5rem] animate-bubble-in">
-      <div className="flex items-center gap-2 border-b border-champagne/12 bg-gradient-to-r from-emerald/10 to-champagne/8 px-4 py-2.5">
+    <div className="asv-card overflow-hidden animate-bubble-in">
+      <div className="flex items-center gap-2 border-b border-[var(--asv-border)] bg-[var(--asv-success-soft)] px-4 py-3">
         <span className="text-lg">📄</span>
-        <h3 className="text-sm font-semibold tracking-tight">
-          {data.title || "Document Checklist"}
-        </h3>
-        <span className="ml-auto text-[10px] font-medium text-muted-foreground">
+        <h3 className="asv-title text-sm">{data.title || "Document Checklist"}</h3>
+        <span className="ml-auto text-[10px] font-bold text-[var(--asv-ink-tertiary)]">
           {done}/{total}
         </span>
       </div>
       <div className="p-4">
-        <div className="mb-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-          <div
-            className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500"
-            style={{ width: `${pct}%` }}
-          />
+        <div className="asv-progress mb-3">
+          <div className="asv-progress-bar" style={{ width: `${pct}%` }} />
         </div>
-        <ul className="space-y-1.5">
+        <ul className="space-y-1">
           {data.items.map((item, i) => {
             const isOn = checked.has(item);
             return (
               <li key={i}>
                 <button
+                  type="button"
                   onClick={() => toggle(item)}
-                  className="flex w-full items-start gap-2.5 rounded-lg p-2 text-left transition-colors hover:bg-accent/60"
+                  className="flex w-full items-start gap-2.5 rounded-[var(--asv-radius-sm)] p-2 text-left transition-colors hover:bg-[var(--asv-canvas)]"
                 >
                   <span
                     className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 transition-colors ${
                       isOn
-                        ? "border-emerald-500 bg-emerald-500 text-white"
-                        : "border-muted-foreground/40"
+                        ? "border-[var(--asv-success)] bg-[var(--asv-success)] text-white"
+                        : "border-[var(--asv-border-strong)]"
                     }`}
                   >
                     {isOn && (
@@ -253,7 +244,9 @@ export function DocChecklistCard({ data }: { data: DocChecklistData }) {
                     )}
                   </span>
                   <span
-                    className={`text-xs leading-relaxed ${isOn ? "text-muted-foreground line-through" : ""}`}
+                    className={`text-xs leading-relaxed ${
+                      isOn ? "text-[var(--asv-ink-tertiary)] line-through" : "text-[var(--asv-ink)]"
+                    }`}
                   >
                     {item}
                   </span>
@@ -289,24 +282,25 @@ export function BudgetCard({ data }: { data: BudgetCardData }) {
     }
   };
 
-  const tiers: { key: keyof BudgetCardData["tiers"]; label: string; icon: string; grad: string }[] =
+  const tiers: { key: keyof BudgetCardData["tiers"]; label: string; icon: string; pill: string }[] =
     [
-      { key: "budget", label: "Budget", icon: "🎒", grad: "from-emerald-500/20 to-teal-500/10" },
-      { key: "standard", label: "Standard", icon: "🏨", grad: "from-sky-500/20 to-blue-500/10" },
-      { key: "luxury", label: "Luxury", icon: "✨", grad: "from-amber-500/20 to-orange-500/10" },
+      { key: "budget", label: "Budget", icon: "🎒", pill: "asv-pill--success" },
+      { key: "standard", label: "Standard", icon: "🏨", pill: "asv-pill--info" },
+      { key: "luxury", label: "Luxury", icon: "✨", pill: "asv-pill--warning" },
     ];
 
   return (
-    <div className="premium-card overflow-hidden rounded-[1.5rem] animate-bubble-in">
-      <div className="flex items-center gap-2 border-b border-champagne/12 bg-gradient-to-r from-primary/10 to-champagne/8 px-4 py-2.5">
+    <div className="asv-card overflow-hidden animate-bubble-in">
+      <div className="flex items-center gap-2 border-b border-[var(--asv-border)] bg-[var(--asv-primary-soft)] px-4 py-3">
         <span className="text-lg">💰</span>
-        <h3 className="text-sm font-semibold tracking-tight">
+        <h3 className="asv-title text-sm">
           Daily Budget {data.destination ? `· ${data.destination}` : ""}
         </h3>
         {local !== base && (
           <button
+            type="button"
             onClick={() => setShowBase((s) => !s)}
-            className="ml-auto rounded-full bg-background/70 px-2 py-0.5 text-[10px] font-semibold ring-1 ring-border hover:bg-accent"
+            className="asv-chip asv-chip--active ml-auto !py-0.5 !text-[10px]"
           >
             {showBase ? base : local}
           </button>
@@ -316,19 +310,24 @@ export function BudgetCard({ data }: { data: BudgetCardData }) {
         {tiers.map((t) => (
           <div
             key={t.label}
-            className={`flex items-center justify-between rounded-xl bg-gradient-to-r ${t.grad} px-3 py-2.5 ring-1 ring-border/60`}
+            className="flex items-center justify-between rounded-[var(--asv-radius-md)] border border-[var(--asv-border)] bg-[var(--asv-canvas)] px-3 py-2.5"
           >
             <div className="flex items-center gap-2">
               <span className="text-lg">{t.icon}</span>
               <div>
-                <div className="text-xs font-semibold">{t.label}</div>
-                <div className="text-[10px] text-muted-foreground">per person · day</div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-[var(--asv-ink)]">{t.label}</span>
+                  <span className={`asv-pill ${t.pill} !py-0`}>day</span>
+                </div>
+                <div className="text-[10px] text-[var(--asv-ink-tertiary)]">per person</div>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-sm font-bold tracking-tight">{fmt(data.tiers[t.key])}</div>
+              <div className="text-sm font-bold tracking-tight text-[var(--asv-ink)]">
+                {fmt(data.tiers[t.key])}
+              </div>
               {local !== base && data.tiers[t.key] != null && (
-                <div className="text-[10px] text-muted-foreground">
+                <div className="text-[10px] text-[var(--asv-ink-tertiary)]">
                   ≈{" "}
                   {showBase
                     ? new Intl.NumberFormat(undefined, {
@@ -347,7 +346,7 @@ export function BudgetCard({ data }: { data: BudgetCardData }) {
           </div>
         ))}
         {data.notes && (
-          <p className="rounded-lg bg-muted/50 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
+          <p className="rounded-[var(--asv-radius-md)] bg-[var(--asv-canvas)] px-3 py-2 text-[11px] leading-relaxed text-[var(--asv-ink-secondary)]">
             {data.notes}
           </p>
         )}
@@ -366,16 +365,15 @@ export function SuggestedQuestions({
 }) {
   if (!data.questions?.length) return null;
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-1 duration-300">
-      <p className="mb-1.5 px-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-        Suggested follow-ups
-      </p>
+    <div className="animate-bubble-in">
+      <p className="asv-eyebrow mb-2 px-1">Suggested follow-ups</p>
       <div className="flex flex-wrap gap-1.5">
         {data.questions.slice(0, 5).map((q, i) => (
           <button
             key={i}
+            type="button"
             onClick={() => onPick(q)}
-            className="premium-pill rounded-full px-3 py-1.5 text-[11px] font-medium text-primary transition-colors hover:bg-primary/10"
+            className="asv-chip asv-chip--active !text-[11px]"
           >
             {q}
           </button>
@@ -389,10 +387,9 @@ export function SuggestedQuestions({
 export function PremiumSkeleton() {
   return (
     <div className="flex gap-2 animate-bubble-in">
-      <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl gradient-primary text-primary-foreground shadow-float">
-        <span className="absolute inset-0 -z-10 rounded-2xl gradient-primary opacity-60 blur-md animate-thinking-pulse" />
+      <div className="asv-tool-icon shrink-0 !h-9 !w-9">
         <svg
-          className="h-4 w-4"
+          className="h-4 w-4 animate-thinking-pulse"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -406,20 +403,20 @@ export function PremiumSkeleton() {
         </svg>
       </div>
       <div className="flex-1">
-        <div className="glass inline-flex items-center gap-2.5 rounded-2xl rounded-tl-md px-4 py-3">
+        <div className="asv-card asv-card-pad inline-flex items-center gap-2.5 !py-3">
           <span className="inline-flex items-end gap-1">
             <span className="typing-dot" />
             <span className="typing-dot" style={{ animationDelay: "0.15s" }} />
             <span className="typing-dot" style={{ animationDelay: "0.3s" }} />
           </span>
-          <span className="bg-gradient-to-r from-primary via-royal-deep to-emerald bg-[length:200%_100%] bg-clip-text text-xs font-semibold text-transparent animate-gradient-shift">
+          <span className="text-xs font-semibold text-[var(--asv-primary)]">
             Asvior AI is thinking…
           </span>
         </div>
         <div className="mt-2 space-y-2">
-          <div className="skeleton h-2.5 w-11/12" />
-          <div className="skeleton h-2.5 w-8/12" />
-          <div className="skeleton h-2.5 w-6/12" />
+          <div className="asv-skeleton h-2.5 w-11/12 rounded-full" />
+          <div className="asv-skeleton h-2.5 w-8/12 rounded-full" />
+          <div className="asv-skeleton h-2.5 w-6/12 rounded-full" />
         </div>
       </div>
     </div>
@@ -476,11 +473,10 @@ export function RatingBar({ messageId }: { messageId: string }) {
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center gap-1">
         <button
+          type="button"
           onClick={() => rate(1)}
-          className={`flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] transition-colors ${
-            rating === 1
-              ? "bg-emerald-500/20 text-emerald-600"
-              : "text-muted-foreground hover:bg-accent"
+          className={`asv-btn asv-btn-ghost !min-h-7 !px-2 !py-1 !text-[10px] ${
+            rating === 1 ? "!bg-[var(--asv-success-soft)] !text-[var(--asv-success)]" : ""
           }`}
           aria-label="Good response"
         >
@@ -499,9 +495,10 @@ export function RatingBar({ messageId }: { messageId: string }) {
           </svg>
         </button>
         <button
+          type="button"
           onClick={() => rate(-1)}
-          className={`flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] transition-colors ${
-            rating === -1 ? "bg-rose-500/20 text-rose-600" : "text-muted-foreground hover:bg-accent"
+          className={`asv-btn asv-btn-ghost !min-h-7 !px-2 !py-1 !text-[10px] ${
+            rating === -1 ? "!bg-[var(--asv-danger-soft)] !text-[var(--asv-danger)]" : ""
           }`}
           aria-label="Bad response"
         >
@@ -526,11 +523,12 @@ export function RatingBar({ messageId }: { messageId: string }) {
             value={feedback}
             onChange={(e) => setFeedback(e.target.value)}
             placeholder="What went wrong? (optional)"
-            className="flex-1 rounded-md border border-border bg-background px-2 py-1 text-[11px] focus:outline-none focus:ring-1 focus:ring-primary"
+            className="asv-input !min-h-8 flex-1 !py-1 !text-[11px]"
           />
           <button
+            type="button"
             onClick={submitFeedback}
-            className="rounded-md bg-primary px-2 py-1 text-[11px] font-semibold text-primary-foreground"
+            className="asv-btn asv-btn-primary !min-h-8 !px-3 !text-[11px]"
           >
             Send
           </button>
@@ -591,8 +589,8 @@ export function removeBookmark(id: string, scope = GUEST_STORAGE_SCOPE) {
 // ---------- Error retry ----------
 export function ErrorRetry({ message, onRetry }: { message?: string; onRetry: () => void }) {
   return (
-    <div className="flex gap-2 animate-in fade-in slide-in-from-bottom-1 duration-200">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-rose-500/20 text-rose-600">
+    <div className="flex gap-2 animate-bubble-in">
+      <div className="asv-tool-icon shrink-0 !bg-[var(--asv-danger-soft)] !text-[var(--asv-danger)] !h-8 !w-8">
         <svg
           className="h-4 w-4"
           viewBox="0 0 24 24"
@@ -607,16 +605,15 @@ export function ErrorRetry({ message, onRetry }: { message?: string; onRetry: ()
           />
         </svg>
       </div>
-      <div className="flex-1 rounded-2xl rounded-tl-md border border-rose-500/30 bg-rose-500/5 p-3.5 backdrop-blur-xl">
-        <p className="text-xs font-semibold text-rose-700 dark:text-rose-300">
-          Couldn't reach Asvior AI
-        </p>
-        <p className="mt-0.5 text-[11px] text-muted-foreground">
+      <div className="asv-card asv-card-pad flex-1 !border-[var(--asv-danger)]/20 !bg-[var(--asv-danger-soft)]">
+        <p className="text-xs font-semibold text-[var(--asv-danger)]">Couldn't reach Asvior AI</p>
+        <p className="mt-0.5 text-[11px] text-[var(--asv-ink-secondary)]">
           {message || "Network or service hiccup. Your question is safe — give it another try."}
         </p>
         <button
+          type="button"
           onClick={onRetry}
-          className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-rose-500 px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm transition-transform active:scale-95"
+          className="asv-btn asv-btn-sm mt-2 bg-[var(--asv-danger)] text-white"
         >
           <svg
             className="h-3 w-3"

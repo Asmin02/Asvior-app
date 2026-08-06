@@ -55,28 +55,28 @@ export async function installNativeShell(router: NavigableRouter | undefined): P
 
     await StatusBar.setOverlaysWebView({ overlay: false }).catch(() => undefined);
     await StatusBar.show().catch(() => undefined);
-    await StatusBar.setStyle({ style: Style.Dark }).catch(() => undefined);
-    await StatusBar.setBackgroundColor({ color: "#0B1F3A" }).catch(() => undefined);
+    await StatusBar.setStyle({ style: Style.Light }).catch(() => undefined);
+    await StatusBar.setBackgroundColor({ color: "#6D28D9" }).catch(() => undefined);
 
     document.documentElement.classList.add("cap-native");
     const platform = Capacitor.getPlatform();
     if (platform === "android") {
       document.documentElement.classList.add("platform-android");
-      document.documentElement.style.setProperty("--app-safe-top", "36px");
+      document.documentElement.style.setProperty("--app-safe-top", "44px");
     } else if (platform === "ios") {
       document.documentElement.classList.add("platform-ios");
     }
 
     const applyViewportInset = () => {
       const top = Math.round(window.visualViewport?.offsetTop ?? 0);
-      if (top > 0) {
-        document.documentElement.style.setProperty("--app-safe-top", `${top}px`);
-      }
+      const minTop = platform === "android" ? 44 : 47;
+      const next = Math.max(top, minTop);
+      document.documentElement.style.setProperty("--app-safe-top", `${next}px`);
     };
     applyViewportInset();
     window.visualViewport?.addEventListener("resize", applyViewportInset);
 
-    await SplashScreen.hide().catch(() => undefined);
+    await SplashScreen.hide({ fadeOutDuration: 350 }).catch(() => undefined);
 
     App.addListener("appUrlOpen", (event) => {
       try {

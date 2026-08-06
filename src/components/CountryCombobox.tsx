@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { ChevronDown, Search } from "lucide-react";
 import { computeComboboxViewport } from "@/lib/combobox-viewport";
 
 export interface CountryOption {
@@ -143,20 +144,22 @@ export function CountryCombobox({
           setOpen((o) => !o);
           requestAnimationFrame(() => updateMenuPlacement());
         }}
-        className="premium-card flex min-h-12 w-full items-center justify-between rounded-xl px-4 py-3 text-left text-sm font-medium text-foreground outline-none transition-colors focus-visible:ring-2 focus-visible:ring-navy/20"
+        className="asv-input-wrap w-full cursor-pointer text-left outline-none"
+        aria-expanded={open}
+        aria-haspopup="listbox"
       >
-        <span className={selected ? "text-foreground" : "text-muted-foreground"}>
+        <span
+          className={`min-w-0 flex-1 truncate text-sm ${
+            selected ? "font-medium text-[var(--asv-ink)]" : "text-[var(--asv-ink-tertiary)]"
+          }`}
+        >
           {selected ? `${flagEmoji(selected.code)} ${selected.name}` : placeholder}
         </span>
-        <svg
-          className="h-4 w-4 text-muted-foreground"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={2}
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-        </svg>
+        <ChevronDown
+          className={`h-4 w-4 shrink-0 text-[var(--asv-ink-tertiary)] transition-transform ${
+            open ? "rotate-180" : ""
+          }`}
+        />
       </button>
 
       {open &&
@@ -166,18 +169,22 @@ export function CountryCombobox({
             ref={menuRef}
             data-country-combobox-menu
             style={menuStyle}
-            className="premium-card z-[70] flex flex-col overflow-hidden rounded-xl border border-border bg-card text-popover-foreground shadow-float"
+            className="asv-card z-[70] flex flex-col overflow-hidden shadow-[var(--asv-shadow-lg)]"
           >
-            <div className="shrink-0 border-b border-border p-2">
-              <input
-                ref={inputRef}
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Type to search..."
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-navy/20"
-              />
+            <div className="shrink-0 border-b border-[var(--asv-border)] p-2">
+              <div className="asv-input-wrap !min-h-11 !shadow-none">
+                <Search className="h-4 w-4 shrink-0 text-[var(--asv-ink-tertiary)]" />
+                <input
+                  ref={inputRef}
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Type to search..."
+                  className="asv-input !min-h-0 !border-0 !p-0 !shadow-none focus:!shadow-none"
+                />
+              </div>
             </div>
             <ul
+              role="listbox"
               className="min-h-0 flex-1 overflow-y-auto py-1"
               style={{
                 WebkitOverflowScrolling: "touch",
@@ -186,10 +193,12 @@ export function CountryCombobox({
               }}
             >
               {filtered.length === 0 && (
-                <li className="px-3 py-2 text-sm text-muted-foreground">No country found</li>
+                <li className="px-4 py-3 text-sm text-[var(--asv-ink-tertiary)]">
+                  No country found
+                </li>
               )}
               {filtered.map((opt) => (
-                <li key={opt.code}>
+                <li key={opt.code} role="option" aria-selected={value === opt.code}>
                   <button
                     type="button"
                     onClick={() => {
@@ -200,28 +209,18 @@ export function CountryCombobox({
                         document.activeElement.blur();
                       }
                     }}
-                    className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm transition-colors hover:bg-accent ${
-                      value === opt.code ? "bg-accent/60 font-medium" : ""
+                    className={`flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition-colors ${
+                      value === opt.code
+                        ? "bg-[var(--asv-primary-soft)] font-semibold text-[var(--asv-primary)]"
+                        : "text-[var(--asv-ink)] hover:bg-[var(--asv-canvas)]"
                     }`}
                   >
-                    <span className="flex items-center gap-2">
+                    <span className="flex items-center gap-2.5">
                       <span className="text-base leading-none">{flagEmoji(opt.code)}</span>
                       <span>{opt.name}</span>
                     </span>
                     {value === opt.code && (
-                      <svg
-                        className="h-4 w-4 text-primary"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={2.5}
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M4.5 12.75l6 6 9-13.5"
-                        />
-                      </svg>
+                      <span className="asv-pill asv-pill--primary !py-0.5 text-[10px]">Selected</span>
                     )}
                   </button>
                 </li>
