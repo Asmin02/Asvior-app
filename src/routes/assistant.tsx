@@ -389,12 +389,16 @@ function AssistantPage() {
 
   return (
     <div className="relative flex h-[calc(100dvh-env(safe-area-inset-top,0px)-calc(4.5rem+env(safe-area-inset-bottom,0px)))] max-h-[calc(100dvh-env(safe-area-inset-top,0px)-calc(4.5rem+env(safe-area-inset-bottom,0px)))] flex-col overflow-hidden bg-background">
-      <header className="sticky top-0 z-20 border-b border-border bg-card px-4 py-3">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 z-0 h-72 bg-[radial-gradient(70%_100%_at_50%_0%,color-mix(in_oklab,var(--primary)_14%,transparent),transparent)]"
+      />
+      <header className="sticky top-0 z-20 border-b border-border/50 bg-card/80 px-4 py-3 backdrop-blur-xl">
         <div className="flex items-center gap-2">
           <Link
             to="/"
             aria-label="Back to home"
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-background"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-border/60 bg-background/70 backdrop-blur-md transition-transform active:scale-95"
           >
             <svg
               className="h-4 w-4"
@@ -407,17 +411,21 @@ function AssistantPage() {
             </svg>
           </Link>
           <div className="flex min-w-0 flex-1 items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-navy">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl grad-ink elev-2">
               <AsviorMark className="h-6 w-6" />
             </div>
             <div className="min-w-0">
-              <h1 className="truncate text-base font-semibold text-foreground">AI Concierge</h1>
-              <p className="truncate text-xs text-muted-foreground">Premium travel assistant</p>
+              <h1 className="truncate text-base font-semibold tracking-[-0.01em] text-foreground">
+                Asvior AI
+              </h1>
+              <p className="truncate text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+                Premium travel concierge
+              </p>
             </div>
           </div>
           <button
             onClick={() => setShowBookmarks(true)}
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-background"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-border/60 bg-background/70 backdrop-blur-md transition-transform active:scale-95"
             aria-label="Bookmarks"
           >
             <svg
@@ -438,13 +446,13 @@ function AssistantPage() {
             <>
               <button
                 onClick={bookmarkConversation}
-                className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium"
+                className="rounded-full border border-border/60 bg-background/70 px-3 py-1.5 text-xs font-semibold text-foreground transition-transform active:scale-95"
               >
                 Save
               </button>
               <button
                 onClick={clearChat}
-                className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium"
+                className="rounded-full border border-border/60 bg-background/70 px-3 py-1.5 text-xs font-semibold text-foreground transition-transform active:scale-95"
               >
                 New
               </button>
@@ -488,11 +496,11 @@ function AssistantPage() {
       )}
 
       <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-1/2 z-30 w-full max-w-md -translate-x-1/2 px-3">
-        <div className="premium-card rounded-2xl p-2">
+        <div className="rounded-3xl border border-border/50 bg-card/80 p-2 elev-4 backdrop-blur-xl">
           <div className="flex items-end gap-2">
             <button
               onClick={handleVoice}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary text-navy"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-secondary text-navy transition-transform active:scale-95"
               aria-label="Voice input"
             >
               <svg
@@ -526,7 +534,7 @@ function AssistantPage() {
             {isLoading ? (
               <button
                 onClick={() => stop()}
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-destructive text-destructive-foreground"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-destructive text-destructive-foreground transition-transform active:scale-95"
                 aria-label="Stop"
               >
                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
@@ -537,7 +545,7 @@ function AssistantPage() {
               <button
                 onClick={() => handleSend(input)}
                 disabled={!input.trim()}
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-navy text-primary-foreground disabled:opacity-40"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl grad-ink text-primary-foreground transition-transform active:scale-95 disabled:opacity-40"
                 aria-label="Send"
               >
                 <svg
