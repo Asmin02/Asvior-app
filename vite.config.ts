@@ -15,20 +15,19 @@ const env = loadEnv("", process.cwd(), "");
 const FALLBACK_BACKEND_URL = "https://rxhthyqirdafhkymztvb.supabase.co";
 const FALLBACK_BACKEND_PUBLISHABLE_KEY = "sb_publishable_bsLdMMaUPVeFtOqL-qbg6w_1i8A3y4I";
 
+const backendUrl = env.VITE_SUPABASE_URL || env.SUPABASE_URL || FALLBACK_BACKEND_URL;
+const backendPublishableKey =
+  env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  env.SUPABASE_PUBLISHABLE_KEY ||
+  FALLBACK_BACKEND_PUBLISHABLE_KEY;
 
-const backendUrl = env.VITE_SUPABASE_URL || env.SUPABASE_URL;
-const backendPublishableKey = env.VITE_SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_PUBLISHABLE_KEY;
+const backendDefines: Record<string, string> = {
+  "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(backendUrl),
+  "process.env.SUPABASE_URL": JSON.stringify(backendUrl),
+  "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(backendPublishableKey),
+  "process.env.SUPABASE_PUBLISHABLE_KEY": JSON.stringify(backendPublishableKey),
+};
 
-const backendDefines: Record<string, string> = {};
-if (backendUrl) {
-  backendDefines["import.meta.env.VITE_SUPABASE_URL"] = JSON.stringify(backendUrl);
-  backendDefines["process.env.SUPABASE_URL"] = JSON.stringify(backendUrl);
-}
-if (backendPublishableKey) {
-  backendDefines["import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY"] =
-    JSON.stringify(backendPublishableKey);
-  backendDefines["process.env.SUPABASE_PUBLISHABLE_KEY"] = JSON.stringify(backendPublishableKey);
-}
 
 export default defineConfig({
   // Point TanStack Start at src/server.ts (our SSR error wrapper).
