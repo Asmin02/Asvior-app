@@ -30,7 +30,7 @@ export function PageHeader({
   action?: ReactNode;
 }) {
   return (
-    <header className="relative overflow-hidden px-5 pb-8 pt-8">
+    <header className="relative overflow-hidden px-5 pb-8 pt-[calc(env(safe-area-inset-top,0px)+2rem)]">
       {/* soft sky wash */}
       <div
         aria-hidden

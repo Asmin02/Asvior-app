@@ -3,6 +3,7 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import { BadgeCheck, FileText, Landmark, ListChecks, Globe2, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AsviorMark } from "@/components/AsviorMark";
@@ -45,34 +46,34 @@ const STORAGE_KEY = "vp_ai_chat_v1";
 const QUICK_ACTIONS = [
   {
     label: "Check Visa",
-    icon: "🛂",
+    icon: BadgeCheck,
     prompt: "Help me check if I need a visa. Ask me my passport country and destination.",
   },
   {
     label: "Required Documents",
-    icon: "📄",
+    icon: FileText,
     prompt:
       "What documents do I typically need for an international trip? Walk me through a checklist.",
   },
   {
     label: "Travel Checklist",
-    icon: "✅",
+    icon: ListChecks,
     prompt: "Build me a smart pre-departure travel checklist.",
   },
   {
     label: "Budget Planner",
-    icon: "💰",
+    icon: Wallet,
     prompt:
       "Help me estimate a realistic travel budget. Ask me destination, duration, and travel style.",
   },
   {
     label: "Embassy Finder",
-    icon: "🏛️",
+    icon: Landmark,
     prompt: "How do I find the nearest embassy or consulate for a country I'm visiting?",
   },
   {
     label: "Travel Tips",
-    icon: "🌍",
+    icon: Globe2,
     prompt: "Give me your top 10 smart travel tips for international travelers.",
   },
 ];
@@ -388,7 +389,7 @@ function AssistantPage() {
   const lastIsUserOrSubmitted = status === "submitted";
 
   return (
-    <div className="relative flex h-[calc(100dvh-env(safe-area-inset-top,0px)-calc(4.5rem+env(safe-area-inset-bottom,0px)))] max-h-[calc(100dvh-env(safe-area-inset-top,0px)-calc(4.5rem+env(safe-area-inset-bottom,0px)))] flex-col overflow-hidden bg-background">
+    <div className="relative flex h-[calc(100dvh-6rem-env(safe-area-inset-bottom,0px))] flex-col overflow-hidden bg-background">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 z-0 h-72 bg-[radial-gradient(70%_100%_at_50%_0%,color-mix(in_oklab,var(--primary)_14%,transparent),transparent)]"
@@ -461,7 +462,7 @@ function AssistantPage() {
         </div>
       </header>
 
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-4 pb-40 pt-5">
+      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-5">
         {isEmpty ? (
           <EmptyState onPick={(p) => handleSend(p)} />
         ) : (
@@ -495,7 +496,7 @@ function AssistantPage() {
         />
       )}
 
-      <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-1/2 z-30 w-full max-w-md -translate-x-1/2 px-3">
+      <div className="relative z-30 shrink-0 px-3 pb-2">
         <div className="rounded-3xl border border-border/50 bg-card/80 p-2 elev-4 backdrop-blur-xl">
           <div className="flex items-end gap-2">
             <button
@@ -594,17 +595,22 @@ function EmptyState({ onPick }: { onPick: (prompt: string) => void }) {
 
       <p className="mb-2 text-eyebrow text-muted-foreground">Quick actions</p>
       <div className="grid grid-cols-2 gap-2.5">
-        {QUICK_ACTIONS.map((a, i) => (
-          <button
-            key={a.label}
-            onClick={() => onPick(a.prompt)}
-            style={{ animationDelay: `${i * 40}ms` }}
-            className="premium-card flex animate-fade-in items-center gap-2.5 rounded-2xl p-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
-          >
-            <span className="text-lg">{a.icon}</span>
-            <span className="text-xs font-semibold leading-tight text-foreground">{a.label}</span>
-          </button>
-        ))}
+        {QUICK_ACTIONS.map((a, i) => {
+          const Icon = a.icon;
+          return (
+            <button
+              key={a.label}
+              onClick={() => onPick(a.prompt)}
+              style={{ animationDelay: `${i * 40}ms` }}
+              className="premium-card flex animate-fade-in items-center gap-2.5 rounded-2xl p-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
+            >
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Icon className="h-4 w-4" strokeWidth={1.9} />
+              </span>
+              <span className="text-xs font-semibold leading-tight text-foreground">{a.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       <p className="mb-2 mt-6 text-eyebrow text-muted-foreground">Try asking</p>

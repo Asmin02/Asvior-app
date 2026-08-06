@@ -30,7 +30,8 @@ import {
 } from "@/components/ui/carousel";
 import { AsviorMark } from "@/components/AsviorMark";
 import { supabase } from "@/integrations/supabase/client";
-import { getCountryName, flagEmoji, loadRecentSearches, type RecentSearch } from "@/lib/visa";
+import { getCountryName, loadRecentSearches, type RecentSearch } from "@/lib/visa";
+import { CountryFlag } from "@/components/CountryFlag";
 import { loadBookmarks } from "@/components/ai-cards";
 import { GUEST_STORAGE_SCOPE } from "@/lib/app-session";
 import {
@@ -132,14 +133,14 @@ function buildContinueActivity(
     const toName = getCountryName(latestSearch.destination);
     candidates.push({
       kind: "visa",
-      title: `${flagEmoji(latestSearch.destination)} ${toName} visa route`,
+      title: `${toName} visa route`,
       subtitle: `${latestSearch.status} for ${getCountryName(latestSearch.passport)} passport`,
       timestamp: latestSearch.timestamp + 2,
       icon: <Plane className="h-4.5 w-4.5" />,
     });
     candidates.push({
       kind: "country",
-      title: `${flagEmoji(latestSearch.destination)} ${toName} country guide`,
+      title: `${toName} country guide`,
       subtitle: "Continue from your last viewed destination",
       timestamp: latestSearch.timestamp + 1,
       code: latestSearch.destination,
@@ -252,9 +253,7 @@ function VisaUpdateCard({ item }: { item: HomeVisaUpdate; delay?: number }) {
       className="premium-card block rounded-2xl p-4 transition-colors hover:bg-secondary/30"
     >
       <div className="flex items-start gap-3">
-        <span className="text-xl" aria-hidden>
-          {flagEmoji(item.countryCode)}
-        </span>
+        <CountryFlag code={item.countryCode} size="sm" />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-foreground">{item.title}</p>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{item.summary}</p>
@@ -566,7 +565,7 @@ function HomePage() {
                   params={{ code: r.destination }}
                   className="premium-card flex items-center gap-3 rounded-2xl p-3 transition-colors hover:bg-secondary/30"
                 >
-                  <span className="text-lg">{flagEmoji(r.destination)}</span>
+                  <CountryFlag code={r.destination} size="sm" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-foreground">
                       {getCountryName(r.destination)}
@@ -625,9 +624,10 @@ function HomePage() {
                         className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-navy/70 to-transparent" />
-                      <p className="absolute bottom-2 left-2 text-sm font-semibold text-white">
-                        {flagEmoji(d.code)} {d.name}
-                      </p>
+                      <div className="absolute inset-x-2 bottom-2 flex items-center gap-2">
+                        <CountryFlag code={d.code} size="sm" className="ring-white/40" />
+                        <p className="truncate text-sm font-semibold text-white">{d.name}</p>
+                      </div>
                     </div>
                     <p className="px-3 py-2 text-xs text-muted-foreground">{d.tagline}</p>
                   </Link>
@@ -659,9 +659,10 @@ function HomePage() {
                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-navy/60 to-transparent" />
-                  <p className="absolute bottom-2 left-2 truncate text-xs font-semibold text-white">
-                    {flagEmoji(destination.code)} {destination.name}
-                  </p>
+                  <div className="absolute inset-x-2 bottom-2 flex items-center gap-1.5">
+                    <CountryFlag code={destination.code} size="sm" className="ring-white/40" />
+                    <p className="truncate text-xs font-semibold text-white">{destination.name}</p>
+                  </div>
                 </div>
               </Link>
             ))}

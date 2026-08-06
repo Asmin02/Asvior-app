@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { CountryFlag } from "@/components/CountryFlag";
 import { useEffect, useState } from "react";
-import { Globe2, Heart, Plus, Trash2 } from "lucide-react";
+import { Globe2, Heart, Plus, Trash2, WifiOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CountryCombobox, type CountryOption } from "@/components/CountryCombobox";
 import { VISA_CODES } from "@/data/visa-data";
@@ -25,11 +26,6 @@ function getCountryName(code: string) {
   } catch {
     return code;
   }
-}
-
-function flag(code: string) {
-  if (code.length !== 2) return "";
-  return String.fromCodePoint(...[...code.toUpperCase()].map((c) => 0x1f1a5 + c.charCodeAt(0)));
 }
 
 const OPTIONS: CountryOption[] = VISA_CODES.map((c) => ({ code: c, name: getCountryName(c) })).sort(
@@ -134,7 +130,7 @@ function FavoritesPage() {
           <LoadingSkeleton rows={4} />
         ) : loadError ? (
           <EmptyStateCard
-            icon="📡"
+            icon={<WifiOff className="h-6 w-6 text-muted-foreground" />}
             title="Couldn't load your favorites"
             description="Check your connection and try again."
             action={
@@ -170,7 +166,9 @@ function FavoritesPage() {
                   className="pointer-events-none absolute -right-6 -top-8 h-20 w-20 rounded-full bg-primary/8 blur-2xl"
                 />
                 <Link to="/country/$code" params={{ code }} className="relative block">
-                  <div className="text-4xl drop-shadow-sm">{flag(code)}</div>
+                  <div className="flex justify-center">
+                    <CountryFlag code={code} size="lg" rounded="rounded-xl" />
+                  </div>
                   <p className="mt-2 truncate text-sm font-semibold tracking-[-0.01em] text-foreground">
                     {getCountryName(code)}
                   </p>

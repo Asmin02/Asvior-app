@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, Compass, Search, Sparkles, TrendingUp } from "lucide-react";
 import { VISA_CODES } from "@/data/visa-data";
-import { getCountryName, flagEmoji } from "@/lib/visa";
+import { getCountryName } from "@/lib/visa";
+import { CountryFlag } from "@/components/CountryFlag";
 import { PageBadge, PageHeader, PageShell } from "@/components/PageShell";
 import { COUNTRY_PROFILES } from "@/data/country-profiles";
 import { REGION_META, REGION_ORDER, type Region } from "@/data/regions";
@@ -125,9 +126,7 @@ function CountriesPage() {
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/25 to-transparent" />
                   <div className="absolute inset-x-0 top-3 flex justify-end px-3">
-                    <span className="rounded-full border border-white/25 bg-white/15 px-2 py-0.5 text-2xs font-bold text-white backdrop-blur-md">
-                      {flagEmoji(code)}
-                    </span>
+                    <CountryFlag code={code} size="sm" className="ring-white/40" />
                   </div>
                   <div className="absolute inset-x-0 bottom-0 p-3.5">
                     <p className="text-[13px] font-bold leading-tight text-white">
@@ -171,9 +170,7 @@ function CountriesPage() {
                     i !== 0 ? "border-t border-border/60" : ""
                   }`}
                 >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-secondary/60 text-xl">
-                    {flagEmoji(c.code)}
-                  </span>
+                  <CountryFlag code={c.code} size="md" rounded="rounded-xl" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-foreground">{c.name}</p>
                     <p className="truncate text-xs text-muted-foreground">

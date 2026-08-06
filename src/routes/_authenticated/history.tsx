@@ -1,6 +1,17 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Clock3, Compass, Heart, History, MessageCircle, Trash2 } from "lucide-react";
+import {
+  CheckCircle2,
+  Clock3,
+  Compass,
+  Heart,
+  History,
+  Luggage,
+  MessageCircle,
+  Plane,
+  Trash2,
+  WifiOff,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,10 +37,6 @@ function getCountryName(code: string) {
   } catch {
     return code;
   }
-}
-function flag(code: string) {
-  if (code.length !== 2) return "";
-  return String.fromCodePoint(...[...code.toUpperCase()].map((c) => 0x1f1a5 + c.charCodeAt(0)));
 }
 
 interface HistoryRow {
@@ -156,7 +163,7 @@ function HistoryPage() {
       id: row.id,
       kind: "visa",
       createdAt: toTimestamp(row.created_at),
-      title: `${flag(row.passport_code)} ${getCountryName(row.passport_code)} -> ${flag(row.destination_code)} ${getCountryName(row.destination_code)}`,
+      title: `${getCountryName(row.passport_code)} → ${getCountryName(row.destination_code)}`,
       subtitle: "Visa check",
       status: row.status,
       destinationCode: row.destination_code,
@@ -168,9 +175,7 @@ function HistoryPage() {
       kind: "trips",
       createdAt: toTimestamp(row.created_at),
       title: row.name,
-      subtitle: row.destination_code
-        ? `${flag(row.destination_code)} ${getCountryName(row.destination_code)}`
-        : "Saved trip",
+      subtitle: row.destination_code ? `${getCountryName(row.destination_code)}` : "Saved trip",
       destinationCode: row.destination_code || undefined,
     }));
 
@@ -179,7 +184,7 @@ function HistoryPage() {
       id: row.id,
       kind: "favorites",
       createdAt: toTimestamp(row.created_at),
-      title: `${flag(row.country_code)} ${getCountryName(row.country_code)}`,
+      title: `${getCountryName(row.country_code)}`,
       subtitle: "Saved country",
       destinationCode: row.country_code,
     }));
@@ -189,7 +194,7 @@ function HistoryPage() {
       id: `${row.passport}-${row.destination}-${row.timestamp}`,
       kind: "recent",
       createdAt: row.timestamp,
-      title: `${flag(row.passport)} ${getCountryName(row.passport)} -> ${flag(row.destination)} ${getCountryName(row.destination)}`,
+      title: `${getCountryName(row.passport)} → ${getCountryName(row.destination)}`,
       subtitle: "Recent local search",
       status: row.status,
       destinationCode: row.destination,
@@ -411,7 +416,7 @@ function HistoryPage() {
           <LoadingSkeleton rows={4} />
         ) : loadError ? (
           <EmptyStateCard
-            icon="📡"
+            icon={<WifiOff className="h-6 w-6 text-muted-foreground" />}
             title="Couldn't load your history"
             description="Check your connection and try again."
             action={
@@ -430,7 +435,7 @@ function HistoryPage() {
           />
         ) : visibleItems.length === 0 ? (
           <EmptyStateCard
-            icon="✈️"
+            icon={<Plane className="h-6 w-6 text-primary" />}
             title="No travel history yet"
             description="Start exploring and your activity will appear here."
             action={
@@ -473,7 +478,7 @@ function HistoryPage() {
                     {(item.kind === "visa" || item.kind === "recent") && (
                       <Compass className="h-4 w-4 text-primary" />
                     )}
-                    {item.kind === "trips" && "🧳"}
+                    {item.kind === "trips" && <Luggage className="h-4 w-4 text-primary" />}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-bold text-foreground">{item.title}</p>

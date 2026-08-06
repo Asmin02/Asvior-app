@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { CountryFlag } from "@/components/CountryFlag";
 import { useEffect, useState } from "react";
-import { Luggage, MapPin, Pencil, Trash2 } from "lucide-react";
+import { Luggage, MapPin, Pencil, Trash2, WifiOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,11 +26,6 @@ function getCountryName(code: string | null) {
   } catch {
     return code;
   }
-}
-
-function flag(code: string | null) {
-  if (!code || code.length !== 2) return "";
-  return String.fromCodePoint(...[...code.toUpperCase()].map((c) => 0x1f1a5 + c.charCodeAt(0)));
 }
 
 interface Trip {
@@ -129,7 +125,7 @@ function TripsPage() {
           <LoadingSkeleton rows={3} />
         ) : loadError ? (
           <EmptyStateCard
-            icon="📡"
+            icon={<WifiOff className="h-6 w-6 text-muted-foreground" />}
             title="Couldn't load your trips"
             description="Check your connection and try again."
             action={
@@ -210,10 +206,10 @@ function TripsPage() {
                         </p>
                       </div>
                       <p className="mt-2.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <span className="text-sm">{flag(t.passport_code)}</span>
+                        <CountryFlag code={t.passport_code} size="sm" rounded="rounded" />
                         {getCountryName(t.passport_code)}
                         <span className="text-primary">→</span>
-                        <span className="text-sm">{flag(t.destination_code)}</span>
+                        <CountryFlag code={t.destination_code} size="sm" rounded="rounded" />
                         {getCountryName(t.destination_code)}
                       </p>
                       {(t.start_date || t.end_date) && (

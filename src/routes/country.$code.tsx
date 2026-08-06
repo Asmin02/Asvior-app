@@ -1,8 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { CountryFlag } from "@/components/CountryFlag";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import type { LucideIcon } from "lucide-react";
 import {
   ArrowLeft,
+  Backpack,
+  Crown,
+  Luggage,
   BadgeDollarSign,
   Banknote,
   CalendarDays,
@@ -27,7 +32,6 @@ import {
 import { CountryCombobox, type CountryOption } from "@/components/CountryCombobox";
 import { VISA_CODES } from "@/data/visa-data";
 import {
-  flagEmoji,
   getCountryName,
   getVisaRequirement,
   loadSavedPassport,
@@ -162,7 +166,7 @@ function CountryHubPage() {
   return (
     <div className="relative overflow-x-hidden pb-6">
       {/* ============ HERO ============ */}
-      <section className="relative h-[420px] overflow-hidden rounded-b-[2.25rem]">
+      <section className="relative min-h-[26rem] overflow-hidden rounded-b-[2.25rem]">
         <img
           src={regionMeta.image}
           alt={`${name} travel scenery`}
@@ -192,8 +196,13 @@ function CountryHubPage() {
           </button>
         </div>
 
-        <div className="absolute inset-x-0 bottom-0 px-4 pb-5 animate-fade-in">
-          <span className="text-5xl drop-shadow-lg">{flagEmoji(code)}</span>
+        <div className="absolute inset-x-0 bottom-0 animate-fade-in px-4 pb-12">
+          <CountryFlag
+            code={code}
+            size="xl"
+            rounded="rounded-xl"
+            className="shadow-[0_10px_28px_-12px_rgba(0,0,0,0.7)] ring-white/40"
+          />
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <h1 className="text-3xl font-semibold tracking-[-0.03em] text-white">{name}</h1>
             {visa && (
@@ -321,21 +330,21 @@ function CountryHubPage() {
           </div>
           <div className="mt-4 space-y-2.5">
             <CostRow
-              emoji="🎒"
+              icon={Backpack}
               label="Budget"
               daily={profile.cost.budget}
               days={days}
               tone="bg-emerald/12 text-emerald"
             />
             <CostRow
-              emoji="🧳"
+              icon={Luggage}
               label="Standard"
               daily={profile.cost.standard}
               days={days}
               tone="bg-primary/10 text-primary"
             />
             <CostRow
-              emoji="👑"
+              icon={Crown}
               label="Luxury"
               daily={profile.cost.luxury}
               days={days}
@@ -522,13 +531,13 @@ function InfoCard({ icon, label, value }: { icon: React.ReactNode; label: string
 }
 
 function CostRow({
-  emoji,
+  icon: Icon,
   label,
   daily,
   days,
   tone,
 }: {
-  emoji: string;
+  icon: LucideIcon;
   label: string;
   daily: number;
   days: number;
@@ -536,10 +545,8 @@ function CostRow({
 }) {
   return (
     <div className="flex items-center gap-3 rounded-2xl bg-muted/60 p-3">
-      <div
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-lg ${tone}`}
-      >
-        {emoji}
+      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${tone}`}>
+        <Icon className="h-4.5 w-4.5" strokeWidth={1.9} />
       </div>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-bold text-foreground">{label}</p>
