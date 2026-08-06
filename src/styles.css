@@ -1739,6 +1739,123 @@
 
 
 /* =========================================================
+   V9 MOTION QUALITY LAYER
+   Scroll smoothness, image crossfade, tap feedback, nav life.
+   Transform/opacity only — nothing here triggers layout.
+   ========================================================= */
+
+@keyframes breathe {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -1.5px, 0) scale(1.045);
+  }
+}
+
+@keyframes msg-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes dot-pop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.35);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Native-feeling momentum scrolling for any scroll container. */
+@utility scroll-fluid {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Horizontal rails: snap without fighting the finger. */
+@utility rail-snap {
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: 1.25rem;
+  & > * {
+    scroll-snap-align: start;
+  }
+}
+
+/* Images crossfade in instead of popping; wrapper reserves the box. */
+@utility img-fade {
+  opacity: 0;
+  transform: scale(1.015);
+  transition:
+    opacity 620ms var(--ease-out-expo),
+    transform 900ms var(--ease-out-expo);
+  &[data-loaded="true"] {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Subtle, continuous life for the center AI action. */
+@utility breathe {
+  animation: breathe 4.6s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Chat bubbles / progressive suggestions. */
+@utility animate-msg-in {
+  animation: msg-in 460ms var(--ease-out-expo) both;
+}
+
+@utility animate-dot-pop {
+  animation: dot-pop 320ms var(--ease-spring) both;
+}
+
+/* Nav icon: springy pop when a tab becomes active. */
+@utility nav-icon {
+  transition:
+    transform 420ms var(--ease-spring),
+    color 260ms var(--ease-standard);
+  will-change: transform;
+  &[data-active="true"] {
+    transform: translate3d(0, -1.5px, 0) scale(1.12);
+  }
+}
+
+/* Universal tap feedback that never feels harsh. */
+@utility tap {
+  transition: transform 240ms var(--ease-spring);
+  will-change: transform;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+/* Long lists: let the browser skip offscreen paint work. */
+@utility list-optimize {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 220px;
+}
+
+/* =========================================================
    REDUCED MOTION
    ========================================================= */
 @media (prefers-reduced-motion: reduce) {
@@ -1750,4 +1867,17 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+
+  .reveal,
+  [class*="reveal"] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .img-fade,
+  [class*="img-fade"] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
+
