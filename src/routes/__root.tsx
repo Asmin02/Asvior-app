@@ -225,9 +225,9 @@ function MobileNav() {
   return (
     <nav
       aria-label="Main navigation"
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2"
+      className="fixed inset-x-0 bottom-0 z-50 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
     >
-      <div className="mx-auto flex max-w-md items-center justify-around px-2">
+      <div className="mx-auto flex max-w-md items-center justify-between gap-1 rounded-full border border-border/50 bg-card/80 p-1.5 shadow-[0_18px_40px_-18px_color-mix(in_oklab,var(--primary)_45%,transparent)] backdrop-blur-2xl">
         {navItems.map((item) => {
           const isActive = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
           const Icon = item.icon;
@@ -236,14 +236,16 @@ function MobileNav() {
               key={item.to}
               to={item.to}
               aria-current={isActive ? "page" : undefined}
-              className="flex min-h-12 min-w-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 rounded-lg py-1 transition-colors"
+              className={`relative flex min-h-12 flex-1 flex-col items-center justify-center gap-0.5 rounded-full py-1.5 transition-all duration-300 active:scale-95 ${
+                isActive ? "bg-primary/10" : ""
+              }`}
             >
               <Icon
-                className={`h-5 w-5 ${isActive ? "text-navy" : "text-muted-foreground"}`}
-                strokeWidth={isActive ? 2.25 : 2}
+                className={`h-5 w-5 transition-colors ${isActive ? "text-primary" : "text-muted-foreground"}`}
+                strokeWidth={isActive ? 2.25 : 1.9}
               />
               <span
-                className={`text-[10px] font-semibold ${isActive ? "text-navy" : "text-muted-foreground"}`}
+                className={`text-[9.5px] font-semibold tracking-tight transition-colors ${isActive ? "text-primary" : "text-muted-foreground"}`}
               >
                 {item.label}
               </span>
@@ -253,6 +255,7 @@ function MobileNav() {
       </div>
     </nav>
   );
+
 }
 
 function RootComponent() {

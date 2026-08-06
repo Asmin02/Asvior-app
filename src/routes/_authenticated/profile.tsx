@@ -242,55 +242,66 @@ function ProfilePage() {
             <button
               data-testid="profile-header-signout-btn"
               onClick={signOut}
-              className="premium-card flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold text-foreground"
+              className="premium-card flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[11px] font-semibold text-foreground transition-transform active:scale-95"
             >
               <LogOut className="h-3 w-3" /> Sign out
             </button>
           }
         />
 
-        <div className="px-4 pt-4">
-          <div className="premium-card flex items-center gap-4 rounded-2xl p-4">
-            <button
-              data-testid="profile-avatar-btn"
-              onClick={() => fileRef.current?.click()}
-              aria-label="Change profile photo"
-              className="group relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl ring-2 ring-border"
-            >
-              {avatarSrc ? (
-                <img src={avatarSrc} alt="" className="h-full w-full object-cover" />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-secondary text-2xl font-bold text-navy">
-                  {(profile.full_name || profile.email || "?").charAt(0).toUpperCase()}
-                </div>
-              )}
-              <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
-                <Camera className="h-5 w-5 text-white" />
-              </div>
-            </button>
-            <input
-              data-testid="profile-avatar-input"
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) uploadAvatar(f);
-              }}
+        <div className="animate-fade-in px-4 pt-4">
+          <div className="premium-card relative overflow-hidden rounded-3xl p-5">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-primary/10 blur-3xl"
             />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-lg font-bold text-foreground">
-                {profile.full_name || "Add your name"}
-              </p>
-              <p className="mt-0.5 truncate text-xs text-muted-foreground">{profile.email}</p>
-              {uploading && <p className="mt-1 text-[10px] text-muted-foreground">Uploading…</p>}
+            <div className="relative flex items-center gap-4">
+              <button
+                data-testid="profile-avatar-btn"
+                onClick={() => fileRef.current?.click()}
+                aria-label="Change profile photo"
+                className="group relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl ring-2 ring-border/70 transition-transform active:scale-95"
+              >
+                {avatarSrc ? (
+                  <img src={avatarSrc} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/15 to-primary/5 text-2xl font-semibold text-navy">
+                    {(profile.full_name || profile.email || "?").charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="absolute inset-0 flex items-center justify-center bg-ink/50 opacity-0 transition-opacity group-hover:opacity-100">
+                  <Camera className="h-5 w-5 text-background" />
+                </div>
+              </button>
+              <input
+                data-testid="profile-avatar-input"
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) uploadAvatar(f);
+                }}
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-lg font-semibold tracking-[-0.01em] text-foreground">
+                  {profile.full_name || "Add your name"}
+                </p>
+                <p className="mt-0.5 truncate text-xs text-muted-foreground">{profile.email}</p>
+                <p className="mt-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">
+                  Member of Asvior
+                </p>
+                {uploading && (
+                  <p className="mt-1 text-[10px] text-muted-foreground">Uploading…</p>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="mt-4 px-4">
-          <div className="premium-card grid grid-cols-3 gap-2 rounded-2xl p-2">
+        <div className="mt-4 animate-fade-in px-4" style={{ animationDelay: "60ms" }}>
+          <div className="premium-card grid grid-cols-3 gap-2 rounded-3xl p-2">
             <QuickLink
               to="/trips"
               icon={<Luggage className="h-5 w-5" />}
@@ -320,8 +331,11 @@ function ProfilePage() {
         )}
 
         <div className="mt-5 space-y-3 px-4">
-          <div className="premium-card rounded-2xl p-5">
-            <p className="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+          <div
+            className="premium-card animate-fade-in rounded-3xl p-5"
+            style={{ animationDelay: "100ms" }}
+          >
+            <p className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               <BookUser className="h-3.5 w-3.5 text-navy" /> Account
             </p>
             <Field label="Full name">
@@ -344,8 +358,11 @@ function ProfilePage() {
             </div>
           </div>
 
-          <div className="premium-card space-y-3 rounded-2xl p-5">
-            <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+          <div
+            className="premium-card animate-fade-in space-y-3 rounded-3xl p-5"
+            style={{ animationDelay: "160ms" }}
+          >
+            <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               <BookUser className="h-3.5 w-3.5 text-emerald" /> Passport
             </p>
             <Field label="Nationality">
@@ -388,7 +405,7 @@ function ProfilePage() {
             data-testid="profile-save-btn"
             onClick={save}
             disabled={busy}
-            className="h-12 w-full rounded-2xl text-sm font-semibold"
+            className="h-12 w-full rounded-2xl text-sm font-semibold active:scale-[0.98]"
           >
             {busy ? "Saving…" : "Save profile"}
           </Button>
@@ -396,7 +413,7 @@ function ProfilePage() {
           <Link
             data-testid="profile-settings-link"
             to="/settings"
-            className="premium-card flex items-center justify-between rounded-2xl p-4 text-sm font-semibold text-foreground"
+            className="premium-card flex items-center justify-between rounded-2xl p-4 text-sm font-semibold text-foreground transition-transform active:scale-[0.98]"
           >
             <span className="flex items-center gap-2">
               <SettingsIcon className="h-4 w-4 text-navy" /> Settings & notifications
@@ -444,12 +461,12 @@ function QuickLink({
     <Link
       to={to as never}
       data-testid={testId}
-      className="flex flex-col items-center gap-1.5 rounded-2xl p-3 transition-colors hover:bg-secondary/60"
+      className="flex flex-col items-center gap-1.5 rounded-2xl p-3 transition-all hover:bg-secondary/60 active:scale-95"
     >
-      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-navy text-primary-foreground">
+      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-navy text-primary-foreground shadow-soft">
         {icon}
       </div>
-      <span className="text-[11px] font-bold text-foreground">{label}</span>
+      <span className="text-[11px] font-semibold text-foreground">{label}</span>
     </Link>
   );
 }

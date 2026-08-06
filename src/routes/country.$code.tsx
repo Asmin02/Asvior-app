@@ -232,7 +232,7 @@ function CountryHubPage() {
       {/* ============ VISA INFORMATION ============ */}
       {visa && (
         <Section title="Visa information" icon={<ShieldCheck className="h-4 w-4" />}>
-          <div className="premium-card overflow-hidden rounded-2xl">
+          <div className="premium-card overflow-hidden rounded-3xl">
             <div className={`px-5 py-4 ${statusTone[visa.status]}`}>
               <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest">
                 {statusIcon[visa.status]}
@@ -300,11 +300,9 @@ function CountryHubPage() {
 
       {/* ============ TRAVEL COST ============ */}
       <Section title="Travel cost" icon={<Banknote className="h-4 w-4" />}>
-        <div className="premium-card rounded-2xl p-5">
+        <div className="premium-card rounded-3xl p-5">
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-              Trip length
-            </p>
+            <p className="text-eyebrow text-muted-foreground">Trip length</p>
             <div className="flex gap-1.5">
               {[3, 7, 14].map((d) => (
                 <button
@@ -388,7 +386,7 @@ function CountryHubPage() {
           {profile.attractions.map((a, i) => (
             <div
               key={a.name}
-              className="relative h-48 w-40 shrink-0 overflow-hidden rounded-2xl border border-border shadow-soft"
+              className="relative h-48 w-40 shrink-0 overflow-hidden rounded-3xl elev-2"
             >
               <img
                 src={regionMeta.image}
@@ -399,7 +397,7 @@ function CountryHubPage() {
                 className="absolute inset-0 h-full w-full object-cover"
                 style={{ objectPosition: `${(i * 33) % 100}% center` }}
               />
-              <div className="absolute inset-0 bg-navy/60" />
+              <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/20 to-transparent" />
               <div className="absolute inset-x-0 bottom-0 p-3.5">
                 <span className="text-2xl drop-shadow">{a.emoji}</span>
                 <p className="mt-1 text-[13px] font-bold leading-tight text-white">{a.name}</p>
@@ -441,26 +439,28 @@ function CountryHubPage() {
       </Section>
 
       {/* ============ ASK AI ============ */}
-      <section className="relative mt-8 px-4">
-        <div className="overflow-hidden rounded-2xl bg-navy p-5 text-primary-foreground shadow-soft">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/10">
+      <section className="relative mt-8 px-4 pb-2">
+        <div className="relative overflow-hidden rounded-3xl grad-ink p-5 text-white elev-3">
+          <span className="pointer-events-none absolute -right-10 -top-12 h-40 w-40 rounded-full bg-aurora/25 blur-2xl" />
+          <span className="pointer-events-none absolute -bottom-16 -left-8 h-40 w-40 rounded-full bg-gold/20 blur-2xl" />
+          <div className="relative flex items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/12">
               <Sparkles className="h-5 w-5" strokeWidth={2.4} />
             </div>
             <div>
               <p className="text-sm font-bold">Ask AI about {name}</p>
-              <p className="mt-0.5 text-[11px] text-primary-foreground/70">
+              <p className="mt-0.5 text-2xs text-white/70">
                 Instant answers from your travel concierge
               </p>
             </div>
           </div>
-          <div className="mt-4 space-y-2">
+          <div className="relative mt-4 space-y-2">
             {aiQuestions.map((q) => (
               <Link
                 key={q}
                 to="/assistant"
                 search={{ q }}
-                className="flex items-center justify-between gap-2 rounded-2xl bg-white/10 px-4 py-2.5 text-left text-[13px] font-medium transition-colors hover:bg-white/15"
+                className="flex items-center justify-between gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-2.5 text-left text-[13px] font-medium transition-colors hover:bg-white/15 active:scale-[0.99]"
               >
                 <span className="min-w-0 flex-1">{q}</span>
                 <Sparkles className="h-3.5 w-3.5 shrink-0 opacity-70" />
@@ -486,7 +486,7 @@ function Section({
 }) {
   return (
     <section className="relative mt-8 px-4">
-      <p className="mb-3 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+      <p className="text-eyebrow mb-3 flex items-center gap-1.5 text-muted-foreground">
         <span className="text-primary">{icon}</span>
         {title}
       </p>
@@ -509,7 +509,7 @@ function InfoTile({ icon, label, value }: { icon: React.ReactNode; label: string
 
 function InfoCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="premium-card rounded-2xl p-4">
+    <div className="premium-card rounded-2xl p-4 transition-transform active:scale-[0.98]">
       <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-secondary text-navy">
         {icon}
       </div>
@@ -611,7 +611,7 @@ function DocChecklist({
   const pct = documents.length ? Math.round((done / documents.length) * 100) : 0;
 
   return (
-    <div className="premium-card rounded-2xl p-5">
+    <div className="premium-card rounded-3xl p-5">
       <div className="flex items-center justify-between">
         <p className="text-sm font-bold text-foreground">
           {done}/{documents.length} ready
