@@ -15,7 +15,9 @@ export function PageShell({
   phase?: string;
   className?: string;
 }) {
-  return <div className={cn("min-h-full bg-background", className)}>{children}</div>;
+  return (
+    <div className={cn("animate-page-enter min-h-full bg-background", className)}>{children}</div>
+  );
 }
 
 export function PageHeader({
@@ -30,7 +32,7 @@ export function PageHeader({
   action?: ReactNode;
 }) {
   return (
-    <header className="relative overflow-hidden px-5 pb-8 pt-[calc(env(safe-area-inset-top,0px)+2rem)]">
+    <header className="relative overflow-hidden px-5 pb-9 pt-[calc(env(safe-area-inset-top,0px)+2.25rem)]">
       {/* soft sky wash */}
       <div
         aria-hidden
@@ -38,16 +40,26 @@ export function PageHeader({
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[color-mix(in_oklab,var(--color-gold,var(--primary))_16%,transparent)] blur-3xl"
+        className="animate-aurora-drift pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[color-mix(in_oklab,var(--color-gold,var(--primary))_16%,transparent)] blur-3xl"
       />
       <div className="relative flex items-start justify-between gap-4">
-        <div className="min-w-0 animate-fade-in">
-          {badge}
-          <h1 className="mt-3 text-[2rem] font-semibold leading-[1.1] tracking-[-0.03em] text-foreground">
+        <div className="min-w-0">
+          {badge && (
+            <div className="animate-fade-up" style={{ animationDelay: "40ms" }}>
+              {badge}
+            </div>
+          )}
+          <h1
+            className="animate-fade-up mt-3.5 text-[2.125rem] font-semibold leading-[1.08] tracking-[-0.035em] text-foreground"
+            style={{ animationDelay: "110ms" }}
+          >
             {title}
           </h1>
           {subtitle && (
-            <p className="mt-2 max-w-[34ch] text-sm leading-relaxed text-muted-foreground">
+            <p
+              className="animate-fade-up mt-2.5 max-w-[34ch] text-sm leading-relaxed text-muted-foreground"
+              style={{ animationDelay: "190ms" }}
+            >
               {subtitle}
             </p>
           )}
@@ -86,15 +98,15 @@ export function EmptyStateCard({
   action?: ReactNode;
 }) {
   return (
-    <div className="premium-card animate-fade-in rounded-3xl p-9 text-center">
-      <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-primary/12 to-primary/4 text-2xl ring-1 ring-primary/10">
+    <div className="float-card animate-fade-up p-10 text-center">
+      <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-[1.5rem] bg-gradient-to-br from-primary/14 to-primary/4 text-2xl ring-1 ring-primary/10">
         {icon}
       </div>
       <p className="text-base font-semibold tracking-tight text-foreground">{title}</p>
       <p className="mx-auto mt-2 max-w-[32ch] text-sm leading-relaxed text-muted-foreground">
         {description}
       </p>
-      {action && <div className="mt-5">{action}</div>}
+      {action && <div className="mt-6">{action}</div>}
     </div>
   );
 }
@@ -105,7 +117,7 @@ export function LoadingSkeleton({ rows = 3 }: { rows?: number }) {
       {Array.from({ length: rows }).map((_, i) => (
         <div
           key={i}
-          className="skeleton h-24 rounded-3xl"
+          className="skeleton-block h-24 r-28"
           style={{ animationDelay: `${i * 90}ms` }}
         />
       ))}
