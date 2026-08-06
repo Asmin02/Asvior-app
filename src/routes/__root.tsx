@@ -23,7 +23,17 @@ import {
   DEFAULT_CURRENCY,
 } from "@/lib/app-session";
 import { Toaster } from "@/components/ui/sonner";
-import { FloatingAIButton } from "@/components/FloatingAIButton";
+import { useRouterState } from "@tanstack/react-router";
+
+/** Fade + slide transition applied on every route change. */
+function PageTransition({ children }: { children: ReactNode }) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  return (
+    <div key={pathname} className="animate-page-enter">
+      {children}
+    </div>
+  );
+}
 
 function NotFoundComponent() {
   return (
