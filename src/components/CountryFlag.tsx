@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { SmoothImage } from "@/components/motion/SmoothImage";
 
 /**
  * Premium flag chip.
