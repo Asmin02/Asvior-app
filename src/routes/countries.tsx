@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Compass, Search, Sparkles } from "lucide-react";
+import { ArrowRight, Compass, Search, Sparkles, TrendingUp } from "lucide-react";
 import { VISA_CODES } from "@/data/visa-data";
 import { getCountryName, flagEmoji } from "@/lib/visa";
 import { PageBadge, PageHeader, PageShell } from "@/components/PageShell";
@@ -67,19 +67,21 @@ function CountriesPage() {
       />
 
       {/* Search */}
-      <div className="mt-5 px-4">
-        <div className="premium-card flex items-center gap-2.5 rounded-2xl px-4 py-3">
-          <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+      <div className="-mt-4 px-4">
+        <div className="relative z-10 flex items-center gap-3 rounded-2xl border border-white/50 bg-card/90 p-4 elev-4 backdrop-blur-xl transition-transform duration-200 focus-within:-translate-y-0.5">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl grad-signal text-white">
+            <Search className="h-5 w-5" />
+          </span>
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search any country..."
-            className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+            className="w-full bg-transparent text-sm font-medium text-foreground outline-none placeholder:text-muted-foreground"
           />
         </div>
 
         {/* Region chips */}
-        <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+        <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
           <RegionChip active={region === "all"} onClick={() => setRegion("all")} label="All" />
           {REGION_ORDER.map((r) => (
             <RegionChip
@@ -94,12 +96,13 @@ function CountriesPage() {
 
       {/* Featured */}
       {showFeatured && (
-        <section className="mt-5">
-          <p className="px-4 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-            Trending destinations
-          </p>
+        <section className="mt-6 animate-fade-in">
+          <div className="flex items-center gap-1.5 px-4">
+            <TrendingUp className="h-3.5 w-3.5 text-primary" />
+            <p className="text-eyebrow text-muted-foreground">Trending destinations</p>
+          </div>
           <div className="mt-3 flex gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none]">
-            {FEATURED.map((code) => {
+            {FEATURED.map((code, i) => {
               const p = COUNTRY_PROFILES[code];
               const img = p ? REGION_META[p.region as Region]?.image : undefined;
               return (
@@ -107,7 +110,8 @@ function CountriesPage() {
                   key={code}
                   to="/country/$code"
                   params={{ code }}
-                  className="group relative h-44 w-32 shrink-0 overflow-hidden rounded-2xl border border-border shadow-soft"
+                  className="group relative h-52 w-40 shrink-0 overflow-hidden rounded-3xl elev-2 transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98] animate-fade-in"
+                  style={{ animationDelay: `${i * 40}ms` }}
                 >
                   {img && (
                     <img
@@ -116,16 +120,20 @@ function CountriesPage() {
                       width={1024}
                       height={576}
                       loading="lazy"
-                      className="absolute inset-0 h-full w-full object-cover"
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-navy/90 via-navy/25 to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 p-3">
-                    <span className="text-2xl drop-shadow">{flagEmoji(code)}</span>
-                    <p className="mt-0.5 text-[13px] font-bold leading-tight text-white">
+                  <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/25 to-transparent" />
+                  <div className="absolute inset-x-0 top-3 flex justify-end px-3">
+                    <span className="rounded-full border border-white/25 bg-white/15 px-2 py-0.5 text-2xs font-bold text-white backdrop-blur-md">
+                      {flagEmoji(code)}
+                    </span>
+                  </div>
+                  <div className="absolute inset-x-0 bottom-0 p-3.5">
+                    <p className="text-[13px] font-bold leading-tight text-white">
                       {getCountryName(code)}
                     </p>
-                    {p && <p className="text-[10px] font-medium text-white/70">{p.capital}</p>}
+                    {p && <p className="mt-0.5 text-2xs font-medium text-white/70">{p.capital}</p>}
                   </div>
                 </Link>
               );
@@ -135,9 +143,9 @@ function CountriesPage() {
       )}
 
       {/* All countries */}
-      <section className="mt-6 px-4 pb-6">
+      <section className="mt-7 px-4 pb-6">
         <div className="mb-3 flex items-center justify-between">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+          <p className="text-eyebrow text-muted-foreground">
             {query || region !== "all"
               ? `${filtered.length} result${filtered.length === 1 ? "" : "s"}`
               : "All countries"}
@@ -146,12 +154,12 @@ function CountriesPage() {
         </div>
 
         {filtered.length === 0 ? (
-          <div className="premium-card rounded-2xl p-8 text-center">
+          <div className="premium-card animate-fade-in rounded-3xl p-9 text-center">
             <p className="text-sm font-semibold text-foreground">No countries found</p>
             <p className="mt-1 text-xs text-muted-foreground">Try a different name or region.</p>
           </div>
         ) : (
-          <div className="premium-card overflow-hidden rounded-2xl">
+          <div className="premium-card overflow-hidden rounded-3xl">
             {filtered.map((c, i) => {
               const p = COUNTRY_PROFILES[c.code];
               return (
@@ -159,14 +167,16 @@ function CountriesPage() {
                   key={c.code}
                   to="/country/$code"
                   params={{ code: c.code }}
-                  className={`flex items-center gap-3 px-4 py-3 transition-colors hover:bg-primary/5 active:bg-primary/10 ${
+                  className={`flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-primary/5 active:bg-primary/10 ${
                     i !== 0 ? "border-t border-border/60" : ""
                   }`}
                 >
-                  <span className="text-2xl">{flagEmoji(c.code)}</span>
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-secondary/60 text-xl">
+                    {flagEmoji(c.code)}
+                  </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-foreground">{c.name}</p>
-                    <p className="truncate text-[11px] text-muted-foreground">
+                    <p className="truncate text-xs text-muted-foreground">
                       {p
                         ? `${p.capital} · ${REGION_META[p.region as Region]?.label ?? ""}`
                         : c.code}
@@ -195,10 +205,10 @@ function RegionChip({
   return (
     <button
       onClick={onClick}
-      className={`shrink-0 rounded-full px-3.5 py-1.5 text-[11px] font-bold transition-colors ${
+      className={`shrink-0 rounded-full px-4 py-2 text-xs font-bold transition-all active:scale-95 ${
         active
-          ? "bg-navy text-primary-foreground shadow-soft"
-          : "premium-card text-muted-foreground"
+          ? "grad-signal text-white elev-2"
+          : "border border-border/60 bg-card/70 text-muted-foreground backdrop-blur-sm hover:text-foreground"
       }`}
     >
       {label}
