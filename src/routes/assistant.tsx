@@ -1,12 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { BadgeCheck, FileText, Landmark, ListChecks, Globe2, Wallet } from "lucide-react";
 import { toast } from "sonner";
+import { Bookmark, Copy, Send, Share2, Sparkles, Square, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { AsviorMark } from "@/components/AsviorMark";
 import { resolveApiUrl } from "@/lib/api-base";
 import { buildScopedStorageKey, GUEST_STORAGE_SCOPE } from "@/lib/app-session";
 import {
@@ -23,6 +22,8 @@ import {
   saveBookmark,
   type BookmarkedConversation,
 } from "@/components/ai-cards";
+import { consumePendingAiPrompt, peekPendingAiPrompt, stashPendingAiPrompt } from "@/lib/ai-prompt";
+import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/assistant")({
   validateSearch: (search: Record<string, unknown>): { q?: string } => ({
@@ -30,11 +31,11 @@ export const Route = createFileRoute("/assistant")({
   }),
   head: () => ({
     meta: [
-      { title: "Concierge Assistant — ASVIOR" },
+      { title: "Asvior AI — ASVIOR" },
       {
         name: "description",
         content:
-          "Chat with the ASVIOR concierge assistant for instant visa, document, budget, weather, and travel guidance.",
+          "Chat with Asvior AI for instant visa, document, budget, weather, and travel guidance.",
       },
     ],
   }),
@@ -43,40 +44,12 @@ export const Route = createFileRoute("/assistant")({
 
 const STORAGE_KEY = "vp_ai_chat_v1";
 
-const QUICK_ACTIONS = [
-  {
-    label: "Check Visa",
-    icon: BadgeCheck,
-    prompt: "Help me check if I need a visa. Ask me my passport country and destination.",
-  },
-  {
-    label: "Required Documents",
-    icon: FileText,
-    prompt:
-      "What documents do I typically need for an international trip? Walk me through a checklist.",
-  },
-  {
-    label: "Travel Checklist",
-    icon: ListChecks,
-    prompt: "Build me a smart pre-departure travel checklist.",
-  },
-  {
-    label: "Budget Planner",
-    icon: Wallet,
-    prompt:
-      "Help me estimate a realistic travel budget. Ask me destination, duration, and travel style.",
-  },
-  {
-    label: "Embassy Finder",
-    icon: Landmark,
-    prompt: "How do I find the nearest embassy or consulate for a country I'm visiting?",
-  },
-  {
-    label: "Travel Tips",
-    icon: Globe2,
-    prompt: "Give me your top 10 smart travel tips for international travelers.",
-  },
-];
+const CATEGORY_CHIPS = [
+  { label: "Itinerary", prompt: "Plan a 7-day Kyoto trip under €2,000" },
+  { label: "Visa check", prompt: "Do I need a visa for Morocco on a UK passport?" },
+  { label: "Budget", prompt: "Estimate a 7-day budget for Lisbon, mid-range." },
+  { label: "Documents", prompt: "What documents do I typically need for an international trip?" },
+] as const;
 
 const SUGGESTIONS = [
   "Do I need a visa for Japan with a US passport?",
@@ -117,18 +90,9 @@ function AssistantPage() {
   const [authScope, setAuthScope] = useState<string>(GUEST_STORAGE_SCOPE);
   const [authResolved, setAuthResolved] = useState(false);
   const transport = useMemo(
-    () =>
-      new DefaultChatTransport({
-        api: resolveApiUrl("/api/chat"),
-        headers: async (): Promise<Record<string, string>> => {
-          const { data } = await supabase.auth.getSession();
-          const token = data.session?.access_token;
-          return token ? { Authorization: `Bearer ${token}` } : {};
-        },
-      }),
+    () => new DefaultChatTransport({ api: resolveApiUrl("/api/chat") }),
     [],
   );
-
   const isSignedIn = authScope !== GUEST_STORAGE_SCOPE;
   const storageKey = useMemo(() => buildScopedStorageKey(STORAGE_KEY, authScope), [authScope]);
 
@@ -146,6 +110,8 @@ function AssistantPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const stickToBottomRef = useRef(true);
+  const suggestedSendTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isLoadingRef = useRef(false);
   const scrollSnapshotRef = useRef<MessageScrollSnapshot>({
     firstId: null,
     lastId: null,
@@ -154,6 +120,7 @@ function AssistantPage() {
     status: "ready",
   });
   const isLoading = status === "submitted" || status === "streaming";
+  isLoadingRef.current = isLoading;
   const lastMessage = messages[messages.length - 1];
   const lastMessageText = lastMessage ? getText(lastMessage) : "";
 
@@ -262,7 +229,13 @@ function AssistantPage() {
       if (initialRestore || clearedConversation) {
         stickToBottomRef.current = true;
       }
-      scrollToBottom(initialRestore || !isLoading ? "auto" : "auto");
+      scrollToBottom(
+        initialRestore || clearedConversation
+          ? "auto"
+          : isLoading && streamedContentChanged
+            ? "auto"
+            : "smooth",
+      );
     }
 
     scrollSnapshotRef.current = next;
@@ -291,52 +264,101 @@ function AssistantPage() {
   }, [isLoading, messages.length]);
 
   useEffect(() => {
-    if (!isLoading) return;
-
-    const settleId = window.setTimeout(() => {
-      scrollToBottom("auto");
-    }, 120);
-
-    return () => {
-      window.clearTimeout(settleId);
-    };
-  }, [isLoading, scrollToBottom, lastMessageText]);
+    if (!isLoading) {
+      scrollToBottom("smooth");
+    }
+  }, [isLoading, scrollToBottom]);
 
   useEffect(() => {
-    inputRef.current?.focus();
+    return () => {
+      if (suggestedSendTimerRef.current) {
+        clearTimeout(suggestedSendTimerRef.current);
+      }
+    };
   }, []);
 
   useEffect(() => {
     if (showBookmarks) setBookmarks(loadBookmarks(authScope));
   }, [showBookmarks, authScope]);
 
-  const handleSend = async (text: string) => {
-    const value = text.trim();
-    if (!value || isLoading) return;
-    stickToBottomRef.current = true;
-    setInput("");
-    await sendMessage({ text: value });
-    requestAnimationFrame(() => {
-      scrollToBottom("auto");
-      inputRef.current?.focus();
-    });
-  };
+  const cancelSuggestedSend = useCallback(() => {
+    if (suggestedSendTimerRef.current) {
+      clearTimeout(suggestedSendTimerRef.current);
+      suggestedSendTimerRef.current = null;
+    }
+  }, []);
+
+  const handleSend = useCallback(
+    async (text: string, options?: { focusAfter?: boolean }) => {
+      const value = text.trim();
+      if (!value || isLoadingRef.current) return;
+      cancelSuggestedSend();
+      stickToBottomRef.current = true;
+      setInput("");
+      await sendMessage({ text: value });
+      requestAnimationFrame(() => {
+        scrollToBottom(isLoadingRef.current ? "auto" : "smooth");
+        if (options?.focusAfter !== false) {
+          inputRef.current?.focus();
+        }
+      });
+    },
+    [cancelSuggestedSend, scrollToBottom, sendMessage],
+  );
+
+  const handleSuggestedPick = useCallback(
+    (text: string) => {
+      const value = text.trim();
+      if (!value || isLoadingRef.current) return;
+      cancelSuggestedSend();
+      inputRef.current?.blur();
+      setInput(value);
+      stickToBottomRef.current = true;
+      suggestedSendTimerRef.current = setTimeout(() => {
+        suggestedSendTimerRef.current = null;
+        void handleSend(value, { focusAfter: false });
+      }, 250);
+    },
+    [cancelSuggestedSend, handleSend],
+  );
 
   const { q } = Route.useSearch();
   const navigate = Route.useNavigate();
-  const autoAskedRef = useRef(false);
-  useEffect(() => {
-    if (q && !autoAskedRef.current) {
-      autoAskedRef.current = true;
-      navigate({ search: {}, replace: true });
-      handleSend(q);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q]);
+  const autoSendRef = useRef<{ token: string | null; sent: boolean }>({ token: null, sent: false });
 
-  const handleVoice = () => {
-    toast.info("Voice input coming soon — type your question for now.");
-  };
+  useEffect(() => {
+    if (!authResolved) return;
+
+    const pending = q?.trim() || peekPendingAiPrompt();
+    if (!pending) return;
+
+    const token = q?.trim() ? `q:${pending}` : `stash:${pending}`;
+    if (autoSendRef.current.token === token && autoSendRef.current.sent) return;
+
+    autoSendRef.current.token = token;
+
+    if (q?.trim()) {
+      stashPendingAiPrompt(pending);
+      navigate({ search: {}, replace: true });
+    }
+
+    setInput(pending);
+    stickToBottomRef.current = true;
+
+    const timer = window.setTimeout(() => {
+      autoSendRef.current.sent = true;
+      consumePendingAiPrompt();
+      void handleSend(pending, { focusAfter: false });
+    }, 220);
+
+    return () => window.clearTimeout(timer);
+  }, [authResolved, q, navigate, handleSend]);
+
+  useEffect(() => {
+    return () => {
+      autoSendRef.current = { token: null, sent: false };
+    };
+  }, []);
 
   const clearChat = () => {
     setMessages([]);
@@ -354,6 +376,22 @@ function AssistantPage() {
       toast.success("Copied to clipboard");
     } catch {
       toast.error("Couldn't copy");
+    }
+  };
+
+  const shareText = async (text: string) => {
+    try {
+      const shareNavigator = navigator as Navigator & {
+        share?: (data: { title: string; text: string }) => Promise<void>;
+      };
+      if (shareNavigator.share) {
+        await shareNavigator.share({ title: "Asvior AI", text });
+        return;
+      }
+      await navigator.clipboard.writeText(text);
+      toast.success("Response copied for sharing");
+    } catch {
+      toast.error("Couldn't share this response");
     }
   };
 
@@ -394,94 +432,65 @@ function AssistantPage() {
     setBookmarks(loadBookmarks(authScope));
   };
 
+  const t = useT();
   const isEmpty = messages.length === 0;
   const lastIsUserOrSubmitted = status === "submitted";
 
   return (
-    <div className="relative flex h-[calc(100dvh-6rem-var(--safe-bottom))] flex-col overflow-hidden bg-background">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 z-0 h-72 bg-[radial-gradient(70%_100%_at_50%_0%,color-mix(in_oklab,var(--primary)_14%,transparent),transparent)]"
-      />
-      <header className="sticky top-0 z-20 border-b border-border/50 bg-card/80 px-4 pb-3 pt-[calc(var(--safe-top)+0.75rem)] backdrop-blur-xl">
-        <div className="flex items-center gap-2">
-          <Link
-            to="/"
-            aria-label="Back to home"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-border/60 bg-background/70 backdrop-blur-md transition-transform active:scale-95"
-          >
-            <svg
-              className="h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-          </Link>
-          <div className="flex min-w-0 flex-1 items-center gap-2.5">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl grad-ink elev-2">
-              <AsviorMark className="h-6 w-6" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="truncate text-base font-semibold tracking-[-0.01em] text-foreground">
-                Asvior AI
-              </h1>
-              <p className="truncate text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
-                Premium travel concierge
-              </p>
-            </div>
+    <div className="asv-app relative flex h-[calc(100dvh-var(--asv-tab-height)-env(safe-area-inset-bottom,0px))] max-h-[calc(100dvh-var(--asv-tab-height)-env(safe-area-inset-bottom,0px))] flex-col overflow-hidden">
+      <header className="ai-chat-header relative shrink-0">
+        <div className="relative flex items-center gap-3 px-[var(--asv-space-page)] pb-3 pt-[calc(var(--asv-safe-top)+10px)]">
+          <div className="ai-chat-avatar !h-11 !w-11 shrink-0">
+            <img src="/asvior-mark.png" alt="" className="h-6 w-6" />
           </div>
-          <button
-            onClick={() => setShowBookmarks(true)}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-border/60 bg-background/70 backdrop-blur-md transition-transform active:scale-95"
-            aria-label="Bookmarks"
-          >
-            <svg
-              className="h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
+          <div className="min-w-0 flex-1">
+            <h1 className="asv-title">{t("ai.title")}</h1>
+            <p className="mt-0.5 flex items-center gap-1.5 text-[11px] font-semibold text-[var(--asv-success)]">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--asv-success)] shadow-[0_0_0_3px_var(--asv-success-soft)]" />
+              Online · travel intelligence
+            </p>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              onClick={() => setShowBookmarks(true)}
+              className="asv-btn asv-btn-icon !min-h-9 !min-w-9"
+              aria-label="Bookmarks"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"
-              />
-            </svg>
-          </button>
-          {messages.length > 0 && (
-            <>
-              <button
-                onClick={bookmarkConversation}
-                className="rounded-full border border-border/60 bg-background/70 px-3 py-1.5 text-xs font-semibold text-foreground transition-transform active:scale-95"
-              >
-                Save
-              </button>
-              <button
-                onClick={clearChat}
-                className="rounded-full border border-border/60 bg-background/70 px-3 py-1.5 text-xs font-semibold text-foreground transition-transform active:scale-95"
-              >
-                New
-              </button>
-            </>
-          )}
+              <Bookmark className="h-4 w-4" />
+            </button>
+            {messages.length > 0 && (
+              <>
+                <button
+                  onClick={bookmarkConversation}
+                  className="asv-btn asv-btn-ghost !min-h-9 px-2.5 text-xs"
+                >
+                  Save
+                </button>
+                <button onClick={clearChat} className="asv-btn asv-btn-ghost !min-h-9 px-2.5 text-xs">
+                  New
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
-      <div ref={scrollRef} className="scroll-fluid min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-5">
+      <div
+        ref={scrollRef}
+        className="min-h-0 flex-1 scroll-smooth overflow-y-auto px-[var(--asv-space-page)] pb-[calc(9.5rem+env(safe-area-inset-bottom,0px))] pt-4"
+      >
         {isEmpty ? (
-          <EmptyState onPick={(p) => handleSend(p)} />
+          <EmptyState onPick={handleSuggestedPick} />
         ) : (
-          <div className="space-y-4" data-chat-scroll-content>
+          <div className="space-y-5" data-chat-scroll-content>
             {messages.map((m) => (
               <MessageBubble
                 key={m.id}
                 message={m}
                 onCopy={copyText}
-                onSuggestionPick={(q) => handleSend(q)}
+                onShare={shareText}
+                onSuggestionPick={handleSuggestedPick}
                 isStreaming={
                   isLoading && m.id === messages[messages.length - 1]?.id && m.role === "assistant"
                 }
@@ -505,28 +514,24 @@ function AssistantPage() {
         />
       )}
 
-      <div className="relative z-30 shrink-0 px-3 pb-2">
-        <div className="rounded-3xl border border-border/50 bg-card/80 p-2 elev-4 backdrop-blur-xl">
-          <div className="flex items-end gap-2">
-            <button
-              onClick={handleVoice}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-secondary text-navy transition-transform active:scale-95"
-              aria-label="Voice input"
-            >
-              <svg
-                className="h-5 w-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"
-                />
-              </svg>
-            </button>
+      <div className="pointer-events-none fixed bottom-[calc(var(--asv-tab-height)+env(safe-area-inset-bottom,0px)+8px)] left-1/2 z-30 w-full max-w-md -translate-x-1/2 px-[var(--asv-space-page)]">
+        <div className="pointer-events-auto">
+          {isEmpty && (
+            <div className="scrollbar-hide mb-2.5 flex gap-2 overflow-x-auto pb-1">
+              {CATEGORY_CHIPS.map((chip) => (
+                <button
+                  key={chip.label}
+                  type="button"
+                  onClick={() => handleSuggestedPick(chip.prompt)}
+                  className="asv-chip shrink-0 !cursor-pointer whitespace-nowrap transition-transform active:scale-95"
+                >
+                  {chip.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div className="ai-chat-input-shell flex items-center gap-2 px-3 py-2">
             <textarea
               ref={inputRef}
               value={input}
@@ -538,109 +543,71 @@ function AssistantPage() {
                 }
               }}
               rows={1}
-              placeholder="Ask anything about your trip..."
-              className="max-h-32 min-h-[2.75rem] flex-1 resize-none bg-transparent px-2 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+              placeholder={t("ai.placeholder")}
+              className="max-h-32 min-h-[2.5rem] flex-1 resize-none bg-transparent px-1 py-2 text-sm text-[var(--asv-ink)] placeholder:text-[var(--asv-ink-tertiary)] focus:outline-none"
             />
             {isLoading ? (
               <button
                 onClick={() => stop()}
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-destructive text-destructive-foreground transition-transform active:scale-95"
+                className="ai-chat-send-btn flex !h-10 !w-10 shrink-0 items-center justify-center !min-h-10 !min-w-10 !p-0 !bg-[var(--asv-danger)]"
                 aria-label="Stop"
               >
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                  <rect x="6" y="6" width="12" height="12" rx="2" />
-                </svg>
+                <Square className="h-3.5 w-3.5 fill-current" />
               </button>
             ) : (
               <button
                 onClick={() => handleSend(input)}
                 disabled={!input.trim()}
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl grad-ink text-primary-foreground transition-transform active:scale-95 disabled:opacity-40"
+                className="ai-chat-send-btn flex !h-10 !w-10 shrink-0 items-center justify-center !min-h-10 !min-w-10 !p-0 disabled:opacity-40"
                 aria-label="Send"
               >
-                <svg
-                  className="h-5 w-5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"
-                  />
-                </svg>
+                <Send className="h-4 w-4" />
               </button>
             )}
           </div>
+          <p className="mt-1.5 text-center text-[10px] text-[var(--asv-ink-tertiary)]">
+            Always verify with official embassy or government sources.
+          </p>
         </div>
-        <p className="mt-1.5 text-center text-[10px] text-muted-foreground">
-          Always verify with official embassy or government sources.
-        </p>
       </div>
     </div>
   );
 }
 
 function EmptyState({ onPick }: { onPick: (prompt: string) => void }) {
+  const t = useT();
   return (
-    <div className="animate-fade-in">
-      <div className="relative mb-7 mt-2 overflow-hidden rounded-3xl grad-ink px-6 py-8 text-center elev-3">
-        <span className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-aurora/25 blur-2xl" />
-        <span className="pointer-events-none absolute -bottom-12 -left-6 h-32 w-32 rounded-full bg-gold/20 blur-2xl" />
-        <div className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md">
-          <AsviorMark className="h-10 w-10" />
+    <div className="asv-animate-in pb-4">
+      <div className="ai-empty-hero mb-6 mt-1 p-5">
+        <div className="flex gap-3">
+          <div className="ai-chat-avatar !h-10 !w-10 shrink-0">
+            <img src="/asvior-mark.png" alt="" className="h-6 w-6" />
+          </div>
+          <div className="min-w-0">
+            <h2 className="asv-title">{t("ai.hello")}</h2>
+            <p className="asv-subtitle mt-2 leading-relaxed">
+              I&apos;m Asvior. Tell me where you&apos;re headed and I&apos;ll handle the visa rules,
+              the daily budget and the day-by-day plan.
+            </p>
+            <p className="asv-subtitle mt-2 italic">
+              You can also just say something like &ldquo;five days in Kyoto in November,
+              mid-range&rdquo;.
+            </p>
+          </div>
         </div>
-        <p className="relative mt-4 text-eyebrow text-white/60">Asvior AI</p>
-        <h2 className="relative mt-1.5 text-[1.6rem] font-semibold tracking-[-0.03em] text-primary-foreground">
-          Hi, I&apos;m your travel concierge
-        </h2>
-        <p className="relative mx-auto mt-2 max-w-xs text-sm leading-relaxed text-primary-foreground/70">
-          Tell me your nationality and destination — I&apos;ll guide you through visas, documents,
-          and trip planning.
-        </p>
       </div>
 
-      <p className="mb-2 text-eyebrow text-muted-foreground">Quick actions</p>
-      <div className="grid grid-cols-2 gap-2.5">
-        {QUICK_ACTIONS.map((a, i) => {
-          const Icon = a.icon;
-          return (
-            <button
-              key={a.label}
-              onClick={() => onPick(a.prompt)}
-              style={{ animationDelay: `${i * 40}ms` }}
-              className="premium-card flex animate-fade-in items-center gap-2.5 rounded-2xl p-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
-            >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Icon className="h-4 w-4" strokeWidth={1.9} />
-              </span>
-              <span className="text-xs font-semibold leading-tight text-foreground">{a.label}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      <p className="mb-2 mt-6 text-eyebrow text-muted-foreground">Try asking</p>
+      <p className="ai-suggestion-kicker mb-3">Try one of these</p>
       <div className="space-y-2">
-        {SUGGESTIONS.map((s, i) => (
+        {SUGGESTIONS.slice(0, 4).map((s) => (
           <button
             key={s}
+            type="button"
             onClick={() => onPick(s)}
-            style={{ animationDelay: `${i * 40}ms` }}
-            className="premium-card flex w-full animate-fade-in items-center justify-between gap-2 rounded-2xl p-3.5 text-left text-sm text-foreground transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
+            className="ai-suggestion-card"
           >
-            <span className="line-clamp-2">{s}</span>
-            <svg
-              className="h-4 w-4 shrink-0 text-muted-foreground"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
+            <Sparkles className="ai-suggestion-icon h-4 w-4" aria-hidden />
+            <span className="min-w-0 flex-1">{s}</span>
           </button>
         ))}
       </div>
@@ -651,11 +618,13 @@ function EmptyState({ onPick }: { onPick: (prompt: string) => void }) {
 function MessageBubble({
   message,
   onCopy,
+  onShare,
   onSuggestionPick,
   isStreaming,
 }: {
   message: UIMessage;
   onCopy: (text: string) => void;
+  onShare: (text: string) => void;
   onSuggestionPick: (q: string) => void;
   isStreaming: boolean;
 }) {
@@ -665,8 +634,8 @@ function MessageBubble({
 
   if (isUser) {
     return (
-      <div className="animate-msg-in flex justify-end">
-        <div className="max-w-[85%] rounded-3xl rounded-tr-md bg-primary px-4 py-3 text-sm leading-relaxed text-primary-foreground elev-2">
+      <div className="animate-bubble-in flex justify-end">
+        <div className="max-w-[85%] rounded-[var(--asv-radius-xl)] rounded-br-[var(--asv-radius-xs)] bg-gradient-to-br from-[#00a3ff] to-[#14b8a6] px-4 py-3 text-sm leading-relaxed text-white shadow-[var(--asv-shadow-md),0_4px_16px_var(--asv-primary-glow)]">
           {text}
         </div>
       </div>
@@ -680,15 +649,15 @@ function MessageBubble({
     .trim();
 
   return (
-    <div className="animate-msg-in flex gap-2.5">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl grad-ink elev-1">
-        <AsviorMark className="h-5 w-5" />
+    <div className="animate-bubble-in flex gap-2.5">
+      <div className="asv-tool-icon !h-9 !w-9 shrink-0">
+        <Sparkles className="h-4 w-4" />
       </div>
       <div className="min-w-0 flex-1 space-y-2">
         {segments.length === 0 ||
         (segments.length === 1 && segments[0].kind === "text" && !segments[0].content.trim()) ? (
-          <div className="px-1 py-2 text-sm">
-            <span className="text-muted-foreground">…</span>
+          <div className="asv-card asv-card-glass asv-card-pad rounded-[var(--asv-radius-xl)] rounded-tl-[var(--asv-radius-xs)] text-sm">
+            <span className="text-[var(--asv-ink-tertiary)]">…</span>
           </div>
         ) : (
           segments.map((seg, i) => {
@@ -698,7 +667,7 @@ function MessageBubble({
               return (
                 <div
                   key={i}
-                  className="prose prose-sm max-w-none px-1 py-1 text-sm leading-relaxed text-foreground prose-headings:mt-2 prose-headings:mb-1 prose-p:my-1.5 prose-ul:my-1.5 prose-li:my-0 prose-a:text-primary dark:prose-invert"
+                  className="asv-card asv-card-glass asv-card-pad prose prose-sm max-w-none rounded-[var(--asv-radius-xl)] rounded-tl-[var(--asv-radius-xs)] text-sm text-[var(--asv-ink)] prose-headings:mt-2 prose-headings:mb-1 prose-p:my-1.5 prose-ul:my-1.5 prose-li:my-0 prose-a:text-[var(--asv-primary)] dark:prose-invert"
                 >
                   <ReactMarkdown>{content}</ReactMarkdown>
                 </div>
@@ -717,22 +686,17 @@ function MessageBubble({
           <div className="ml-1 flex items-center gap-2">
             <button
               onClick={() => onCopy(textOnlyForCopy)}
-              className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] text-muted-foreground hover:bg-accent hover:text-foreground"
+              className="asv-btn asv-btn-ghost !min-h-7 px-1.5 py-0.5 text-[10px] text-[var(--asv-ink-tertiary)]"
             >
-              <svg
-                className="h-3 w-3"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                />
-              </svg>
+              <Copy className="h-3 w-3" />
               Copy
+            </button>
+            <button
+              onClick={() => onShare(textOnlyForCopy)}
+              className="asv-btn asv-btn-ghost !min-h-7 px-1.5 py-0.5 text-[10px] text-[var(--asv-ink-tertiary)]"
+            >
+              <Share2 className="h-3 w-3" />
+              Share
             </button>
             <RatingBar messageId={message.id} />
           </div>
@@ -758,16 +722,16 @@ function BookmarksSheet({
       className="fixed inset-0 z-50 flex items-end sm:items-center sm:justify-center"
       onClick={onClose}
     >
-      <div className="absolute inset-0 bg-background/50" />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
       <div
-        className="premium-card scroll-fluid relative max-h-[80vh] w-full overflow-y-auto rounded-t-3xl p-4 sm:max-w-md sm:rounded-3xl"
+        className="asv-card relative max-h-[80vh] w-full overflow-y-auto rounded-t-[var(--asv-radius-xl)] p-5 sm:max-w-md sm:rounded-[var(--asv-radius-xl)]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-base font-semibold">Saved conversations</h2>
+          <h2 className="asv-title">Saved conversations</h2>
           <button
             onClick={onClose}
-            className="rounded-full p-1.5 hover:bg-accent"
+            className="asv-btn asv-btn-icon !min-h-9 !min-w-9"
             aria-label="Close"
           >
             <svg
@@ -782,41 +746,31 @@ function BookmarksSheet({
           </button>
         </div>
         {bookmarks.length === 0 ? (
-          <p className="py-10 text-center text-sm text-muted-foreground">
+          <p className="py-10 text-center text-sm text-[var(--asv-ink-tertiary)]">
             No saved conversations yet.
           </p>
         ) : (
           <ul className="space-y-2">
             {bookmarks.map((b) => (
-              <li key={b.id} className="premium-card rounded-2xl p-3">
+              <li key={b.id} className="asv-card asv-card-pad">
                 <div className="flex items-start gap-2">
                   <button onClick={() => onRestore(b)} className="flex-1 text-left">
-                    <div className="line-clamp-1 text-sm font-semibold">{b.title}</div>
-                    <div className="mt-0.5 line-clamp-2 text-[11px] text-muted-foreground">
+                    <div className="line-clamp-1 text-sm font-semibold text-[var(--asv-ink)]">
+                      {b.title}
+                    </div>
+                    <div className="mt-0.5 line-clamp-2 text-[11px] text-[var(--asv-ink-tertiary)]">
                       {b.preview}
                     </div>
-                    <div className="mt-1 text-[10px] text-muted-foreground">
+                    <div className="mt-1 text-[10px] text-[var(--asv-ink-tertiary)]">
                       {new Date(b.createdAt).toLocaleString()}
                     </div>
                   </button>
                   <button
                     onClick={() => onDelete(b.id)}
-                    className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                    className="asv-btn asv-btn-icon !min-h-9 !min-w-9 text-[var(--asv-ink-tertiary)] hover:!text-[var(--asv-danger)]"
                     aria-label="Delete"
                   >
-                    <svg
-                      className="h-3.5 w-3.5"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-                      />
-                    </svg>
+                    <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </li>

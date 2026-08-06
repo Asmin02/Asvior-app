@@ -17,7 +17,8 @@
     "cap:sync": "npm run build:cap && cap sync android",
     "cap:sync:remote": "node scripts/cap-sync-remote.mjs",
     "cap:copy": "cap copy android",
-    "cap:open:android": "cap open android"
+    "cap:open:android": "cap open android",
+    "brand:assets": "node scripts/generate-brand-assets.mjs"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^3.0.1",
@@ -105,6 +106,7 @@
     "jsdom": "^26.1.0",
     "nitro": "3.0.260603-beta",
     "prettier": "^3.7.3",
+    "sharp": "^0.35.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
     "vite": "^8.0.16",

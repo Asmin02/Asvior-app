@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import type { ReactNode } from "react";
+import { TopBar } from "@/components/asvior";
 
-/** Shared chrome for the legal / info pages (about, privacy, terms, support, contact). */
 export function InfoPage({
   badge,
   title,
@@ -13,45 +13,59 @@ export function InfoPage({
   title: string;
   subtitle: string;
   children: ReactNode;
+  showLogo?: boolean;
 }) {
   return (
-    <div className="pb-12">
-      <header className="relative overflow-hidden px-5 pb-8 pt-[calc(var(--safe-top)+1.5rem)]">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 -top-28 h-56 bg-[radial-gradient(65%_100%_at_50%_100%,color-mix(in_oklab,var(--primary)_16%,transparent),transparent)]"
-        />
-        <div className="relative">
-          <Link
-            to="/settings"
-            aria-label="Back to settings"
-            className="mb-5 inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-border/60 bg-card/70 text-foreground shadow-sm backdrop-blur-xl transition-transform active:scale-95"
-          >
+    <div className="asv-page asv-scroll-page">
+      <TopBar
+        left={
+          <Link to="/settings" aria-label="Back to settings" className="asv-btn asv-btn-icon">
             <ArrowLeft className="h-4 w-4" />
           </Link>
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-primary/8 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
+        }
+      />
+      <header className="asv-page-pad pb-2">
+        <div className="asv-card asv-card-featured asv-card-pad mt-2">
+          <div className="asv-chip asv-chip--active inline-flex !bg-white/15 !text-white">
             {badge}
           </div>
-          <h1 className="mt-3 text-[2rem] font-semibold leading-[1.1] tracking-[-0.03em] text-foreground">
-            {title}
-          </h1>
-          <p className="mt-2 max-w-[36ch] text-sm leading-relaxed text-muted-foreground">
-            {subtitle}
-          </p>
+          <h1 className="asv-display mt-4 text-2xl text-white">{title}</h1>
+          <p className="mt-2 text-sm leading-relaxed text-white/80">{subtitle}</p>
         </div>
       </header>
-      <section className="space-y-4 px-5">{children}</section>
+      <section className="asv-page-pad asv-stagger space-y-3 pb-8 pt-4">{children}</section>
     </div>
   );
 }
 
 export function InfoSection({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="premium-card animate-fade-in rounded-3xl p-6">
-      <h2 className="text-base font-semibold tracking-tight text-foreground">{title}</h2>
-      <div className="mt-2.5 space-y-2.5 text-sm leading-relaxed text-muted-foreground">
-        {children}
-      </div>
-    </div>
+    <article className="asv-card asv-card-pad">
+      <p className="asv-eyebrow">{title}</p>
+      <div className="asv-subtitle mt-3 space-y-2.5 text-sm leading-relaxed">{children}</div>
+    </article>
+  );
+}
+
+export function InfoLink({
+  href,
+  children,
+  variant = "secondary",
+}: {
+  href: string;
+  children: ReactNode;
+  variant?: "primary" | "secondary";
+}) {
+  return (
+    <a
+      href={href}
+      className={
+        variant === "primary"
+          ? "asv-btn asv-btn-primary inline-flex !min-h-11"
+          : "asv-btn asv-btn-secondary inline-flex !min-h-11"
+      }
+    >
+      {children}
+    </a>
   );
 }
