@@ -226,13 +226,13 @@ function MobileNav() {
   const leftItems = [
     { to: "/", label: "Home", icon: Home },
     { to: "/visa-check", label: "Visa", icon: Plane },
-    { to: "/checklist", label: "List", icon: CheckSquare },
   ] as const;
 
   const rightItems = [
+    { to: "/checklist", label: "Checklist", icon: CheckSquare },
     { to: "/budget-planner", label: "Budget", icon: Wallet },
-    { to: signedIn ? "/profile" : "/auth", label: "Profile", icon: User },
   ] as const;
+
 
   const isAiActive = pathname.startsWith("/assistant");
 
