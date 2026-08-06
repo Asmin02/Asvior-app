@@ -428,7 +428,7 @@ function HomePage() {
           className="animate-aurora-drift pointer-events-none absolute -left-16 top-10 h-56 w-56 rounded-full bg-aurora/20 blur-3xl"
         />
 
-        <div className="relative px-5 pb-28 pt-[calc(env(safe-area-inset-top)+1.25rem)]">
+        <div className="relative px-5 pb-28 pt-[calc(var(--safe-top)+1rem)]">
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-2.5">
               <AsviorMark className="h-9 w-9 shrink-0" />

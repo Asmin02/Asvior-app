@@ -89,7 +89,7 @@ function ResetPasswordPage() {
 
       <div
         data-testid="reset-password-page"
-        className="relative px-4 pt-[calc(env(safe-area-inset-top)+3.5rem)] pb-10"
+        className="relative px-4 pt-[calc(var(--safe-top)+2rem)] pb-10"
       >
         <div className="animate-fade-in text-center">
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl border border-white/15 bg-white/10 backdrop-blur-md elev-4">

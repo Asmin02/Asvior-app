@@ -389,12 +389,12 @@ function AssistantPage() {
   const lastIsUserOrSubmitted = status === "submitted";
 
   return (
-    <div className="relative flex h-[calc(100dvh-6rem-env(safe-area-inset-bottom,0px))] flex-col overflow-hidden bg-background">
+    <div className="relative flex h-[calc(100dvh-6rem-var(--safe-bottom))] flex-col overflow-hidden bg-background">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 z-0 h-72 bg-[radial-gradient(70%_100%_at_50%_0%,color-mix(in_oklab,var(--primary)_14%,transparent),transparent)]"
       />
-      <header className="sticky top-0 z-20 border-b border-border/50 bg-card/80 px-4 py-3 backdrop-blur-xl">
+      <header className="sticky top-0 z-20 border-b border-border/50 bg-card/80 px-4 pb-3 pt-[calc(var(--safe-top)+0.75rem)] backdrop-blur-xl">
         <div className="flex items-center gap-2">
           <Link
             to="/"

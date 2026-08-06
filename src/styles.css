@@ -390,9 +390,15 @@
     -webkit-text-size-adjust: 100%;
   }
 
+  :root {
+    /* Single source of truth for status-bar / notch inset. Applied by page
+       headers only — never on body — so heroes can bleed under the status bar. */
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
   body {
     min-height: 100dvh;
-    padding-top: env(safe-area-inset-top, 0px);
     background-color: var(--color-background);
     color: var(--color-foreground);
     overscroll-behavior-y: none;
