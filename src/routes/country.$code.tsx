@@ -162,7 +162,7 @@ function CountryHubPage() {
   return (
     <div className="relative overflow-x-hidden pb-6">
       {/* ============ HERO ============ */}
-      <section className="relative h-[340px]">
+      <section className="relative h-[420px] overflow-hidden rounded-b-[2.25rem]">
         <img
           src={regionMeta.image}
           alt={`${name} travel scenery`}
@@ -170,57 +170,53 @@ function CountryHubPage() {
           height={576}
           className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-navy/30" />
-        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-ink/60 via-ink/20 to-ink/90" />
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent" />
 
-        <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4 pt-6">
+        <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4 pt-[calc(env(safe-area-inset-top)+1rem)]">
           <Link
             to="/countries"
             aria-label="Back to countries"
-            className="premium-card flex h-10 w-10 items-center justify-center rounded-2xl text-foreground"
+            className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/25 bg-white/12 text-white backdrop-blur-md transition-colors hover:bg-white/20 active:scale-95"
           >
             <ArrowLeft className="h-4.5 w-4.5" />
           </Link>
           <button
             onClick={toggleFav}
             aria-label={isFav ? "Remove from favorites" : "Save country"}
-            className={`premium-card flex h-10 w-10 items-center justify-center rounded-2xl ${
-              isFav ? "text-red-500" : "text-foreground"
+            className={`flex h-10 w-10 items-center justify-center rounded-2xl border border-white/25 bg-white/12 backdrop-blur-md transition-colors hover:bg-white/20 active:scale-95 ${
+              isFav ? "text-red-400" : "text-white"
             }`}
           >
             <Heart className={`h-4.5 w-4.5 ${isFav ? "fill-current" : ""}`} />
           </button>
         </div>
 
-        <div className="absolute inset-x-0 bottom-0 px-4 pb-2">
+        <div className="absolute inset-x-0 bottom-0 px-4 pb-5 animate-fade-in">
           <span className="text-5xl drop-shadow-lg">{flagEmoji(code)}</span>
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">{name}</h1>
+            <h1 className="text-3xl font-semibold tracking-[-0.03em] text-white">{name}</h1>
             {visa && (
               <span
-                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${statusTone[visa.status]}`}
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-2xs font-bold uppercase tracking-wider ${statusTone[visa.status]}`}
               >
                 {statusIcon[visa.status]}
                 {visa.status}
               </span>
             )}
           </div>
-          <p className="mt-1.5 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-            <MapPin className="h-3.5 w-3.5 text-primary" />
+          <p className="mt-1.5 flex items-center gap-1.5 text-xs font-semibold text-white/80">
+            <MapPin className="h-3.5 w-3.5 text-white" />
             {profile.capital} · {regionMeta.label}
           </p>
-          <p className="mt-2 max-w-sm text-sm leading-relaxed text-foreground/80">
-            {profile.intro}
-          </p>
+          <p className="mt-2 max-w-sm text-sm leading-relaxed text-white/75">{profile.intro}</p>
         </div>
       </section>
 
       {/* ============ PASSPORT SELECTOR ============ */}
-      <section className="relative mt-4 px-4">
-        <div className="premium-card rounded-2xl p-4">
-          <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-            Your passport
-          </label>
+      <section className="relative -mt-8 z-10 px-4">
+        <div className="rounded-2xl border border-white/50 bg-card/90 p-4 elev-4 backdrop-blur-xl">
+          <label className="text-eyebrow mb-1.5 block text-muted-foreground">Your passport</label>
           <CountryCombobox
             value={passport}
             onChange={(v) => {

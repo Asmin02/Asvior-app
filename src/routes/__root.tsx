@@ -27,16 +27,25 @@ import { FloatingAIButton } from "@/components/FloatingAIButton";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-background px-4">
-      <div className="premium-card max-w-md rounded-2xl p-8 text-center">
-        <h1 className="text-6xl font-bold text-foreground">404</h1>
-        <h2 className="mt-3 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">That destination isn't on our map.</p>
+    <div className="flex min-h-dvh items-center justify-center bg-background px-6">
+      <div className="premium-card w-full max-w-md animate-fade-in rounded-3xl p-10 text-center">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-primary/15 to-primary/5 text-3xl ring-1 ring-primary/10">
+          🧭
+        </div>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
+          Off the map
+        </p>
+        <h1 className="mt-2 text-[2rem] font-semibold leading-tight tracking-[-0.03em] text-foreground">
+          Page not found
+        </h1>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          That destination isn't on our map.
+        </p>
         <Link
           to="/"
-          className="mt-6 inline-flex items-center justify-center rounded-xl bg-navy px-5 py-2.5 text-sm font-semibold text-primary-foreground"
+          className="mt-7 inline-flex items-center justify-center rounded-full bg-primary px-7 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-transform active:scale-95"
         >
-          Go home
+          Take me home
         </Link>
       </div>
     </div>
@@ -51,27 +60,30 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   }, [error]);
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-background px-4">
-      <div className="premium-card max-w-md rounded-2xl p-8 text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+    <div className="flex min-h-dvh items-center justify-center bg-background px-6">
+      <div className="premium-card w-full max-w-md animate-fade-in rounded-3xl p-10 text-center">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-primary/15 to-primary/5 text-3xl ring-1 ring-primary/10">
+          ☁️
+        </div>
+        <h1 className="text-2xl font-semibold tracking-[-0.03em] text-foreground">
           This page didn't load
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           Something went wrong. Try refreshing or head back home.
         </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
+        <div className="mt-7 flex flex-wrap justify-center gap-2.5">
           <button
             onClick={() => {
               router.invalidate();
               reset();
             }}
-            className="rounded-xl bg-navy px-5 py-2.5 text-sm font-semibold text-primary-foreground"
+            className="rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-transform active:scale-95"
           >
             Try again
           </button>
           <a
             href="/"
-            className="rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground"
+            className="rounded-full border border-border/60 bg-card/70 px-6 py-3 text-sm font-semibold text-foreground backdrop-blur-xl transition-transform active:scale-95"
           >
             Go home
           </a>
@@ -80,6 +92,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     </div>
   );
 }
+
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
