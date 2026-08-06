@@ -86,6 +86,15 @@ export const Route = createFileRoute("/api/chat")({
       OPTIONS: async ({ request }) => corsPreflightResponse(request),
       POST: async ({ request }) => {
         try {
+          const { getAuthenticatedUserId } = await import("@/lib/chat-auth.server");
+          const userId = await getAuthenticatedUserId(request);
+          if (!userId) {
+            return applyCapacitorCors(
+              request,
+              new Response("Sign in to use Asvior AI", { status: 401 }),
+            );
+          }
+
           const body = (await request.json()) as { messages?: UIMessage[] };
           const messages = body.messages;
           if (!Array.isArray(messages)) {
