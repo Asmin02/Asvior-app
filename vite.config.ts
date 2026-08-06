@@ -1,8 +1,26 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import { loadEnv } from "vite";
 import path from "node:path";
 
-const cloudUrl = "https://rxhthyqirdafhkymztvb.supabase.co";
-const cloudPublishableKey = "sb_publishable_bsLdMMaUPVeFtOqL-qbg6w_1i8A3y4I";
+// Read the project's existing environment (.env + process env) at config time.
+// Nothing here creates or changes credentials — it only forwards the values the
+// project already has so production/native bundles are built with the same
+// public backend configuration the preview uses.
+const env = loadEnv("", process.cwd(), "");
+
+const backendUrl = env.VITE_SUPABASE_URL || env.SUPABASE_URL;
+const backendPublishableKey = env.VITE_SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_PUBLISHABLE_KEY;
+
+const backendDefines: Record<string, string> = {};
+if (backendUrl) {
+  backendDefines["import.meta.env.VITE_SUPABASE_URL"] = JSON.stringify(backendUrl);
+  backendDefines["process.env.SUPABASE_URL"] = JSON.stringify(backendUrl);
+}
+if (backendPublishableKey) {
+  backendDefines["import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY"] =
+    JSON.stringify(backendPublishableKey);
+  backendDefines["process.env.SUPABASE_PUBLISHABLE_KEY"] = JSON.stringify(backendPublishableKey);
+}
 
 export default defineConfig({
   // Point TanStack Start at src/server.ts (our SSR error wrapper).
@@ -10,15 +28,7 @@ export default defineConfig({
     server: { entry: "server" },
   },
   vite: {
-    // These are public client configuration values, not secrets. Keep explicit
-    // fallbacks so production and native builds cannot hydrate without the
-    // Lovable Cloud connection when a hosting environment omits VITE_* vars.
-    define: {
-      "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(cloudUrl),
-      "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(cloudPublishableKey),
-      "process.env.SUPABASE_URL": JSON.stringify(cloudUrl),
-      "process.env.SUPABASE_PUBLISHABLE_KEY": JSON.stringify(cloudPublishableKey),
-    },
+    define: backendDefines,
     resolve: {
       alias: {
         "@": path.resolve(process.cwd(), "src"),
