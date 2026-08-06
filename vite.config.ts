@@ -31,10 +31,9 @@ export default defineConfig({
     dedupe: ["react", "react-dom", "@tanstack/react-router", "@tanstack/react-query"],
   },
   ssr: {
-    // Capacitor helpers are shared by the web/native client and SSR request
-    // path. Published workers cannot resolve npm packages at runtime, so keep
-    // these modules inside the server bundle instead of externalizing them.
-    noExternal: [/^@capacitor(?:\/|-)/],
+    // Published workers cannot resolve npm packages or generated package
+    // proxies at runtime. Bundle the complete SSR dependency graph.
+    noExternal: true,
   },
   server: {
     port: 3000,
