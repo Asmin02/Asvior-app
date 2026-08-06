@@ -213,44 +213,64 @@ function MobileNav() {
     };
   }, []);
 
-  const navItems = [
+  const leftItems = [
     { to: "/", label: "Home", icon: Home },
     { to: "/visa-check", label: "Visa", icon: Plane },
-    { to: "/checklist", label: "Checklist", icon: CheckSquare },
+    { to: "/checklist", label: "List", icon: CheckSquare },
+  ] as const;
+
+  const rightItems = [
     { to: "/budget-planner", label: "Budget", icon: Wallet },
     { to: signedIn ? "/profile" : "/auth", label: "Profile", icon: User },
   ] as const;
+
+  const isAiActive = pathname.startsWith("/assistant");
+
+  const renderItem = (item: { to: string; label: string; icon: typeof Home }) => {
+    const isActive = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
+    const Icon = item.icon;
+    return (
+      <Link
+        key={item.to}
+        to={item.to}
+        aria-current={isActive ? "page" : undefined}
+        className="spring-press relative flex min-h-12 flex-1 flex-col items-center justify-center gap-1 rounded-2xl py-1.5"
+      >
+        <Icon
+          className={`h-5 w-5 transition-colors duration-300 ${isActive ? "text-primary" : "text-muted-foreground"}`}
+          strokeWidth={isActive ? 2.2 : 1.8}
+        />
+        <span
+          className={`text-[9.5px] font-semibold tracking-tight transition-colors duration-300 ${isActive ? "text-primary" : "text-muted-foreground"}`}
+        >
+          {item.label}
+        </span>
+        <span
+          aria-hidden
+          className={`absolute -bottom-0.5 h-1 w-1 rounded-full bg-primary transition-all duration-300 ${isActive ? "scale-100 opacity-100" : "scale-0 opacity-0"}`}
+        />
+      </Link>
+    );
+  };
 
   return (
     <nav
       aria-label="Main navigation"
       className="fixed inset-x-0 bottom-0 z-50 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
     >
-      <div className="mx-auto flex max-w-md items-center justify-between gap-1 rounded-full border border-border/50 bg-card/80 p-1.5 shadow-[0_18px_40px_-18px_color-mix(in_oklab,var(--primary)_45%,transparent)] backdrop-blur-2xl">
-        {navItems.map((item) => {
-          const isActive = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.to}
-              to={item.to}
-              aria-current={isActive ? "page" : undefined}
-              className={`relative flex min-h-12 flex-1 flex-col items-center justify-center gap-0.5 rounded-full py-1.5 transition-all duration-300 active:scale-95 ${
-                isActive ? "bg-primary/10" : ""
-              }`}
-            >
-              <Icon
-                className={`h-5 w-5 transition-colors ${isActive ? "text-primary" : "text-muted-foreground"}`}
-                strokeWidth={isActive ? 2.25 : 1.9}
-              />
-              <span
-                className={`text-[9.5px] font-semibold tracking-tight transition-colors ${isActive ? "text-primary" : "text-muted-foreground"}`}
-              >
-                {item.label}
-              </span>
-            </Link>
-          );
-        })}
+      <div className="dock-float mx-auto flex max-w-md items-center gap-0.5 p-2">
+        {leftItems.map(renderItem)}
+
+        <Link
+          to="/assistant"
+          aria-label="Open AI Concierge"
+          aria-current={isAiActive ? "page" : undefined}
+          className="spring-press grad-signal -mt-7 flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-primary-foreground shadow-[0_14px_30px_-10px_color-mix(in_oklab,var(--primary)_85%,transparent)] ring-4 ring-[color-mix(in_oklab,var(--card)_85%,transparent)]"
+        >
+          <Sparkles className="h-6 w-6" strokeWidth={1.9} />
+        </Link>
+
+        {rightItems.map(renderItem)}
       </div>
     </nav>
   );
