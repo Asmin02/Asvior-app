@@ -30,7 +30,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { recordVisaCheckSuccess } from "@/lib/in-app-review";
 import { toast } from "sonner";
 import { GUEST_STORAGE_SCOPE } from "@/lib/app-session";
-import { PageBadge } from "@/components/PageShell";
+import { PageBadge, PageHeader, PageShell } from "@/components/PageShell";
 
 export const Route = createFileRoute("/visa-check")({
   head: () => ({
@@ -178,58 +178,74 @@ function VisaCheckPage() {
   };
 
   return (
-    <div>
-      <header className="border-b border-border bg-card px-4 py-5">
-        <PageBadge icon={<Plane className="h-3.5 w-3.5" />}>199 countries</PageBadge>
-        <h1 className="mt-2 text-2xl font-bold text-foreground">Visa Check</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Instantly see if you need a visa, how long you can stay, and what to bring.
-        </p>
-      </header>
+    <PageShell className="pb-6">
+      <PageHeader
+        badge={<PageBadge icon={<Plane className="h-3.5 w-3.5" />}>199 countries</PageBadge>}
+        title="Visa Check"
+        subtitle="Instantly see if you need a visa, how long you can stay, and what to bring."
+      />
 
-      <section className="mt-4 px-4">
-        <div className="premium-card space-y-4 rounded-2xl p-5">
-          <div>
-            <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-              Passport
-            </label>
-            <CountryCombobox
-              value={passport}
-              onChange={(v) => {
-                setPassport(v);
-                savePassport(v);
-                setResult(null);
-              }}
-              options={options}
-              placeholder="Search passport country..."
-            />
-          </div>
+      <section className="px-4">
+        <div className="premium-card animate-fade-in space-y-4 rounded-3xl p-5">
+          {/* Journey timeline: passport -> destination */}
+          <div className="relative">
+            <div className="absolute left-[1.35rem] top-11 bottom-11 w-px bg-gradient-to-b from-primary/30 via-border to-primary/30" />
 
-          <div className="flex justify-center">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <ArrowRight className="h-4 w-4 rotate-90" />
+            <div className="relative flex items-start gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary ring-4 ring-card">
+                <FileText className="h-4 w-4" />
+              </div>
+              <div className="min-w-0 flex-1 pt-0.5">
+                <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  Passport
+                </label>
+                <CountryCombobox
+                  value={passport}
+                  onChange={(v) => {
+                    setPassport(v);
+                    savePassport(v);
+                    setResult(null);
+                  }}
+                  options={options}
+                  placeholder="Search passport country..."
+                />
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-              Destination
-            </label>
-            <CountryCombobox
-              value={destination}
-              onChange={(v) => {
-                setDestination(v);
-                setResult(null);
-              }}
-              options={options}
-              placeholder="Search destination..."
-            />
+            <div className="relative my-3 flex items-center gap-3 pl-[0.05rem]">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-card text-primary ring-4 ring-card">
+                  <ArrowRight className="h-3.5 w-3.5 rotate-90" />
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground">Your journey</p>
+            </div>
+
+            <div className="relative flex items-start gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/25 to-primary/10 text-primary ring-4 ring-card">
+                <Compass className="h-4 w-4" />
+              </div>
+              <div className="min-w-0 flex-1 pt-0.5">
+                <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  Destination
+                </label>
+                <CountryCombobox
+                  value={destination}
+                  onChange={(v) => {
+                    setDestination(v);
+                    setResult(null);
+                  }}
+                  options={options}
+                  placeholder="Search destination..."
+                />
+              </div>
+            </div>
           </div>
 
           <Button
             onClick={handleCheck}
             disabled={!passport || !destination || checking}
-            className="mt-2 h-12 w-full"
+            className="mt-1 h-12 w-full rounded-2xl text-sm font-semibold active:scale-95"
           >
             {checking ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -242,16 +258,16 @@ function VisaCheckPage() {
       </section>
 
       {checking && (
-        <section className="mt-4 px-4 pb-4" aria-live="polite">
-          <div className="premium-card flex items-center gap-4 rounded-2xl p-5">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy text-primary-foreground">
+        <section className="mt-4 px-4" aria-live="polite">
+          <div className="premium-card animate-fade-in flex items-center gap-4 rounded-3xl p-5">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl grad-signal text-white">
               <Loader2 className="h-5 w-5 animate-spin" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-foreground">{LOADING_STEPS[loadingStep]}</p>
               <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
                 <div
-                  className="h-full rounded-full bg-navy transition-all duration-500 ease-out"
+                  className="h-full rounded-full grad-signal transition-all duration-500 ease-out"
                   style={{ width: `${((loadingStep + 1) / LOADING_STEPS.length) * 100}%` }}
                 />
               </div>
@@ -261,24 +277,24 @@ function VisaCheckPage() {
       )}
 
       {result && !checking && (
-        <section className="mt-4 px-4 pb-6">
-          <div className="premium-card overflow-hidden rounded-2xl">
+        <section className="mt-4 px-4">
+          <div className="premium-card animate-fade-in overflow-hidden rounded-3xl">
             {/* Status header */}
-            <div className={`${statusMeta[result.status].tone} px-5 py-4`}>
+            <div className={`${statusMeta[result.status].tone} px-5 py-5`}>
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="inline-flex items-center gap-1.5 rounded-full bg-white/25 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm">
+                  <div className="inline-flex items-center gap-1.5 rounded-full bg-white/25 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] backdrop-blur-sm">
                     {statusMeta[result.status].icon}
                     {statusMeta[result.status].label}
                   </div>
-                  <p className="mt-2 text-[13px] font-semibold opacity-95">
+                  <p className="mt-2.5 text-[13px] font-semibold opacity-95">
                     {getCountryName(passport)} → {getCountryName(destination)}
                   </p>
                 </div>
                 <button
                   onClick={toggleFav}
                   aria-label={isFav ? "Remove favorite" : "Add favorite"}
-                  className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm transition-transform active:scale-95"
+                  className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm transition-transform active:scale-90"
                 >
                   <Heart className={`h-4 w-4 ${isFav ? "fill-current" : ""}`} />
                 </button>
@@ -302,8 +318,8 @@ function VisaCheckPage() {
                 />
               </div>
 
-              <div className="rounded-2xl bg-muted/60 p-4">
-                <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+              <div className="rounded-2xl bg-muted/50 p-4">
+                <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                   <FileText className="h-3.5 w-3.5" /> Required documents
                 </p>
                 <ul className="mt-2.5 space-y-1.5">
@@ -322,7 +338,7 @@ function VisaCheckPage() {
                 href={result.officialUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-navy px-4 py-3 text-sm font-semibold text-primary-foreground"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl grad-signal px-4 py-3.5 text-sm font-semibold text-white elev-2 transition-transform active:scale-95"
               >
                 <Globe2 className="h-4 w-4" />
                 Visit official portal
@@ -332,14 +348,14 @@ function VisaCheckPage() {
               <Link
                 to="/country/$code"
                 params={{ code: destination }}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card px-4 py-3.5 text-sm font-semibold text-foreground transition-transform active:scale-95"
               >
                 <Compass className="h-4 w-4 text-primary" />
                 Explore {getCountryName(destination)} guide
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
 
-              <p className="rounded-2xl bg-muted/60 p-3 text-center text-[10px] leading-relaxed text-muted-foreground">
+              <p className="rounded-2xl bg-muted/50 p-3 text-center text-[10px] leading-relaxed text-muted-foreground">
                 Visa requirements may change at any time. Always verify the latest information with
                 the official embassy, immigration authority or government before making travel
                 arrangements. Source: Passport Index.
@@ -348,14 +364,14 @@ function VisaCheckPage() {
           </div>
         </section>
       )}
-    </div>
+    </PageShell>
   );
 }
 
 function InfoTile({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-muted/60 p-3">
-      <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+    <div className="rounded-2xl bg-muted/50 p-3">
+      <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
         <span className="text-primary">{icon}</span>
         {label}
       </p>
