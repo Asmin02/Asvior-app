@@ -14,7 +14,10 @@ import {
   BookOpen,
   Compass,
   Settings,
+  User,
 } from "lucide-react";
+import { Reveal } from "@/components/motion/Reveal";
+import { useParallax } from "@/components/motion/useParallax";
 import regionEurope from "@/assets/region-europe.jpg";
 import heroSkyline from "@/assets/hero-skyline.jpg";
 import regionAsia from "@/assets/region-asia.jpg";
