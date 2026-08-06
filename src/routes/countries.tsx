@@ -7,6 +7,7 @@ import { CountryFlag } from "@/components/CountryFlag";
 import { PageBadge, PageHeader, PageShell } from "@/components/PageShell";
 import { COUNTRY_PROFILES } from "@/data/country-profiles";
 import { REGION_META, REGION_ORDER, type Region } from "@/data/regions";
+import { SmoothImage } from "@/components/motion/SmoothImage";
 
 export const Route = createFileRoute("/countries")({
   head: () => ({
@@ -82,7 +83,7 @@ function CountriesPage() {
         </div>
 
         {/* Region chips */}
-        <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+        <div className="scroll-fluid rail-snap -mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1">
           <RegionChip active={region === "all"} onClick={() => setRegion("all")} label="All" />
           {REGION_ORDER.map((r) => (
             <RegionChip
@@ -102,7 +103,7 @@ function CountriesPage() {
             <TrendingUp className="h-3.5 w-3.5 text-primary" />
             <p className="text-eyebrow text-muted-foreground">Trending destinations</p>
           </div>
-          <div className="mt-3 flex gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none]">
+          <div className="scroll-fluid rail-snap mt-3 flex gap-3 overflow-x-auto px-4 pb-2">
             {FEATURED.map((code, i) => {
               const p = COUNTRY_PROFILES[code];
               const img = p ? REGION_META[p.region as Region]?.image : undefined;
@@ -115,7 +116,7 @@ function CountriesPage() {
                   style={{ animationDelay: `${i * 40}ms` }}
                 >
                   {img && (
-                    <img
+                    <SmoothImage
                       src={img}
                       alt={getCountryName(code)}
                       width={1024}

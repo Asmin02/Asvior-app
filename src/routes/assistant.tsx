@@ -462,7 +462,7 @@ function AssistantPage() {
         </div>
       </header>
 
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-5">
+      <div ref={scrollRef} className="scroll-fluid min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-5">
         {isEmpty ? (
           <EmptyState onPick={(p) => handleSend(p)} />
         ) : (
@@ -656,7 +656,7 @@ function MessageBubble({
 
   if (isUser) {
     return (
-      <div className="flex justify-end">
+      <div className="animate-msg-in flex justify-end">
         <div className="max-w-[85%] rounded-3xl rounded-tr-md bg-primary px-4 py-3 text-sm leading-relaxed text-primary-foreground elev-2">
           {text}
         </div>
@@ -671,7 +671,7 @@ function MessageBubble({
     .trim();
 
   return (
-    <div className="flex gap-2.5">
+    <div className="animate-msg-in flex gap-2.5">
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl grad-ink elev-1">
         <AsviorMark className="h-5 w-5" />
       </div>
@@ -751,7 +751,7 @@ function BookmarksSheet({
     >
       <div className="absolute inset-0 bg-background/50" />
       <div
-        className="premium-card relative max-h-[80vh] w-full overflow-y-auto rounded-t-3xl p-4 sm:max-w-md sm:rounded-3xl"
+        className="premium-card scroll-fluid relative max-h-[80vh] w-full overflow-y-auto rounded-t-3xl p-4 sm:max-w-md sm:rounded-3xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-3 flex items-center justify-between">

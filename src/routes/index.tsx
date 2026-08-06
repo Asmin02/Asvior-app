@@ -37,6 +37,7 @@ import { getCountryName, loadRecentSearches, type RecentSearch } from "@/lib/vis
 import { CountryFlag } from "@/components/CountryFlag";
 import { loadBookmarks } from "@/components/ai-cards";
 import { GUEST_STORAGE_SCOPE } from "@/lib/app-session";
+import { SmoothImage } from "@/components/motion/SmoothImage";
 import {
   getDailyTrendingDestinations,
   getLatestVisaUpdates,
@@ -414,7 +415,7 @@ function HomePage() {
       {/* Cinematic hero */}
       <header className="relative overflow-hidden rounded-b-[2rem]">
         <div ref={heroRef} className="parallax-layer absolute inset-0">
-          <img
+          <SmoothImage
             src={heroSkyline}
             alt="Aerial view of a turquoise coastline at golden hour"
             width={1280}
@@ -695,7 +696,7 @@ function HomePage() {
                   className="float-card group block overflow-hidden p-0"
                 >
                   <div className="relative h-28 overflow-hidden r-28">
-                    <img
+                    <SmoothImage
                       src={TRENDING_IMAGES[destination.imageIndex]}
                       alt={destination.name}
                       loading="lazy"
@@ -764,7 +765,7 @@ function DestinationCard({ destination }: { destination: Destination }) {
       className="float-card group block overflow-hidden p-0"
     >
       <div className="relative h-40 overflow-hidden rounded-t-[1.75rem]">
-        <img
+        <SmoothImage
           src={destination.image}
           alt={destination.name}
           loading="lazy"
