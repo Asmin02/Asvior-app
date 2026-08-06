@@ -292,9 +292,7 @@ function ProfilePage() {
                 <p className="mt-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">
                   Member of Asvior
                 </p>
-                {uploading && (
-                  <p className="mt-1 text-[10px] text-muted-foreground">Uploading…</p>
-                )}
+                {uploading && <p className="mt-1 text-[10px] text-muted-foreground">Uploading…</p>}
               </div>
             </div>
           </div>

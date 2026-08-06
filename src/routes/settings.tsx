@@ -295,8 +295,8 @@ function SettingsPage() {
           <SettingsCard icon={<Trash2 className="h-4 w-4" />} title="Account" delay={240}>
             <div className="rounded-2xl bg-destructive/5 p-4 ring-1 ring-destructive/10">
               <p className="text-xs leading-relaxed text-muted-foreground">
-                Permanently delete your account, profile, trips, favorites, and search history.
-                This cannot be undone.
+                Permanently delete your account, profile, trips, favorites, and search history. This
+                cannot be undone.
               </p>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
@@ -308,24 +308,24 @@ function SettingsPage() {
                     {deleting ? "Deleting account…" : "Delete account"}
                   </button>
                 </AlertDialogTrigger>
-              <AlertDialogContent className="rounded-2xl">
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete your account?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This permanently removes your profile, saved trips, favorites, visa history, and
-                    settings. This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel className="rounded-2xl">Keep my account</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleDeleteAccount}
-                    className="rounded-2xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  >
-                    Delete permanently
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
+                <AlertDialogContent className="rounded-2xl">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete your account?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This permanently removes your profile, saved trips, favorites, visa history,
+                      and settings. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="rounded-2xl">Keep my account</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDeleteAccount}
+                      className="rounded-2xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Delete permanently
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
               </AlertDialog>
             </div>
           </SettingsCard>
