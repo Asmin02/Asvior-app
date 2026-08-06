@@ -3,14 +3,7 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import {
-  BadgeCheck,
-  FileText,
-  Landmark,
-  ListChecks,
-  Globe2,
-  Wallet,
-} from "lucide-react";
+import { BadgeCheck, FileText, Landmark, ListChecks, Globe2, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AsviorMark } from "@/components/AsviorMark";

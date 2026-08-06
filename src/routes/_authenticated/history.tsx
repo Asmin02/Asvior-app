@@ -164,9 +164,7 @@ function HistoryPage() {
       kind: "trips",
       createdAt: toTimestamp(row.created_at),
       title: row.name,
-      subtitle: row.destination_code
-        ? `${getCountryName(row.destination_code)}`
-        : "Saved trip",
+      subtitle: row.destination_code ? `${getCountryName(row.destination_code)}` : "Saved trip",
       destinationCode: row.destination_code || undefined,
     }));
 
