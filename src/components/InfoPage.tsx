@@ -16,7 +16,7 @@ export function InfoPage({
 }) {
   return (
     <div className="pb-12">
-      <header className="relative overflow-hidden px-5 pb-8 pt-6">
+      <header className="relative overflow-hidden px-5 pb-8 pt-[calc(var(--safe-top)+1.5rem)]">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-x-0 -top-28 h-56 bg-[radial-gradient(65%_100%_at_50%_100%,color-mix(in_oklab,var(--primary)_16%,transparent),transparent)]"

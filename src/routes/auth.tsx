@@ -131,7 +131,7 @@ function AuthPage() {
 
       <div
         data-testid="auth-page"
-        className="relative px-4 pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-10"
+        className="relative px-4 pt-[calc(var(--safe-top)+1.5rem)] pb-10"
       >
         <Link
           data-testid="auth-back-link"
