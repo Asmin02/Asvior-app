@@ -82,7 +82,7 @@ export function SheetV7({
       <Scrim />
       <DialogPrimitive.Content
         className={cn(
-          "sheet-panel fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[88dvh] w-full max-w-md overflow-y-auto animate-slide-up-sheet",
+          "sheet-panel scroll-fluid fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[88dvh] w-full max-w-md overflow-y-auto animate-slide-up-sheet",
           className,
         )}
       >

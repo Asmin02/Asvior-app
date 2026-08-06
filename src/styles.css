@@ -384,7 +384,10 @@
 
   html {
     -webkit-tap-highlight-color: transparent;
-    scroll-behavior: smooth;
+    /* Instant restore on back-navigation; in-app smooth scrolls opt in via JS. */
+    scroll-behavior: auto;
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
   }
 
   body {

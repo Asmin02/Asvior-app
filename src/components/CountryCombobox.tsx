@@ -173,7 +173,7 @@ export function CountryCombobox({
               />
             </div>
             <ul
-              className="min-h-0 flex-1 overflow-y-auto py-1"
+              className="scroll-fluid min-h-0 flex-1 overflow-y-auto py-1"
               style={{
                 WebkitOverflowScrolling: "touch",
                 overscrollBehavior: "contain",

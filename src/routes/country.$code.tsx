@@ -392,7 +392,7 @@ function CountryHubPage() {
 
       {/* ============ TOP ATTRACTIONS ============ */}
       <Section title="Top attractions" icon={<MapPin className="h-4 w-4" />}>
-        <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none]">
+        <div className="scroll-fluid rail-snap -mx-4 flex gap-3 overflow-x-auto px-4 pb-2">
           {profile.attractions.map((a, i) => (
             <div
               key={a.name}
