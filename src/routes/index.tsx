@@ -13,7 +13,6 @@ import {
   MessageCircle,
   BookOpen,
   Compass,
-  Settings,
   User,
 } from "lucide-react";
 import { Reveal } from "@/components/motion/Reveal";

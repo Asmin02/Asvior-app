@@ -8,7 +8,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Home, Plane, CheckSquare, Wallet, User, Sparkles } from "lucide-react";
+import { Home, Plane, CheckSquare, Wallet, Sparkles } from "lucide-react";
 
 import appCss from "../styles.css?url";
 import { reportError } from "../lib/error-reporting";
