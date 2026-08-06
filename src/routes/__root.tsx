@@ -27,16 +27,25 @@ import { FloatingAIButton } from "@/components/FloatingAIButton";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-background px-4">
-      <div className="premium-card max-w-md rounded-2xl p-8 text-center">
-        <h1 className="text-6xl font-bold text-foreground">404</h1>
-        <h2 className="mt-3 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">That destination isn't on our map.</p>
+    <div className="flex min-h-dvh items-center justify-center bg-background px-6">
+      <div className="premium-card w-full max-w-md animate-fade-in rounded-3xl p-10 text-center">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-primary/15 to-primary/5 text-3xl ring-1 ring-primary/10">
+          🧭
+        </div>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
+          Off the map
+        </p>
+        <h1 className="mt-2 text-[2rem] font-semibold leading-tight tracking-[-0.03em] text-foreground">
+          Page not found
+        </h1>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          That destination isn't on our map.
+        </p>
         <Link
           to="/"
-          className="mt-6 inline-flex items-center justify-center rounded-xl bg-navy px-5 py-2.5 text-sm font-semibold text-primary-foreground"
+          className="mt-7 inline-flex items-center justify-center rounded-full bg-primary px-7 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-transform active:scale-95"
         >
-          Go home
+          Take me home
         </Link>
       </div>
     </div>
@@ -51,27 +60,30 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   }, [error]);
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-background px-4">
-      <div className="premium-card max-w-md rounded-2xl p-8 text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+    <div className="flex min-h-dvh items-center justify-center bg-background px-6">
+      <div className="premium-card w-full max-w-md animate-fade-in rounded-3xl p-10 text-center">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-primary/15 to-primary/5 text-3xl ring-1 ring-primary/10">
+          ☁️
+        </div>
+        <h1 className="text-2xl font-semibold tracking-[-0.03em] text-foreground">
           This page didn't load
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           Something went wrong. Try refreshing or head back home.
         </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
+        <div className="mt-7 flex flex-wrap justify-center gap-2.5">
           <button
             onClick={() => {
               router.invalidate();
               reset();
             }}
-            className="rounded-xl bg-navy px-5 py-2.5 text-sm font-semibold text-primary-foreground"
+            className="rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-transform active:scale-95"
           >
             Try again
           </button>
           <a
             href="/"
-            className="rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground"
+            className="rounded-full border border-border/60 bg-card/70 px-6 py-3 text-sm font-semibold text-foreground backdrop-blur-xl transition-transform active:scale-95"
           >
             Go home
           </a>
@@ -212,9 +224,9 @@ function MobileNav() {
   return (
     <nav
       aria-label="Main navigation"
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2"
+      className="fixed inset-x-0 bottom-0 z-50 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
     >
-      <div className="mx-auto flex max-w-md items-center justify-around px-2">
+      <div className="mx-auto flex max-w-md items-center justify-between gap-1 rounded-full border border-border/50 bg-card/80 p-1.5 shadow-[0_18px_40px_-18px_color-mix(in_oklab,var(--primary)_45%,transparent)] backdrop-blur-2xl">
         {navItems.map((item) => {
           const isActive = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
           const Icon = item.icon;
@@ -223,14 +235,16 @@ function MobileNav() {
               key={item.to}
               to={item.to}
               aria-current={isActive ? "page" : undefined}
-              className="flex min-h-12 min-w-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 rounded-lg py-1 transition-colors"
+              className={`relative flex min-h-12 flex-1 flex-col items-center justify-center gap-0.5 rounded-full py-1.5 transition-all duration-300 active:scale-95 ${
+                isActive ? "bg-primary/10" : ""
+              }`}
             >
               <Icon
-                className={`h-5 w-5 ${isActive ? "text-navy" : "text-muted-foreground"}`}
-                strokeWidth={isActive ? 2.25 : 2}
+                className={`h-5 w-5 transition-colors ${isActive ? "text-primary" : "text-muted-foreground"}`}
+                strokeWidth={isActive ? 2.25 : 1.9}
               />
               <span
-                className={`text-[10px] font-semibold ${isActive ? "text-navy" : "text-muted-foreground"}`}
+                className={`text-[9.5px] font-semibold tracking-tight transition-colors ${isActive ? "text-primary" : "text-muted-foreground"}`}
               >
                 {item.label}
               </span>
@@ -336,7 +350,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <main className="mx-auto min-h-dvh max-w-md bg-background pb-[calc(4.5rem+env(safe-area-inset-bottom))] font-sans antialiased">
+      <main className="mx-auto min-h-dvh max-w-md bg-background pb-[calc(6rem+env(safe-area-inset-bottom))] font-sans antialiased">
         <Outlet />
       </main>
       <FloatingAIButton />

@@ -389,12 +389,16 @@ function AssistantPage() {
 
   return (
     <div className="relative flex h-[calc(100dvh-env(safe-area-inset-top,0px)-calc(4.5rem+env(safe-area-inset-bottom,0px)))] max-h-[calc(100dvh-env(safe-area-inset-top,0px)-calc(4.5rem+env(safe-area-inset-bottom,0px)))] flex-col overflow-hidden bg-background">
-      <header className="sticky top-0 z-20 border-b border-border bg-card px-4 py-3">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 z-0 h-72 bg-[radial-gradient(70%_100%_at_50%_0%,color-mix(in_oklab,var(--primary)_14%,transparent),transparent)]"
+      />
+      <header className="sticky top-0 z-20 border-b border-border/50 bg-card/80 px-4 py-3 backdrop-blur-xl">
         <div className="flex items-center gap-2">
           <Link
             to="/"
             aria-label="Back to home"
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-background"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-border/60 bg-background/70 backdrop-blur-md transition-transform active:scale-95"
           >
             <svg
               className="h-4 w-4"
@@ -407,17 +411,21 @@ function AssistantPage() {
             </svg>
           </Link>
           <div className="flex min-w-0 flex-1 items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-navy">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl grad-ink elev-2">
               <AsviorMark className="h-6 w-6" />
             </div>
             <div className="min-w-0">
-              <h1 className="truncate text-base font-semibold text-foreground">AI Concierge</h1>
-              <p className="truncate text-xs text-muted-foreground">Premium travel assistant</p>
+              <h1 className="truncate text-base font-semibold tracking-[-0.01em] text-foreground">
+                Asvior AI
+              </h1>
+              <p className="truncate text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+                Premium travel concierge
+              </p>
             </div>
           </div>
           <button
             onClick={() => setShowBookmarks(true)}
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-background"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-border/60 bg-background/70 backdrop-blur-md transition-transform active:scale-95"
             aria-label="Bookmarks"
           >
             <svg
@@ -438,13 +446,13 @@ function AssistantPage() {
             <>
               <button
                 onClick={bookmarkConversation}
-                className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium"
+                className="rounded-full border border-border/60 bg-background/70 px-3 py-1.5 text-xs font-semibold text-foreground transition-transform active:scale-95"
               >
                 Save
               </button>
               <button
                 onClick={clearChat}
-                className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium"
+                className="rounded-full border border-border/60 bg-background/70 px-3 py-1.5 text-xs font-semibold text-foreground transition-transform active:scale-95"
               >
                 New
               </button>
@@ -488,11 +496,11 @@ function AssistantPage() {
       )}
 
       <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-1/2 z-30 w-full max-w-md -translate-x-1/2 px-3">
-        <div className="premium-card rounded-2xl p-2">
+        <div className="rounded-3xl border border-border/50 bg-card/80 p-2 elev-4 backdrop-blur-xl">
           <div className="flex items-end gap-2">
             <button
               onClick={handleVoice}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary text-navy"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-secondary text-navy transition-transform active:scale-95"
               aria-label="Voice input"
             >
               <svg
@@ -526,7 +534,7 @@ function AssistantPage() {
             {isLoading ? (
               <button
                 onClick={() => stop()}
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-destructive text-destructive-foreground"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-destructive text-destructive-foreground transition-transform active:scale-95"
                 aria-label="Stop"
               >
                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
@@ -537,7 +545,7 @@ function AssistantPage() {
               <button
                 onClick={() => handleSend(input)}
                 disabled={!input.trim()}
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-navy text-primary-foreground disabled:opacity-40"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl grad-ink text-primary-foreground transition-transform active:scale-95 disabled:opacity-40"
                 aria-label="Send"
               >
                 <svg
@@ -567,43 +575,46 @@ function AssistantPage() {
 
 function EmptyState({ onPick }: { onPick: (prompt: string) => void }) {
   return (
-    <div>
-      <div className="mb-6 mt-2 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-navy">
+    <div className="animate-fade-in">
+      <div className="relative mb-7 mt-2 overflow-hidden rounded-3xl grad-ink px-6 py-8 text-center elev-3">
+        <span className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-aurora/25 blur-2xl" />
+        <span className="pointer-events-none absolute -bottom-12 -left-6 h-32 w-32 rounded-full bg-gold/20 blur-2xl" />
+        <div className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md">
           <AsviorMark className="h-10 w-10" />
         </div>
-        <h2 className="mt-4 text-xl font-bold text-foreground">Hi, I'm Asvior AI</h2>
-        <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-muted-foreground">
-          Tell me your nationality and destination — I'll guide you through visas, documents, and
-          trip planning.
+        <p className="relative mt-4 text-eyebrow text-white/60">Asvior AI</p>
+        <h2 className="relative mt-1.5 text-[1.6rem] font-semibold tracking-[-0.03em] text-primary-foreground">
+          Hi, I&apos;m your travel concierge
+        </h2>
+        <p className="relative mx-auto mt-2 max-w-xs text-sm leading-relaxed text-primary-foreground/70">
+          Tell me your nationality and destination — I&apos;ll guide you through visas, documents,
+          and trip planning.
         </p>
       </div>
 
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        Quick actions
-      </p>
-      <div className="grid grid-cols-2 gap-2">
-        {QUICK_ACTIONS.map((a) => (
+      <p className="mb-2 text-eyebrow text-muted-foreground">Quick actions</p>
+      <div className="grid grid-cols-2 gap-2.5">
+        {QUICK_ACTIONS.map((a, i) => (
           <button
             key={a.label}
             onClick={() => onPick(a.prompt)}
-            className="premium-card flex items-center gap-2 rounded-xl p-3 text-left transition-colors hover:bg-secondary/40"
+            style={{ animationDelay: `${i * 40}ms` }}
+            className="premium-card flex animate-fade-in items-center gap-2.5 rounded-2xl p-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
           >
             <span className="text-lg">{a.icon}</span>
-            <span className="text-xs font-semibold leading-tight">{a.label}</span>
+            <span className="text-xs font-semibold leading-tight text-foreground">{a.label}</span>
           </button>
         ))}
       </div>
 
-      <p className="mb-2 mt-5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        Try asking
-      </p>
+      <p className="mb-2 mt-6 text-eyebrow text-muted-foreground">Try asking</p>
       <div className="space-y-2">
-        {SUGGESTIONS.map((s) => (
+        {SUGGESTIONS.map((s, i) => (
           <button
             key={s}
             onClick={() => onPick(s)}
-            className="premium-card flex w-full items-center justify-between gap-2 rounded-xl p-3 text-left text-sm transition-colors hover:bg-secondary/40"
+            style={{ animationDelay: `${i * 40}ms` }}
+            className="premium-card flex w-full animate-fade-in items-center justify-between gap-2 rounded-2xl p-3.5 text-left text-sm text-foreground transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
           >
             <span className="line-clamp-2">{s}</span>
             <svg
@@ -640,7 +651,7 @@ function MessageBubble({
   if (isUser) {
     return (
       <div className="flex justify-end">
-        <div className="max-w-[85%] rounded-2xl rounded-tr-md bg-navy px-4 py-3 text-sm text-primary-foreground">
+        <div className="max-w-[85%] rounded-3xl rounded-tr-md bg-primary px-4 py-3 text-sm leading-relaxed text-primary-foreground elev-2">
           {text}
         </div>
       </div>
@@ -654,14 +665,14 @@ function MessageBubble({
     .trim();
 
   return (
-    <div className="flex gap-2">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-navy">
+    <div className="flex gap-2.5">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl grad-ink elev-1">
         <AsviorMark className="h-5 w-5" />
       </div>
       <div className="min-w-0 flex-1 space-y-2">
         {segments.length === 0 ||
         (segments.length === 1 && segments[0].kind === "text" && !segments[0].content.trim()) ? (
-          <div className="premium-card rounded-2xl rounded-tl-md px-4 py-3 text-sm">
+          <div className="px-1 py-2 text-sm">
             <span className="text-muted-foreground">…</span>
           </div>
         ) : (
@@ -672,7 +683,7 @@ function MessageBubble({
               return (
                 <div
                   key={i}
-                  className="premium-card prose prose-sm max-w-none rounded-2xl rounded-tl-md px-4 py-3 text-sm text-foreground prose-headings:mt-2 prose-headings:mb-1 prose-p:my-1.5 prose-ul:my-1.5 prose-li:my-0 prose-a:text-navy dark:prose-invert"
+                  className="prose prose-sm max-w-none px-1 py-1 text-sm leading-relaxed text-foreground prose-headings:mt-2 prose-headings:mb-1 prose-p:my-1.5 prose-ul:my-1.5 prose-li:my-0 prose-a:text-primary dark:prose-invert"
                 >
                   <ReactMarkdown>{content}</ReactMarkdown>
                 </div>
@@ -734,7 +745,7 @@ function BookmarksSheet({
     >
       <div className="absolute inset-0 bg-background/50" />
       <div
-        className="premium-card relative max-h-[80vh] w-full overflow-y-auto rounded-t-2xl p-4 sm:max-w-md sm:rounded-2xl"
+        className="premium-card relative max-h-[80vh] w-full overflow-y-auto rounded-t-3xl p-4 sm:max-w-md sm:rounded-3xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-3 flex items-center justify-between">
@@ -762,7 +773,7 @@ function BookmarksSheet({
         ) : (
           <ul className="space-y-2">
             {bookmarks.map((b) => (
-              <li key={b.id} className="premium-card rounded-[1.3rem] p-3">
+              <li key={b.id} className="premium-card rounded-2xl p-3">
                 <div className="flex items-start gap-2">
                   <button onClick={() => onRestore(b)} className="flex-1 text-left">
                     <div className="line-clamp-1 text-sm font-semibold">{b.title}</div>

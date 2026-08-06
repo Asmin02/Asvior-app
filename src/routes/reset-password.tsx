@@ -1,12 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { PageHeader, PageShell } from "@/components/PageShell";
+import { AsviorMark } from "@/components/AsviorMark";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { clearRecoveryInProgress, isRecoveryInProgress } from "@/lib/auth-recovery";
 import { toast } from "sonner";
+import heroSkyline from "@/assets/hero-skyline.jpg";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({ meta: [{ title: "Reset password — Asvior" }] }),
@@ -76,75 +77,129 @@ function ResetPasswordPage() {
     }
   };
 
-  if (checkingSession) {
-    return (
-      <PageShell className="pb-6">
-        <PageHeader title="Checking reset link…" />
-      </PageShell>
-    );
-  }
-
   return (
-    <PageShell className="pb-6">
-      <div data-testid="reset-password-page">
-        <PageHeader title="Create New Password" subtitle="Enter and confirm your new password." />
-        <form onSubmit={submit} className="mt-6 space-y-3 px-4">
-          <div className="premium-card flex items-center gap-2 rounded-2xl px-3 py-2">
-            <Input
-              data-testid="reset-password-input"
-              type={showNewPassword ? "text" : "password"}
-              required
-              minLength={6}
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="New password"
-              autoComplete="new-password"
-              className="border-0 bg-transparent shadow-none focus-visible:ring-0"
-            />
-            <button
-              type="button"
-              data-testid="reset-password-toggle-btn"
-              onClick={() => setShowNewPassword((v) => !v)}
-              aria-label={showNewPassword ? "Hide password" : "Show password"}
-              aria-pressed={showNewPassword}
-              className="rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-            >
-              {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
+    <div className="relative min-h-dvh overflow-hidden bg-background">
+      <img
+        src={heroSkyline}
+        alt="Turquoise coastline at golden hour"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-ink/75 via-ink/45 to-background" />
+      <div className="pointer-events-none absolute -right-16 top-24 h-56 w-56 rounded-full bg-aurora/20 blur-3xl" />
+
+      <div
+        data-testid="reset-password-page"
+        className="relative px-4 pt-[calc(env(safe-area-inset-top)+3.5rem)] pb-10"
+      >
+        <div className="animate-fade-in text-center">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl border border-white/15 bg-white/10 backdrop-blur-md elev-4">
+            <AsviorMark className="h-12 w-12" />
           </div>
-          <div className="premium-card flex items-center gap-2 rounded-2xl px-3 py-2">
-            <Input
-              data-testid="reset-password-confirm-input"
-              type={showConfirmPassword ? "text" : "password"}
-              required
-              minLength={6}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirm new password"
-              autoComplete="new-password"
-              className="border-0 bg-transparent shadow-none focus-visible:ring-0"
-            />
-            <button
-              type="button"
-              data-testid="reset-password-confirm-toggle-btn"
-              onClick={() => setShowConfirmPassword((v) => !v)}
-              aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
-              aria-pressed={showConfirmPassword}
-              className="rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-            >
-              {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
-          <Button
-            data-testid="reset-password-submit-btn"
-            type="submit"
-            disabled={busy}
-            className="w-full rounded-2xl py-5 font-semibold"
+          <p className="mt-5 text-eyebrow text-primary-foreground/70">ASVIOR</p>
+          <h1 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-primary-foreground">
+            {checkingSession ? "Checking reset link…" : "New password"}
+          </h1>
+          {!checkingSession && (
+            <p className="mx-auto mt-2 max-w-[30ch] text-sm leading-relaxed text-primary-foreground/70">
+              Enter and confirm your new password.
+            </p>
+          )}
+        </div>
+
+        {!checkingSession && (
+          <div
+            className="mx-auto mt-8 w-full max-w-sm animate-fade-in rounded-3xl border border-border/50 bg-card/80 p-5 elev-5 backdrop-blur-xl"
+            style={{ animationDelay: "80ms" }}
           >
-            {busy ? "Updating…" : "Update password"}
-          </Button>
-        </form>
+            <form onSubmit={submit} className="space-y-3">
+              <Field label="New password" icon={<Lock className="h-4 w-4" />}>
+                <div className="flex items-center gap-2">
+                  <Input
+                    data-testid="reset-password-input"
+                    type={showNewPassword ? "text" : "password"}
+                    required
+                    minLength={6}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="••••••••"
+                    autoComplete="new-password"
+                    className="border-0 bg-transparent pl-0 shadow-none focus-visible:ring-0"
+                  />
+                  <button
+                    type="button"
+                    data-testid="reset-password-toggle-btn"
+                    onClick={() => setShowNewPassword((v) => !v)}
+                    aria-label={showNewPassword ? "Hide password" : "Show password"}
+                    aria-pressed={showNewPassword}
+                    className="rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                  >
+                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </Field>
+              <Field label="Confirm password" icon={<Lock className="h-4 w-4" />}>
+                <div className="flex items-center gap-2">
+                  <Input
+                    data-testid="reset-password-confirm-input"
+                    type={showConfirmPassword ? "text" : "password"}
+                    required
+                    minLength={6}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    autoComplete="new-password"
+                    className="border-0 bg-transparent pl-0 shadow-none focus-visible:ring-0"
+                  />
+                  <button
+                    type="button"
+                    data-testid="reset-password-confirm-toggle-btn"
+                    onClick={() => setShowConfirmPassword((v) => !v)}
+                    aria-label={
+                      showConfirmPassword ? "Hide confirm password" : "Show confirm password"
+                    }
+                    aria-pressed={showConfirmPassword}
+                    className="rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+              </Field>
+              <Button
+                data-testid="reset-password-submit-btn"
+                type="submit"
+                disabled={busy}
+                className="mt-2 h-12 w-full rounded-full text-sm font-semibold transition-transform active:scale-95"
+              >
+                {busy ? "Updating…" : "Update password"}
+              </Button>
+            </form>
+          </div>
+        )}
       </div>
-    </PageShell>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  icon,
+  children,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl border border-border/60 bg-background/60 px-4 py-2.5 transition-all focus-within:border-primary/40 focus-within:ring-2 focus-within:ring-primary/10">
+      <label className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+        <span className="text-primary">{icon}</span>
+        {label}
+      </label>
+      {children}
+    </div>
   );
 }

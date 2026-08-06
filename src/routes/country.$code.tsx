@@ -162,7 +162,7 @@ function CountryHubPage() {
   return (
     <div className="relative overflow-x-hidden pb-6">
       {/* ============ HERO ============ */}
-      <section className="relative h-[340px]">
+      <section className="relative h-[420px] overflow-hidden rounded-b-[2.25rem]">
         <img
           src={regionMeta.image}
           alt={`${name} travel scenery`}
@@ -170,57 +170,53 @@ function CountryHubPage() {
           height={576}
           className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-navy/30" />
-        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-ink/60 via-ink/20 to-ink/90" />
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent" />
 
-        <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4 pt-6">
+        <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4 pt-[calc(env(safe-area-inset-top)+1rem)]">
           <Link
             to="/countries"
             aria-label="Back to countries"
-            className="premium-card flex h-10 w-10 items-center justify-center rounded-2xl text-foreground"
+            className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/25 bg-white/12 text-white backdrop-blur-md transition-colors hover:bg-white/20 active:scale-95"
           >
             <ArrowLeft className="h-4.5 w-4.5" />
           </Link>
           <button
             onClick={toggleFav}
             aria-label={isFav ? "Remove from favorites" : "Save country"}
-            className={`premium-card flex h-10 w-10 items-center justify-center rounded-2xl ${
-              isFav ? "text-red-500" : "text-foreground"
+            className={`flex h-10 w-10 items-center justify-center rounded-2xl border border-white/25 bg-white/12 backdrop-blur-md transition-colors hover:bg-white/20 active:scale-95 ${
+              isFav ? "text-red-400" : "text-white"
             }`}
           >
             <Heart className={`h-4.5 w-4.5 ${isFav ? "fill-current" : ""}`} />
           </button>
         </div>
 
-        <div className="absolute inset-x-0 bottom-0 px-4 pb-2">
+        <div className="absolute inset-x-0 bottom-0 px-4 pb-5 animate-fade-in">
           <span className="text-5xl drop-shadow-lg">{flagEmoji(code)}</span>
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">{name}</h1>
+            <h1 className="text-3xl font-semibold tracking-[-0.03em] text-white">{name}</h1>
             {visa && (
               <span
-                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${statusTone[visa.status]}`}
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-2xs font-bold uppercase tracking-wider ${statusTone[visa.status]}`}
               >
                 {statusIcon[visa.status]}
                 {visa.status}
               </span>
             )}
           </div>
-          <p className="mt-1.5 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-            <MapPin className="h-3.5 w-3.5 text-primary" />
+          <p className="mt-1.5 flex items-center gap-1.5 text-xs font-semibold text-white/80">
+            <MapPin className="h-3.5 w-3.5 text-white" />
             {profile.capital} · {regionMeta.label}
           </p>
-          <p className="mt-2 max-w-sm text-sm leading-relaxed text-foreground/80">
-            {profile.intro}
-          </p>
+          <p className="mt-2 max-w-sm text-sm leading-relaxed text-white/75">{profile.intro}</p>
         </div>
       </section>
 
       {/* ============ PASSPORT SELECTOR ============ */}
-      <section className="relative mt-4 px-4">
-        <div className="premium-card rounded-2xl p-4">
-          <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-            Your passport
-          </label>
+      <section className="relative -mt-8 z-10 px-4">
+        <div className="rounded-2xl border border-white/50 bg-card/90 p-4 elev-4 backdrop-blur-xl">
+          <label className="text-eyebrow mb-1.5 block text-muted-foreground">Your passport</label>
           <CountryCombobox
             value={passport}
             onChange={(v) => {
@@ -236,7 +232,7 @@ function CountryHubPage() {
       {/* ============ VISA INFORMATION ============ */}
       {visa && (
         <Section title="Visa information" icon={<ShieldCheck className="h-4 w-4" />}>
-          <div className="premium-card overflow-hidden rounded-2xl">
+          <div className="premium-card overflow-hidden rounded-3xl">
             <div className={`px-5 py-4 ${statusTone[visa.status]}`}>
               <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest">
                 {statusIcon[visa.status]}
@@ -304,11 +300,9 @@ function CountryHubPage() {
 
       {/* ============ TRAVEL COST ============ */}
       <Section title="Travel cost" icon={<Banknote className="h-4 w-4" />}>
-        <div className="premium-card rounded-2xl p-5">
+        <div className="premium-card rounded-3xl p-5">
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-              Trip length
-            </p>
+            <p className="text-eyebrow text-muted-foreground">Trip length</p>
             <div className="flex gap-1.5">
               {[3, 7, 14].map((d) => (
                 <button
@@ -392,7 +386,7 @@ function CountryHubPage() {
           {profile.attractions.map((a, i) => (
             <div
               key={a.name}
-              className="relative h-48 w-40 shrink-0 overflow-hidden rounded-2xl border border-border shadow-soft"
+              className="relative h-48 w-40 shrink-0 overflow-hidden rounded-3xl elev-2"
             >
               <img
                 src={regionMeta.image}
@@ -403,7 +397,7 @@ function CountryHubPage() {
                 className="absolute inset-0 h-full w-full object-cover"
                 style={{ objectPosition: `${(i * 33) % 100}% center` }}
               />
-              <div className="absolute inset-0 bg-navy/60" />
+              <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/20 to-transparent" />
               <div className="absolute inset-x-0 bottom-0 p-3.5">
                 <span className="text-2xl drop-shadow">{a.emoji}</span>
                 <p className="mt-1 text-[13px] font-bold leading-tight text-white">{a.name}</p>
@@ -445,26 +439,28 @@ function CountryHubPage() {
       </Section>
 
       {/* ============ ASK AI ============ */}
-      <section className="relative mt-8 px-4">
-        <div className="overflow-hidden rounded-2xl bg-navy p-5 text-primary-foreground shadow-soft">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/10">
+      <section className="relative mt-8 px-4 pb-2">
+        <div className="relative overflow-hidden rounded-3xl grad-ink p-5 text-white elev-3">
+          <span className="pointer-events-none absolute -right-10 -top-12 h-40 w-40 rounded-full bg-aurora/25 blur-2xl" />
+          <span className="pointer-events-none absolute -bottom-16 -left-8 h-40 w-40 rounded-full bg-gold/20 blur-2xl" />
+          <div className="relative flex items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/12">
               <Sparkles className="h-5 w-5" strokeWidth={2.4} />
             </div>
             <div>
               <p className="text-sm font-bold">Ask AI about {name}</p>
-              <p className="mt-0.5 text-[11px] text-primary-foreground/70">
+              <p className="mt-0.5 text-2xs text-white/70">
                 Instant answers from your travel concierge
               </p>
             </div>
           </div>
-          <div className="mt-4 space-y-2">
+          <div className="relative mt-4 space-y-2">
             {aiQuestions.map((q) => (
               <Link
                 key={q}
                 to="/assistant"
                 search={{ q }}
-                className="flex items-center justify-between gap-2 rounded-2xl bg-white/10 px-4 py-2.5 text-left text-[13px] font-medium transition-colors hover:bg-white/15"
+                className="flex items-center justify-between gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-2.5 text-left text-[13px] font-medium transition-colors hover:bg-white/15 active:scale-[0.99]"
               >
                 <span className="min-w-0 flex-1">{q}</span>
                 <Sparkles className="h-3.5 w-3.5 shrink-0 opacity-70" />
@@ -490,7 +486,7 @@ function Section({
 }) {
   return (
     <section className="relative mt-8 px-4">
-      <p className="mb-3 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+      <p className="text-eyebrow mb-3 flex items-center gap-1.5 text-muted-foreground">
         <span className="text-primary">{icon}</span>
         {title}
       </p>
@@ -513,7 +509,7 @@ function InfoTile({ icon, label, value }: { icon: React.ReactNode; label: string
 
 function InfoCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="premium-card rounded-2xl p-4">
+    <div className="premium-card rounded-2xl p-4 transition-transform active:scale-[0.98]">
       <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-secondary text-navy">
         {icon}
       </div>
@@ -615,7 +611,7 @@ function DocChecklist({
   const pct = documents.length ? Math.round((done / documents.length) * 100) : 0;
 
   return (
-    <div className="premium-card rounded-2xl p-5">
+    <div className="premium-card rounded-3xl p-5">
       <div className="flex items-center justify-between">
         <p className="text-sm font-bold text-foreground">
           {done}/{documents.length} ready

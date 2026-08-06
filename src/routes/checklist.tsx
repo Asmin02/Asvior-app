@@ -13,6 +13,7 @@ import {
   Sparkles,
   ArrowRight,
 } from "lucide-react";
+import { PageBadge, PageHeader, PageShell } from "@/components/PageShell";
 
 export const Route = createFileRoute("/checklist")({
   head: () => ({
@@ -113,96 +114,104 @@ function ChecklistPage() {
   };
   const reset = () => setChecked(new Set());
   const progress = Math.round((checked.size / defaultItems.length) * 100);
+  const isComplete = progress === 100;
 
   return (
-    <div>
-      <header className="flex items-start justify-between border-b border-border bg-card px-4 py-5">
-        <div>
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-muted-foreground">
-            <CheckCircle2 className="h-3.5 w-3.5" /> Autosaved
-          </div>
-          <h1 className="mt-2 text-2xl font-bold text-foreground">Checklist</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Everything you need before takeoff.</p>
-        </div>
-        {checked.size > 0 && (
-          <button
-            onClick={reset}
-            className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-secondary"
-          >
-            Reset
-          </button>
-        )}
-      </header>
+    <PageShell className="pb-6">
+      <PageHeader
+        badge={<PageBadge icon={<CheckCircle2 className="h-3.5 w-3.5" />}>Autosaved</PageBadge>}
+        title="Checklist"
+        subtitle="Everything you need before takeoff."
+        action={
+          checked.size > 0 ? (
+            <button
+              onClick={reset}
+              className="mt-1 shrink-0 rounded-full border border-border/60 bg-card/70 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground backdrop-blur-sm transition-transform active:scale-95"
+            >
+              Reset
+            </button>
+          ) : undefined
+        }
+      />
 
-      <section className="mt-4 px-4">
-        <div className="premium-card flex items-center gap-4 rounded-2xl p-5">
-          <div className="relative flex h-20 w-20 shrink-0 items-center justify-center">
-            <svg className="absolute inset-0 -rotate-90" viewBox="0 0 80 80">
+      <section className="px-4">
+        <div className="premium-card animate-fade-in flex items-center gap-5 rounded-3xl p-5">
+          <div className="relative flex h-24 w-24 shrink-0 items-center justify-center">
+            <svg className="absolute inset-0 -rotate-90" viewBox="0 0 96 96">
               <circle
-                cx="40"
-                cy="40"
-                r="34"
+                cx="48"
+                cy="48"
+                r="40"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="7"
-                className="text-muted"
+                strokeWidth="8"
+                className="text-muted/70"
               />
               <circle
-                cx="40"
-                cy="40"
-                r="34"
+                cx="48"
+                cy="48"
+                r="40"
                 fill="none"
-                stroke="url(#grad)"
-                strokeWidth="7"
+                stroke="url(#checklistGrad)"
+                strokeWidth="8"
                 strokeLinecap="round"
-                strokeDasharray={`${(progress / 100) * 213.6} 213.6`}
-                className="transition-all duration-500"
+                strokeDasharray={`${(progress / 100) * 251.3} 251.3`}
+                className="transition-all duration-700 ease-out"
               />
               <defs>
-                <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
+                <linearGradient id="checklistGrad" x1="0" y1="0" x2="1" y2="1">
                   <stop offset="0%" stopColor="oklch(0.79 0.07 84)" />
                   <stop offset="100%" stopColor="oklch(0.52 0.2 262)" />
                 </linearGradient>
               </defs>
             </svg>
-            <span className="text-lg font-bold text-foreground">{progress}%</span>
+            {isComplete ? (
+              <Sparkles className="h-7 w-7 text-primary" />
+            ) : (
+              <span className="text-xl font-semibold tracking-[-0.02em] text-foreground">
+                {progress}%
+              </span>
+            )}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold text-foreground">
+            <p className="text-sm font-semibold text-foreground">
               {checked.size} of {defaultItems.length} packed
             </p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              {progress === 100 ? "You're ready to fly!" : "Keep going — you're almost there."}
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              {isComplete ? "You're ready to fly! ✈️" : "Keep going — you're almost there."}
             </p>
           </div>
         </div>
       </section>
 
-      <section className="mt-4 space-y-2 px-4">
-        {defaultItems.map((item) => {
+      <section className="mt-4 space-y-2.5 px-4">
+        {defaultItems.map((item, i) => {
           const isChecked = checked.has(item.id);
           return (
             <button
               key={item.id}
               onClick={() => toggleItem(item.id)}
-              className={`premium-card flex w-full min-h-[4.5rem] items-center gap-3 rounded-2xl p-4 text-left transition-colors active:scale-[0.99] ${
-                isChecked ? "opacity-70" : "hover:bg-secondary/30"
+              style={{ animationDelay: `${i * 40}ms` }}
+              className={`premium-card animate-fade-in flex w-full min-h-[4.5rem] items-center gap-3 rounded-2xl p-4 text-left transition-all active:scale-[0.99] ${
+                isChecked ? "opacity-60" : "hover:-translate-y-0.5 hover:elev-2"
               }`}
             >
               <div
-                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-colors ${
-                  isChecked ? "bg-navy text-primary-foreground" : "bg-secondary text-navy"
+                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition-colors ${
+                  isChecked ? "grad-signal text-white" : "bg-primary/10 text-primary"
                 }`}
               >
                 {isChecked ? <CheckCircle2 className="h-5 w-5" /> : item.icon}
               </div>
               <div className="min-w-0 flex-1">
                 <p
-                  className={`text-sm font-bold ${isChecked ? "text-muted-foreground line-through" : "text-foreground"}`}
+                  className={`text-sm font-semibold ${isChecked ? "text-muted-foreground line-through" : "text-foreground"}`}
                 >
                   {item.label}
                 </p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">{item.description}</p>
+                <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
+                  {item.description}
+                </p>
               </div>
               {!isChecked && <Circle className="h-5 w-5 text-muted-foreground" strokeWidth={1.5} />}
             </button>
@@ -210,27 +219,32 @@ function ChecklistPage() {
         })}
       </section>
 
-      {progress === 100 && (
+      {isComplete && (
         <section className="mt-4 px-4">
-          <div className="flex items-center gap-3 rounded-2xl bg-navy p-4 text-primary-foreground">
-            <Sparkles className="h-5 w-5" />
-            <div className="flex-1">
-              <p className="text-sm font-bold">You're all set!</p>
-              <p className="text-[11px] opacity-90">Safe travels ✈️</p>
+          <div className="animate-fade-in relative overflow-hidden rounded-3xl grad-ink p-5 text-white elev-3">
+            <span className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-aurora/25 blur-2xl" />
+            <div className="relative flex items-center gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/12">
+                <Sparkles className="h-5 w-5" />
+              </span>
+              <div className="flex-1">
+                <p className="text-sm font-semibold">You're all set!</p>
+                <p className="mt-0.5 text-[11px] text-white/75">Safe travels ✈️</p>
+              </div>
             </div>
           </div>
         </section>
       )}
 
-      <section className="mt-6 px-4 pb-6">
+      <section className="mt-6 px-4">
         <Link
           to="/summary"
-          className="flex items-center justify-center gap-2 rounded-xl bg-navy px-4 py-3.5 text-sm font-semibold text-primary-foreground"
+          className="flex items-center justify-center gap-2 rounded-2xl grad-signal px-4 py-3.5 text-sm font-semibold text-white elev-2 transition-transform active:scale-95"
         >
           View & share trip summary
           <ArrowRight className="h-4 w-4" />
         </Link>
       </section>
-    </div>
+    </PageShell>
   );
 }
