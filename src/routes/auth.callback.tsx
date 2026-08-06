@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
+import { AsviorMark } from "@/components/AsviorMark";
+import heroSkyline from "@/assets/hero-skyline.jpg";
 
 import { supabase } from "@/integrations/supabase/client";
 import { setRecoveryInProgress } from "@/lib/auth-recovery";
@@ -153,28 +155,40 @@ function AuthCallbackPage() {
       data-testid="auth-callback-page"
       className="relative flex min-h-dvh items-center justify-center overflow-hidden px-6"
     >
-      <div className="pointer-events-none absolute inset-0 gradient-hero-bg" aria-hidden />
+      <img
+        src={heroSkyline}
+        alt="Turquoise coastline at golden hour"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-ink/75 via-ink/45 to-background" />
+      <div className="pointer-events-none absolute -right-16 top-24 h-56 w-56 rounded-full bg-aurora/20 blur-3xl" />
+
       <div
-        className="glass relative w-full max-w-sm rounded-3xl px-6 py-8 text-center"
+        className="relative w-full max-w-sm animate-fade-in rounded-3xl border border-border/50 bg-card/80 px-6 py-9 text-center elev-5 backdrop-blur-xl"
         data-testid="auth-callback-card"
       >
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl gradient-primary shadow-float">
-          {status === "working" && (
-            <Loader2 className="h-7 w-7 animate-spin text-primary-foreground" strokeWidth={2.4} />
-          )}
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl grad-ink elev-3">
+          {status === "working" && <AsviorMark className="h-10 w-10" />}
           {status === "ok" && (
-            <CheckCircle2 className="h-7 w-7 text-primary-foreground" strokeWidth={2.4} />
+            <CheckCircle2 className="h-8 w-8 text-primary-foreground" strokeWidth={2.4} />
           )}
           {status === "error" && (
-            <AlertTriangle className="h-7 w-7 text-primary-foreground" strokeWidth={2.4} />
+            <AlertTriangle className="h-8 w-8 text-primary-foreground" strokeWidth={2.4} />
           )}
         </div>
-        <h1 className="mt-5 text-display text-2xl text-foreground">
+        {status === "working" && (
+          <Loader2 className="mx-auto mt-4 h-5 w-5 animate-spin text-primary" strokeWidth={2.4} />
+        )}
+        <p className="mt-4 text-eyebrow text-muted-foreground">ASVIOR</p>
+        <h1 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-foreground">
           {status === "working" && "Almost there…"}
           {status === "ok" && "Confirmed"}
           {status === "error" && "Something went wrong"}
         </h1>
-        <p data-testid="auth-callback-message" className="mt-2 text-sm text-muted-foreground">
+        <p
+          data-testid="auth-callback-message"
+          className="mt-2 text-sm leading-relaxed text-muted-foreground"
+        >
           {message}
         </p>
       </div>
