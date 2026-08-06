@@ -1,55 +1,52 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Plane,
   CheckSquare,
   Wallet,
-  ArrowRight,
-  Search,
-  BookOpen,
-  Compass,
-  Trash2,
-  X,
   Sparkles,
   Globe2,
-  TrendingUp,
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  MessageCircle,
+  BookOpen,
+  Compass,
+  User,
 } from "lucide-react";
+import { Reveal } from "@/components/motion/Reveal";
+import { useParallax } from "@/components/motion/useParallax";
+import regionEurope from "@/assets/region-europe.jpg";
+import heroSkyline from "@/assets/hero-skyline.jpg";
+import regionAsia from "@/assets/region-asia.jpg";
+import regionAmericas from "@/assets/region-americas.jpg";
+import regionOceania from "@/assets/region-oceania.jpg";
+import regionMiddleEast from "@/assets/region-middle-east.jpg";
+import regionAfrica from "@/assets/region-africa.jpg";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { TopBar, EmptyState, ProfileAvatar } from "@/components/asvior";
-import { COUNTRY_PROFILES } from "@/data/country-profiles";
-import { getCountryHeroImage } from "@/lib/country-image";
-import {
-  clearRecentSearches,
-  flagEmoji,
-  getCountryName,
-  getVisaRequirement,
-  loadRecentSearches,
-  loadSavedPassport,
-  MAX_RECENT_SEARCHES,
-  removeRecentSearch,
-  type RecentSearch,
-} from "@/lib/visa";
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@/components/ui/carousel";
+import { AsviorMark } from "@/components/AsviorMark";
+import { supabase } from "@/integrations/supabase/client";
+import { getCountryName, loadRecentSearches, type RecentSearch } from "@/lib/visa";
+import { CountryFlag } from "@/components/CountryFlag";
 import { loadBookmarks } from "@/components/ai-cards";
 import { GUEST_STORAGE_SCOPE } from "@/lib/app-session";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { useT } from "@/lib/i18n";
-import { usePreferredCurrency } from "@/lib/use-preferred-currency";
-import { stashPendingAiPrompt } from "@/lib/ai-prompt";
+import { SmoothImage } from "@/components/motion/SmoothImage";
+import {
+  getDailyTrendingDestinations,
+  getLatestVisaUpdates,
+  type HomeVisaUpdate,
+} from "@/data/home-feed";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Asvior — Where will AI take you?" },
+      { title: "ASVIOR — Your Premium Travel Concierge" },
       {
         name: "description",
         content:
@@ -66,22 +63,12 @@ export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
-const POPULAR_DESTINATIONS = [
-  { code: "JP", city: "Kyoto", country: "Japan" },
-  { code: "GR", city: "Santorini", country: "Greece" },
-  { code: "FR", city: "Paris", country: "France" },
-  { code: "IT", city: "Rome", country: "Italy" },
-  { code: "TH", city: "Bangkok", country: "Thailand" },
-  { code: "US", city: "New York", country: "United States" },
-] as const;
-
-const EASY_ENTRY_DESTINATIONS = [
-  { code: "AE", city: "Dubai", budget: 185 },
-  { code: "ID", city: "Ubud", budget: 75 },
-  { code: "PT", city: "Lisbon", budget: 110 },
-  { code: "IS", city: "Reykjavík", budget: 240 },
-  { code: "MA", city: "Marrakech", budget: 85 },
-] as const;
+type Destination = {
+  code: string;
+  name: string;
+  tagline: string;
+  image: string;
+};
 
 type BookmarkSnapshot = {
   id: string;
@@ -104,15 +91,36 @@ type ContinueActivity =
   | { kind: "checklist"; title: string; subtitle: string; timestamp: number; icon: React.ReactNode }
   | { kind: "ai"; title: string; subtitle: string; timestamp: number; icon: React.ReactNode };
 
-function greetingKeyFor(date = new Date()): string {
-  const h = date.getHours();
-  if (h < 12) return "greeting.morning";
-  if (h < 17) return "greeting.afternoon";
-  return "greeting.evening";
-}
+const POPULAR: Destination[] = [
+  { code: "JP", name: "Japan", tagline: "Ancient meets neon", image: regionAsia },
+  { code: "FR", name: "France", tagline: "Timeless elegance", image: regionEurope },
+  { code: "US", name: "USA", tagline: "Coast to coast", image: regionAmericas },
+  { code: "AE", name: "UAE", tagline: "Skyline dreams", image: regionMiddleEast },
+  { code: "AU", name: "Australia", tagline: "Wild horizons", image: regionOceania },
+];
 
-function countryImage(code: string): string {
-  return getCountryHeroImage(code);
+const TRENDING_IMAGES = [
+  regionEurope,
+  regionAsia,
+  regionAmericas,
+  regionOceania,
+  regionMiddleEast,
+  regionAfrica,
+];
+const HOME_REFERENCE_DATE = new Date("2026-01-01T00:00:00.000Z");
+const PUBLISHED_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  timeZone: "UTC",
+});
+
+function greetingFor(date = new Date()): string {
+  const h = date.getHours();
+  if (h < 5) return "Still up?";
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  if (h < 22) return "Good evening";
+  return "Good night";
 }
 
 function buildContinueActivity(
@@ -128,18 +136,18 @@ function buildContinueActivity(
     const toName = getCountryName(latestSearch.destination);
     candidates.push({
       kind: "visa",
-      title: `${flagEmoji(latestSearch.destination)} ${toName} visa route`,
+      title: `${toName} visa route`,
       subtitle: `${latestSearch.status} for ${getCountryName(latestSearch.passport)} passport`,
       timestamp: latestSearch.timestamp + 2,
-      icon: <Plane className="h-5 w-5" />,
+      icon: <Plane className="h-4.5 w-4.5" />,
     });
     candidates.push({
       kind: "country",
-      title: `${flagEmoji(latestSearch.destination)} ${toName} country guide`,
+      title: `${toName} country guide`,
       subtitle: "Continue from your last viewed destination",
       timestamp: latestSearch.timestamp + 1,
       code: latestSearch.destination,
-      icon: <Compass className="h-5 w-5" />,
+      icon: <Compass className="h-4.5 w-4.5" />,
     });
   }
 
@@ -149,7 +157,7 @@ function buildContinueActivity(
       title: "Budget planner",
       subtitle: "Continue estimating costs for your trip",
       timestamp: 1,
-      icon: <Wallet className="h-5 w-5" />,
+      icon: <Wallet className="h-4.5 w-4.5" />,
     });
   }
 
@@ -159,17 +167,17 @@ function buildContinueActivity(
       title: "Travel checklist",
       subtitle: "Resume your pre-departure checklist",
       timestamp: 1,
-      icon: <BookOpen className="h-5 w-5" />,
+      icon: <BookOpen className="h-4.5 w-4.5" />,
     });
   }
 
   if (aiBookmark) {
     candidates.push({
       kind: "ai",
-      title: "Asvior AI",
+      title: "AI conversation",
       subtitle: aiBookmark.title || "Continue where your last chat ended",
       timestamp: aiBookmark.createdAt,
-      icon: <Sparkles className="h-5 w-5" />,
+      icon: <MessageCircle className="h-4.5 w-4.5" />,
     });
   }
 
@@ -178,173 +186,111 @@ function buildContinueActivity(
   return candidates[0];
 }
 
-function DiscoverChipCard({
-  code,
-  city,
-  country,
-}: {
-  code: string;
-  city: string;
-  country: string;
-}) {
-  const image = countryImage(code);
+function formatPublished(dateIso: string): string {
+  const d = new Date(dateIso);
+  if (Number.isNaN(d.getTime())) return "Just updated";
+  return PUBLISHED_DATE_FORMATTER.format(d);
+}
+
+function ContinuePlanningCard({ activity }: { activity: ContinueActivity }) {
+  const content = (
+    <>
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy text-primary-foreground">
+        {activity.icon}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-foreground">{activity.title}</p>
+        <p className="mt-0.5 truncate text-xs text-muted-foreground">{activity.subtitle}</p>
+      </div>
+      <ArrowRight className="h-4 w-4 text-muted-foreground" />
+    </>
+  );
+
+  const className =
+    "premium-card flex items-center gap-3 rounded-2xl p-4 transition-colors hover:bg-secondary/40 active:scale-[0.99]";
+
+  if (activity.kind === "visa") {
+    return (
+      <Link to="/visa-check" className={className}>
+        {content}
+      </Link>
+    );
+  }
+
+  if (activity.kind === "country") {
+    return (
+      <Link to="/country/$code" params={{ code: activity.code }} className={className}>
+        {content}
+      </Link>
+    );
+  }
+
+  if (activity.kind === "budget") {
+    return (
+      <Link to="/budget-planner" className={className}>
+        {content}
+      </Link>
+    );
+  }
+
+  if (activity.kind === "checklist") {
+    return (
+      <Link to="/checklist" className={className}>
+        {content}
+      </Link>
+    );
+  }
 
   return (
-    <Link to="/country/$code" params={{ code }} className="asv-discover-chip">
-      <div className="asv-discover-chip-photo">
-        <img src={image} alt={city} loading="lazy" />
-      </div>
-      <p className="asv-discover-chip-name">{city}</p>
-      <p className="asv-discover-chip-meta">{country}</p>
+    <Link to="/assistant" className={className}>
+      {content}
     </Link>
   );
 }
 
-function EasyEntryCard({
-  code,
-  city,
-  budget,
-  formatMoney,
-}: {
-  code: string;
-  city: string;
-  budget: number;
-  formatMoney: (amount: number, opts?: { fromUsd?: boolean; compact?: boolean }) => string;
-}) {
-  const image = countryImage(code);
-  const daily = formatMoney(budget, { fromUsd: true, compact: true });
-
+function VisaUpdateCard({ item }: { item: HomeVisaUpdate; delay?: number }) {
   return (
     <Link
       to="/country/$code"
-      params={{ code }}
-      className="asv-discover-chip !w-[140px]"
+      params={{ code: item.countryCode }}
+      className="premium-card block rounded-2xl p-4 transition-colors hover:bg-secondary/30"
     >
-      <div className="asv-discover-chip-photo relative !aspect-[4/5]">
-        <img src={image} alt={city} loading="lazy" />
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2.5 pt-8">
-          <p className="text-sm font-bold text-white">{city}</p>
-          <p className="text-xs font-semibold text-white/80">{daily} /day</p>
+      <div className="flex items-start gap-3">
+        <CountryFlag code={item.countryCode} size="sm" />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-foreground">{item.title}</p>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{item.summary}</p>
+          <p className="mt-2 text-[10px] font-medium text-muted-foreground">
+            {formatPublished(item.publishedAt)} · {item.source}
+          </p>
         </div>
       </div>
     </Link>
   );
 }
 
-function FeaturedTripCard({
-  activity,
-  t,
-}: {
-  activity: ContinueActivity;
-  t: (key: string) => string;
-}) {
-  const image =
-    activity.kind === "country"
-      ? countryImage(activity.code)
-      : countryImage("JP");
-
-  const content = (
-    <>
-      <img src={image} alt="" loading="lazy" />
-      <div className="asv-trip-featured-overlay" aria-hidden />
-      <div className="asv-trip-featured-body">
-        <p className="asv-trip-featured-dates">{t("home.pickUp")}</p>
-        <p className="asv-trip-featured-title">{activity.title.replace(/^[^\s]+\s/, "")}</p>
-      </div>
-    </>
-  );
-
-  if (activity.kind === "visa") {
-    return (
-      <Link to="/visa-check" className="asv-trip-featured">
-        {content}
-      </Link>
-    );
-  }
-  if (activity.kind === "country") {
-    return (
-      <Link to="/country/$code" params={{ code: activity.code }} className="asv-trip-featured">
-        {content}
-      </Link>
-    );
-  }
-  if (activity.kind === "budget") {
-    return (
-      <Link to="/budget-planner" className="asv-trip-featured">
-        {content}
-      </Link>
-    );
-  }
-  if (activity.kind === "checklist") {
-    return (
-      <Link to="/checklist" className="asv-trip-featured">
-        {content}
-      </Link>
-    );
-  }
-  return (
-    <Link to="/assistant" className="asv-trip-featured">
-      {content}
-    </Link>
-  );
-}
-
 function HomePage() {
-  const t = useT();
-  const navigate = useNavigate();
-  const { format: formatMoney } = usePreferredCurrency();
   const [recent, setRecent] = useState<RecentSearch[]>([]);
-  const [storageScope, setStorageScope] = useState(GUEST_STORAGE_SCOPE);
-  const [recentSheetOpen, setRecentSheetOpen] = useState(false);
-  const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
   const [hasBudget, setHasBudget] = useState(false);
   const [hasChecklist, setHasChecklist] = useState(false);
   const [latestAiBookmark, setLatestAiBookmark] = useState<BookmarkSnapshot | null>(null);
   const [signedIn, setSignedIn] = useState(false);
   const [name, setName] = useState<string | null>(null);
+  const [popularApi, setPopularApi] = useState<CarouselApi>();
+  const [canScrollPopularPrev, setCanScrollPopularPrev] = useState(false);
+  const [canScrollPopularNext, setCanScrollPopularNext] = useState(false);
   const [homeNow, setHomeNow] = useState<Date | null>(null);
-  const greeting = useMemo(
-    () => (homeNow ? t(greetingKeyFor(homeNow)) : t("greeting.welcome")),
-    [homeNow, t],
+  const referenceDate = homeNow ?? HOME_REFERENCE_DATE;
+  const greeting = useMemo(() => (homeNow ? greetingFor(homeNow) : "Welcome"), [homeNow]);
+  const dailyTrending = useMemo(
+    () => getDailyTrendingDestinations(referenceDate, 6),
+    [referenceDate],
   );
+  const visaUpdates = useMemo(() => getLatestVisaUpdates(referenceDate, 8), [referenceDate]);
   const continueActivity = useMemo(
-    () => buildContinueActivity(recent, hasBudget, hasChecklist, signedIn ? latestAiBookmark : null),
+    () =>
+      signedIn ? buildContinueActivity(recent, hasBudget, hasChecklist, latestAiBookmark) : null,
     [signedIn, recent, hasBudget, hasChecklist, latestAiBookmark],
-  );
-
-  const hasUserActivity = useMemo(
-    () => !!continueActivity || recent.length > 0 || hasBudget || hasChecklist,
-    [continueActivity, recent.length, hasBudget, hasChecklist],
-  );
-
-  const homeRecent = useMemo(
-    () => recent.slice(0, MAX_RECENT_SEARCHES),
-    [recent],
-  );
-
-  const handleRemoveRecent = useCallback(
-    (item: RecentSearch) => {
-      const next = removeRecentSearch(item.passport, item.destination, storageScope);
-      setRecent(next);
-      toast.success("Removed from recent searches");
-    },
-    [storageScope],
-  );
-
-  const handleClearRecent = useCallback(() => {
-    clearRecentSearches(storageScope);
-    setRecent([]);
-    setClearConfirmOpen(false);
-    setRecentSheetOpen(false);
-    toast.success("Recent searches cleared");
-  }, [storageScope]);
-
-  const handleAiPrompt = useCallback(
-    (prompt: string) => {
-      stashPendingAiPrompt(prompt);
-      void navigate({ to: "/assistant", search: { q: prompt } });
-    },
-    [navigate],
   );
 
   const refreshContinueState = useCallback(async () => {
@@ -358,22 +304,13 @@ function HomePage() {
     setName(n);
 
     if (!isSignedIn) {
-      setStorageScope(GUEST_STORAGE_SCOPE);
       setRecent(loadRecentSearches(GUEST_STORAGE_SCOPE));
-      try {
-        const b = localStorage.getItem("vp_budget");
-        const c = localStorage.getItem("vp_checklist");
-        setHasBudget(!!b);
-        setHasChecklist(!!c && c !== "[]");
-      } catch {
-        setHasBudget(false);
-        setHasChecklist(false);
-      }
+      setHasBudget(false);
+      setHasChecklist(false);
       setLatestAiBookmark(null);
       return;
     }
 
-    setStorageScope(user.id);
     setRecent(loadRecentSearches(user.id));
     try {
       const b = localStorage.getItem("vp_budget");
@@ -390,6 +327,9 @@ function HomePage() {
       setLatestAiBookmark(null);
     }
   }, []);
+
+  const heroRef = useParallax<HTMLDivElement>(0.16, 90);
+  const hydrated = homeNow !== null;
 
   useEffect(() => {
     setHomeNow(new Date());
@@ -451,366 +391,421 @@ function HomePage() {
     };
   }, [refreshContinueState]);
 
+  useEffect(() => {
+    if (!popularApi) return;
+
+    const updateButtons = () => {
+      setCanScrollPopularPrev(popularApi.canScrollPrev());
+      setCanScrollPopularNext(popularApi.canScrollNext());
+    };
+
+    updateButtons();
+    popularApi.on("select", updateButtons);
+    popularApi.on("reInit", updateButtons);
+
+    return () => {
+      popularApi.off("select", updateButtons);
+      popularApi.off("reInit", updateButtons);
+    };
+  }, [popularApi]);
+
   return (
-    <div className="asv-page asv-page--home">
-      <section className="asv-hero" aria-label="Welcome">
-        <img src="/hero-sunrise.jpg" alt="" className="asv-hero-bg" />
-        <div className="asv-hero-fade" aria-hidden />
-        <TopBar
-          variant="hero"
-          showMark={false}
-          right={
-            <ProfileAvatar to={signedIn ? "/profile" : "/auth"} variant="hero" />
-          }
-        />
-        <div className="asv-hero-body asv-page-pad">
-          <p className="asv-hero-greeting">
-            {greeting}
-            {name ? `, ${name.split(" ")[0]}` : ""}
-          </p>
-          <h1 className="asv-hero-headline">{t("home.headline")}</h1>
-          <Link
-            to="/countries"
-            className="asv-hero-search"
-            aria-label={t("home.searchPlaceholder")}
-          >
-            <Search className="asv-hero-search-icon" aria-hidden />
-            <span className="asv-hero-search-text">{t("home.searchPlaceholder")}</span>
-          </Link>
+    <div className="animate-page-enter pb-8">
+      {/* Cinematic hero */}
+      <header className="relative overflow-hidden rounded-b-[2rem]">
+        <div ref={heroRef} className="parallax-layer absolute inset-0">
+          <SmoothImage
+            src={heroSkyline}
+            alt="Aerial view of a turquoise coastline at golden hour"
+            width={1280}
+            height={1600}
+            className="ken-burns h-[118%] w-full object-cover"
+          />
         </div>
-      </section>
-
-      <div className="asv-stagger asv-home-body">
-        <section className="asv-page-pad asv-section !mt-0" aria-label="Live AI insight">
-          <div className="asv-live-insight">
-            <div className="asv-live-insight-kicker">
-              <span className="asv-live-insight-dots" aria-hidden>
-                <span /><span /><span />
-              </span>
-              {t("home.liveInsight")}
-            </div>
-            <p className="asv-live-insight-text">{t("home.liveInsightMessage")}</p>
-            <div className="asv-live-insight-actions">
-              <Link to="/assistant" className="asv-live-insight-btn asv-live-insight-btn--primary">
-                {t("home.optimise")}
-              </Link>
-              <Link to="/countries" className="asv-live-insight-btn asv-live-insight-btn--ghost">
-                {t("home.showMore")}
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        <section className="asv-page-pad asv-section" aria-label={t("home.quickActions")}>
-          <div className="asv-quick-grid">
-            <Link to="/visa-check" className="asv-quick-grid-item">
-              <span className="asv-quick-grid-icon asv-quick-grid-icon--visa">
-                <Plane className="h-5 w-5" />
-              </span>
-              <span className="asv-quick-grid-label">{t("home.visaCheck")}</span>
-            </Link>
-            <Link to="/budget-planner" className="asv-quick-grid-item">
-              <span className="asv-quick-grid-icon asv-quick-grid-icon--budget">
-                <Wallet className="h-5 w-5" />
-              </span>
-              <span className="asv-quick-grid-label">{t("home.budget")}</span>
-            </Link>
-            <Link to="/checklist" className="asv-quick-grid-item">
-              <span className="asv-quick-grid-icon asv-quick-grid-icon--checklist">
-                <CheckSquare className="h-5 w-5" />
-              </span>
-              <span className="asv-quick-grid-label">{t("home.checklist")}</span>
-            </Link>
-            <Link to="/trips" className="asv-quick-grid-item">
-              <span className="asv-quick-grid-icon asv-quick-grid-icon--itinerary">
-                <BookOpen className="h-5 w-5" />
-              </span>
-              <span className="asv-quick-grid-label">{t("home.itinerary")}</span>
-            </Link>
-          </div>
-        </section>
-
-        {hasUserActivity && continueActivity ? (
-          <section className="asv-page-pad asv-section" aria-label={t("home.upcomingTrip")}>
-            <div className="asv-section-head !mb-3">
-              <h2 className="asv-title">{t("home.upcomingTrip")}</h2>
-            </div>
-            <FeaturedTripCard activity={continueActivity} t={t} />
-          </section>
-        ) : (
-          <section className="asv-page-pad asv-section" aria-label={t("home.welcomeTitle")}>
-            <div className="asv-welcome-card">
-              <p className="asv-overline">{t("home.welcomeKicker")}</p>
-              <h2 className="asv-title mt-2">{t("home.welcomeTitle")}</h2>
-              <p className="asv-subtitle mt-1.5">{t("home.welcomeSubtitle")}</p>
-              <div className="asv-welcome-actions mt-5">
-                <Link to="/trips" className="asv-btn asv-btn-primary w-full">
-                  {t("home.planFirstTrip")}
-                </Link>
-                <div className="grid grid-cols-2 gap-3">
-                  <Link to="/visa-check" className="asv-btn asv-btn-secondary w-full">
-                    {t("home.visaCheck")}
-                  </Link>
-                  <Link to="/budget-planner" className="asv-btn asv-btn-secondary w-full">
-                    {t("home.budget")}
-                  </Link>
-                </div>
-                <Link to="/countries" className="asv-btn asv-btn-secondary w-full">
-                  {t("home.exploreDestinations")}
-                </Link>
-              </div>
-            </div>
-          </section>
-        )}
-
-        <section className="asv-section" aria-labelledby="home-popular-heading">
-          <div className="asv-section-head asv-page-pad">
-            <h2 id="home-popular-heading" className="asv-title">
-              {t("home.popular")}
-            </h2>
-            <Link to="/countries" className="asv-section-link">
-              {t("home.exploreAll")}
-            </Link>
-          </div>
-          <div className="asv-discover-strip asv-page-pad">
-            {POPULAR_DESTINATIONS.map((dest) => (
-              <DiscoverChipCard
-                key={dest.code}
-                code={dest.code}
-                city={dest.city}
-                country={dest.country}
-              />
-            ))}
-          </div>
-        </section>
-
-        <section className="asv-section" aria-labelledby="home-easy-entry-heading">
-          <div className="asv-section-head asv-page-pad">
-            <h2 id="home-easy-entry-heading" className="asv-title">
-              {t("home.easyEntry")}
-            </h2>
-            <Link to="/visa-check" className="asv-section-link">
-              {t("home.visaHub")}
-            </Link>
-          </div>
-          <div className="asv-discover-strip asv-page-pad">
-            {EASY_ENTRY_DESTINATIONS.map((dest) => (
-              <EasyEntryCard
-                key={dest.code}
-                code={dest.code}
-                city={dest.city}
-                budget={dest.budget}
-                formatMoney={formatMoney}
-              />
-            ))}
-          </div>
-        </section>
-
-        <section className="asv-page-pad asv-section" aria-label={t("home.travelInspiration")}>
-          <Link to="/assistant" className="asv-ai-banner block">
-            <div className="relative z-[1]">
-              <span className="asv-label !text-white/70">{t("home.travelInspiration")}</span>
-              <p className="asv-headline mt-2 !text-white">{t("home.inspirationTagline")}</p>
-            </div>
-            <span className="relative z-[1] mt-4 inline-flex asv-btn asv-btn-sm bg-white/15 !text-white hover:bg-white/25">
-              {t("home.buildWithAi")} <ArrowRight className="h-3.5 w-3.5" />
-            </span>
-          </Link>
-          {hasUserActivity && recent.length > 0 ? (
-            <div className="asv-insights mt-4">
-              <div className="asv-insight">
-                <p className="asv-insight-value">{recent.length}</p>
-                <p className="asv-insight-label">{t("home.recent")}</p>
-              </div>
-            </div>
-          ) : null}
-        </section>
-      </div>
-
-      {recentSheetOpen && (
-        <RecentSearchesSheet
-          items={recent}
-          onClose={() => setRecentSheetOpen(false)}
-          onClear={() => setClearConfirmOpen(true)}
-          onRemove={handleRemoveRecent}
+        <div className="absolute inset-0 bg-gradient-to-b from-ink/65 via-ink/25 to-ink/85" />
+        <div
+          aria-hidden
+          className="animate-aurora-drift pointer-events-none absolute -left-16 top-10 h-56 w-56 rounded-full bg-aurora/20 blur-3xl"
         />
-      )}
 
-      <AlertDialog open={clearConfirmOpen} onOpenChange={setClearConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t("home.clearConfirmTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>{t("home.clearConfirmDesc")}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t("home.cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleClearRecent}>{t("home.clearHistory")}</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
-  );
-}
+        <div className="relative px-5 pb-28 pt-[calc(var(--safe-top)+1rem)]">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <AsviorMark className="h-9 w-9 shrink-0" />
+              <p className="truncate text-base font-bold tracking-[0.2em] text-white">ASVIOR</p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              {signedIn ? (
+                <Link
+                  to="/profile"
+                  aria-label="Open your profile"
+                  className="tap glass-control inline-flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold uppercase text-white"
+                >
+                  {name ? name.trim().charAt(0) : <User className="h-4 w-4" strokeWidth={1.9} />}
+                </Link>
+              ) : (
+                <Link
+                  to="/auth"
+                  className="tap glass-control inline-flex h-11 items-center gap-2 rounded-2xl px-4 text-xs font-semibold text-white"
+                >
+                  <User className="h-4 w-4" strokeWidth={1.9} />
+                  Sign in
+                </Link>
+              )}
+            </div>
 
-function RecentSearchRow({
-  item,
-  onRemove,
-}: {
-  item: RecentSearch;
-  onRemove: () => void;
-}) {
-  const [offsetX, setOffsetX] = useState(0);
-  const offsetRef = useRef(0);
-  const startX = useRef(0);
-  const swiping = useRef(false);
-
-  const resetSwipe = () => {
-    offsetRef.current = 0;
-    setOffsetX(0);
-    swiping.current = false;
-  };
-
-  return (
-    <div className="relative overflow-hidden">
-      <div
-        className="absolute inset-y-0 right-0 flex w-24 items-center justify-center bg-[var(--asv-danger)] text-white"
-        aria-hidden
-      >
-        <Trash2 className="h-4 w-4" />
-      </div>
-      <div
-        className="relative touch-pan-y bg-[var(--asv-surface)]"
-        style={{
-          transform: `translateX(${offsetX}px)`,
-          transition: swiping.current ? "none" : "transform 200ms ease",
-        }}
-        onTouchStart={(e) => {
-          startX.current = e.touches[0]?.clientX ?? 0;
-          swiping.current = true;
-        }}
-        onTouchMove={(e) => {
-          if (!swiping.current) return;
-          const delta = (e.touches[0]?.clientX ?? 0) - startX.current;
-          const next = Math.max(-96, Math.min(0, delta));
-          offsetRef.current = next;
-          setOffsetX(next);
-        }}
-        onTouchEnd={() => {
-          swiping.current = false;
-          if (offsetRef.current < -48) {
-            onRemove();
-            resetSwipe();
-            return;
-          }
-          resetSwipe();
-        }}
-      >
-        <Link
-          to="/country/$code"
-          params={{ code: item.destination }}
-          className="asv-row !border-b-[var(--asv-divider)]"
-        >
-          <div className="asv-row-icon text-lg">{flagEmoji(item.destination)}</div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-[var(--asv-ink)]">
-              {getCountryName(item.destination)}
-            </p>
-            <p className="text-xs text-[var(--asv-ink-secondary)]">{item.status}</p>
           </div>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onRemove();
-            }}
-            className="asv-btn-icon !min-h-8 !min-w-8 shrink-0"
-            aria-label={`Remove ${getCountryName(item.destination)} from recent searches`}
-          >
-            <X className="h-4 w-4" />
-          </button>
-          <ArrowRight className="h-4 w-4 shrink-0 text-[var(--asv-ink-tertiary)]" aria-hidden />
-        </Link>
-      </div>
-    </div>
-  );
-}
 
-function RecentSearchesSheet({
-  items,
-  onClose,
-  onClear,
-  onRemove,
-}: {
-  items: RecentSearch[];
-  onClose: () => void;
-  onClear: () => void;
-  onRemove: (item: RecentSearch) => void;
-}) {
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center sm:justify-center"
-      onClick={onClose}
-    >
-      <div className="absolute inset-0 bg-[var(--asv-ink)]/40 backdrop-blur-sm" />
-      <div
-        className="asv-onboard-slide relative max-h-[80vh] overflow-y-auto sm:max-w-md sm:rounded-[var(--asv-radius-2xl)]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="mb-4 flex items-center justify-between gap-2">
-          <h2 className="asv-title">Recent searches</h2>
-          <button
-            onClick={onClose}
-            className="asv-btn-icon !min-h-8 !min-w-8"
-            aria-label="Close"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        {items.length === 0 ? (
-          <p className="asv-subtitle py-10 text-center">No recent searches yet.</p>
-        ) : (
-          <>
-            <ul className="space-y-2">
-              {items.map((r) => (
-                <li key={`${r.passport}-${r.destination}-${r.timestamp}`}>
-                  <div className="asv-card asv-row !rounded-[var(--asv-radius-lg)] px-4">
-                    <Link
-                      to="/country/$code"
-                      params={{ code: r.destination }}
-                      onClick={onClose}
-                      className="flex min-w-0 flex-1 items-center gap-3 no-underline text-inherit"
-                    >
-                      <div className="asv-row-icon text-lg">{flagEmoji(r.destination)}</div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-[var(--asv-ink)]">
-                          {getCountryName(r.destination)}
-                        </p>
-                        <p className="text-xs text-[var(--asv-ink-secondary)]">{r.status}</p>
-                      </div>
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={() => onRemove(r)}
-                      className="asv-btn-icon !min-h-9 !min-w-9 shrink-0"
-                      aria-label={`Remove ${getCountryName(r.destination)}`}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-            <button
-              type="button"
-              onClick={onClear}
-              className="asv-btn asv-btn-secondary mt-4 w-full !text-[var(--asv-danger)]"
+          <div className="mt-14">
+            <p
+              className="animate-fade-up text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70"
+              style={{ animationDelay: "60ms" }}
             >
-              Clear history
-            </button>
-          </>
+              {greeting}
+              {name ? `, ${name.split(" ")[0]}` : ""}
+            </p>
+            <h1
+              className="animate-fade-up mt-3 max-w-[14ch] text-[2.4rem] font-semibold leading-[1.05] tracking-[-0.035em] text-white"
+              style={{ animationDelay: "140ms" }}
+            >
+              The world is closer than you think.
+            </h1>
+            <p
+              className="animate-fade-up mt-3.5 max-w-[32ch] text-[0.9375rem] leading-relaxed text-white/80"
+              style={{ animationDelay: "230ms" }}
+            >
+              Visas, budgets and itineraries — planned by your AI travel companion.
+            </p>
+          </div>
+        </div>
+      </header>
+
+      <div className="space-y-9 px-5 pt-5">
+        {/* Floating premium search */}
+        <Link
+          to="/visa-check"
+          aria-label="Search destinations, visas, or travel plans"
+          className="search-float animate-fade-up relative z-10 -mt-[5rem]"
+          style={{ animationDelay: "320ms" }}
+        >
+          <span className="grad-signal flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white">
+            <Search className="h-5 w-5" strokeWidth={1.9} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[0.9375rem] font-semibold tracking-tight text-foreground">
+              Where would you like to go?
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">Destinations · Visas · Budgets</p>
+          </div>
+          <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </Link>
+
+        {/* AI insight — premium glass */}
+        <Reveal delay={40}>
+          <Link to="/assistant" className="glass-insight spring-press block p-6">
+            <span
+              aria-hidden
+              className="animate-aurora-drift pointer-events-none absolute -right-12 -top-14 h-44 w-44 rounded-full bg-primary/25 blur-3xl"
+            />
+            <span
+              aria-hidden
+              className="animate-aurora-drift pointer-events-none absolute -bottom-16 -left-10 h-44 w-44 rounded-full bg-gold/20 blur-3xl"
+              style={{ animationDelay: "3s" }}
+            />
+            <div className="relative flex items-start gap-3.5">
+              <span className="grad-signal flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white shadow-[0_12px_28px_-14px_color-mix(in_oklab,var(--primary)_85%,transparent)]">
+                <Sparkles className="h-5 w-5" strokeWidth={1.9} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
+                  Asvior AI
+                </p>
+                <p className="mt-1.5 text-lg font-semibold tracking-[-0.02em] text-foreground">
+                  Your personal travel companion
+                </p>
+                <p className="mt-1.5 text-[0.8125rem] leading-relaxed text-muted-foreground">
+                  Ask anything — entry rules, 7-day plans, what a week really costs.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {["Plan my trip", "Do I need a visa?", "Best time to go"].map((q) => (
+                    <span
+                      key={q}
+                      className="rounded-full border border-primary/20 bg-primary/8 px-3 py-1.5 text-[11px] font-medium text-primary"
+                    >
+                      {q}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+            </div>
+          </Link>
+        </Reveal>
+
+        {/* Quick tools */}
+        <section>
+          <Reveal>
+            <h2 className="section-title mb-4">Travel tools</h2>
+          </Reveal>
+          <div className="grid grid-cols-2 gap-3.5">
+            {[
+              {
+                to: "/visa-check",
+                title: "Visa Check",
+                desc: "199 countries",
+                icon: <Plane className="h-5 w-5" strokeWidth={1.8} />,
+              },
+              {
+                to: "/checklist",
+                title: "Checklist",
+                desc: "Pre-departure",
+                icon: <CheckSquare className="h-5 w-5" strokeWidth={1.8} />,
+              },
+              {
+                to: "/budget-planner",
+                title: "Budget",
+                desc: "Plan costs",
+                icon: <Wallet className="h-5 w-5" strokeWidth={1.8} />,
+              },
+              {
+                to: "/countries",
+                title: "Explore",
+                desc: "Country guides",
+                icon: <Globe2 className="h-5 w-5" strokeWidth={1.8} />,
+              },
+            ].map((tool, i) => (
+              <Reveal key={tool.to} delay={i * 70}>
+                <ToolCard {...tool} />
+              </Reveal>
+            ))}
+          </div>
+        </section>
+
+        {/* Continue / Recent trips */}
+        {signedIn && continueActivity && (
+          <section>
+            <Reveal>
+              <h2 className="section-title mb-4">Continue planning</h2>
+              <ContinuePlanningCard activity={continueActivity} />
+            </Reveal>
+          </section>
         )}
+
+        {/* Recent searches */}
+        <section>
+          <Reveal>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="section-title">Recent searches</h2>
+              {recent.length > 0 && (
+                <Link to="/visa-check" className="text-xs font-semibold text-primary">
+                  New search
+                </Link>
+              )}
+            </div>
+          </Reveal>
+          {!hydrated ? (
+            <div className="space-y-2.5">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="skeleton-block h-[4.25rem] r-28" />
+              ))}
+            </div>
+          ) : recent.length === 0 ? (
+            <Reveal>
+              <div className="float-card p-5 text-sm text-muted-foreground">
+                No recent destinations yet. Start with a visa check.
+              </div>
+            </Reveal>
+          ) : (
+            <div className="space-y-2.5">
+              {recent.slice(0, 5).map((r, i) => (
+                <Reveal key={`${r.passport}-${r.destination}-${r.timestamp}`} delay={i * 60}>
+                  <Link
+                    to="/country/$code"
+                    params={{ code: r.destination }}
+                    className="float-card flex items-center gap-3.5 p-4"
+                  >
+                    <CountryFlag code={r.destination} size="sm" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-foreground">
+                        {getCountryName(r.destination)}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">{r.status}</p>
+                    </div>
+                    <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  </Link>
+                </Reveal>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Popular destinations */}
+        <section>
+          <Reveal>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="section-title">Popular destinations</h2>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  aria-label="Previous destination"
+                  onClick={() => popularApi?.scrollPrev()}
+                  disabled={!canScrollPopularPrev}
+                  className="spring-press inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card disabled:opacity-40"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Next destination"
+                  onClick={() => popularApi?.scrollNext()}
+                  disabled={!canScrollPopularNext}
+                  className="spring-press inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card disabled:opacity-40"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+                <Link to="/countries" className="ml-1 text-xs font-semibold text-primary">
+                  See all
+                </Link>
+              </div>
+            </div>
+          </Reveal>
+          <Carousel setApi={setPopularApi} opts={{ align: "start", containScroll: "trimSnaps" }}>
+            <CarouselContent className="-ml-3.5">
+              {POPULAR.map((d, i) => (
+                <CarouselItem key={d.code} className="basis-[52%] pl-3.5 sm:basis-[42%]">
+                  <Reveal delay={i * 60}>
+                    <DestinationCard destination={d} />
+                  </Reveal>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+          </Carousel>
+        </section>
+
+        {/* Travel inspiration */}
+        <section>
+          <Reveal>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="section-title">Travel inspiration</h2>
+              <span className="text-xs text-muted-foreground">Updated daily</span>
+            </div>
+          </Reveal>
+          <div className="grid grid-cols-2 gap-3.5">
+            {dailyTrending.slice(0, 4).map((destination, i) => (
+              <Reveal key={destination.code} delay={i * 70}>
+                <Link
+                  to="/country/$code"
+                  params={{ code: destination.code }}
+                  className="float-card group block overflow-hidden p-0"
+                >
+                  <div className="relative h-28 overflow-hidden r-28">
+                    <SmoothImage
+                      src={TRENDING_IMAGES[destination.imageIndex]}
+                      alt={destination.name}
+                      loading="lazy"
+                      className="h-full w-full object-cover transition-transform duration-[700ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/10 to-transparent" />
+                    <div className="absolute inset-x-3 bottom-2.5 flex items-center gap-1.5">
+                      <CountryFlag code={destination.code} size="sm" className="ring-white/40" />
+                      <p className="truncate text-xs font-semibold text-white">
+                        {destination.name}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              </Reveal>
+            ))}
+          </div>
+        </section>
+
+        {/* Visa updates */}
+        <section>
+          <Reveal>
+            <h2 className="section-title mb-4">Latest visa updates</h2>
+          </Reveal>
+          <div className="space-y-2.5">
+            {visaUpdates.slice(0, 4).map((item, i) => (
+              <Reveal key={item.id} delay={i * 60}>
+                <VisaUpdateCard item={item} />
+              </Reveal>
+            ))}
+          </div>
+        </section>
+
+        <footer className="border-t border-border/70 pt-6 text-center">
+          <nav
+            aria-label="Legal"
+            className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground"
+          >
+            <Link to="/about" className="transition-colors hover:text-foreground">
+              About
+            </Link>
+            <Link to="/privacy" className="transition-colors hover:text-foreground">
+              Privacy
+            </Link>
+            <Link to="/terms" className="transition-colors hover:text-foreground">
+              Terms
+            </Link>
+            <Link to="/contact" className="transition-colors hover:text-foreground">
+              Contact
+            </Link>
+            <Link to="/support" className="transition-colors hover:text-foreground">
+              Support
+            </Link>
+          </nav>
+        </footer>
       </div>
     </div>
   );
 }
+
+function DestinationCard({ destination }: { destination: Destination }) {
+  return (
+    <Link
+      to="/country/$code"
+      params={{ code: destination.code }}
+      className="float-card group block overflow-hidden p-0"
+    >
+      <div className="relative h-40 overflow-hidden rounded-t-[1.75rem]">
+        <SmoothImage
+          src={destination.image}
+          alt={destination.name}
+          loading="lazy"
+          className="h-full w-full object-cover transition-transform duration-[700ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink/75 via-ink/10 to-transparent" />
+        <div className="absolute inset-x-3.5 bottom-3 flex items-center gap-2">
+          <CountryFlag code={destination.code} size="sm" className="ring-white/40" />
+          <p className="truncate text-sm font-semibold text-white">{destination.name}</p>
+        </div>
+      </div>
+      <p className="px-4 py-3 text-xs text-muted-foreground">{destination.tagline}</p>
+    </Link>
+  );
+}
+
+function ToolCard({
+  to,
+  title,
+  desc,
+  icon,
+}: {
+  to: string;
+  title: string;
+  desc: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <Link to={to} className="float-card flex h-full flex-col gap-3.5 p-4.5">
+      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+        {icon}
+      </div>
+      <div>
+        <p className="text-sm font-semibold tracking-tight text-foreground">{title}</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">{desc}</p>
+      </div>
+    </Link>
+  );
+}
+

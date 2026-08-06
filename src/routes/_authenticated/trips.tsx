@@ -1,9 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { CountryFlag } from "@/components/CountryFlag";
 import { useEffect, useState } from "react";
-import { Calendar, Luggage, MapPin, Pencil, Trash2 } from "lucide-react";
+import { Luggage, MapPin, Pencil, Trash2, WifiOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { EmptyState, LoadingRows } from "@/components/asvior";
-import { PageBadge, PageHeader, PageShell } from "@/components/PageShell";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  EmptyStateCard,
+  LoadingSkeleton,
+  PageBadge,
+  PageHeader,
+  PageShell,
+} from "@/components/PageShell";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/trips")({
@@ -18,19 +26,6 @@ function getCountryName(code: string | null) {
   } catch {
     return code;
   }
-}
-
-function flag(code: string | null) {
-  if (!code || code.length !== 2) return "";
-  return String.fromCodePoint(...[...code.toUpperCase()].map((c) => 0x1f1a5 + c.charCodeAt(0)));
-}
-
-function formatDateRange(start: string | null, end: string | null) {
-  if (!start && !end) return null;
-  const fmt = (d: string) =>
-    new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
-  if (start && end) return `${fmt(start)} – ${fmt(end)}`;
-  return start ? fmt(start) : end ? fmt(end) : null;
 }
 
 interface Trip {
@@ -114,7 +109,7 @@ function TripsPage() {
   };
 
   return (
-    <PageShell className="app-scroll-page">
+    <PageShell className="pb-6">
       <PageHeader
         badge={
           <PageBadge icon={<Luggage className="h-3.5 w-3.5" />}>
@@ -125,147 +120,129 @@ function TripsPage() {
         subtitle="All your planned journeys in one place."
       />
 
-      <section className="asv-page-pad mt-6 pb-6">
+      <section className="relative mt-6 px-4">
         {loading ? (
-          <LoadingRows rows={3} />
+          <LoadingSkeleton rows={3} />
         ) : loadError ? (
-          <EmptyState
-            icon={<span className="text-2xl">📡</span>}
+          <EmptyStateCard
+            icon={<WifiOff className="h-6 w-6 text-muted-foreground" />}
             title="Couldn't load your trips"
             description="Check your connection and try again."
             action={
-              <button
-                type="button"
-                className="asv-btn asv-btn-secondary asv-btn-sm"
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-2xl"
                 onClick={() => {
                   setLoading(true);
                   load();
                 }}
               >
                 Retry
-              </button>
+              </Button>
             }
           />
         ) : trips.length === 0 ? (
-          <EmptyState
-            icon={<Luggage className="h-8 w-8" />}
+          <EmptyStateCard
+            icon={<Luggage className="h-7 w-7 text-navy" />}
             title="No saved trips yet"
             description="Save a budget or checklist as a trip from the summary page and it will appear here."
           />
         ) : (
-          <div className="asv-stagger space-y-3">
-            {trips.map((t) => {
-              const dates = formatDateRange(t.start_date, t.end_date);
-              return (
-                <article key={t.id} className="asv-card asv-card-pad">
-                  {editing === t.id ? (
-                    <div className="space-y-3">
-                      <div className="asv-field">
-                        <label className="asv-label">Trip name</label>
-                        <input
-                          className="asv-input"
-                          value={draft.name || ""}
-                          onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-                          placeholder="Trip name"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="asv-field">
-                          <label className="asv-label">Start</label>
-                          <input
-                            type="date"
-                            className="asv-input !min-h-11"
-                            value={draft.start_date || ""}
-                            onChange={(e) => setDraft({ ...draft, start_date: e.target.value })}
-                          />
-                        </div>
-                        <div className="asv-field">
-                          <label className="asv-label">End</label>
-                          <input
-                            type="date"
-                            className="asv-input !min-h-11"
-                            value={draft.end_date || ""}
-                            onChange={(e) => setDraft({ ...draft, end_date: e.target.value })}
-                          />
-                        </div>
-                      </div>
-                      <div className="asv-field">
-                        <label className="asv-label">Notes</label>
-                        <input
-                          className="asv-input"
-                          value={draft.notes || ""}
-                          onChange={(e) => setDraft({ ...draft, notes: e.target.value })}
-                          placeholder="Notes"
-                        />
-                      </div>
-                      <div className="flex gap-2">
-                        <button type="button" onClick={save} className="asv-btn asv-btn-primary flex-1">
-                          Save
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setEditing(null)}
-                          className="asv-btn asv-btn-secondary flex-1"
-                        >
-                          Cancel
-                        </button>
-                      </div>
+          <div className="space-y-3">
+            {trips.map((t, i) => (
+              <div
+                key={t.id}
+                className="premium-card animate-fade-in rounded-3xl p-5 transition-transform"
+                style={{ animationDelay: `${i * 60}ms` }}
+              >
+                {editing === t.id ? (
+                  <div className="space-y-3">
+                    <Input
+                      value={draft.name || ""}
+                      onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                      placeholder="Trip name"
+                    />
+                    <div className="flex gap-2">
+                      <Input
+                        type="date"
+                        value={draft.start_date || ""}
+                        onChange={(e) => setDraft({ ...draft, start_date: e.target.value })}
+                      />
+                      <Input
+                        type="date"
+                        value={draft.end_date || ""}
+                        onChange={(e) => setDraft({ ...draft, end_date: e.target.value })}
+                      />
                     </div>
-                  ) : (
-                    <>
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2.5">
-                            <div className="asv-tool-icon shrink-0">
-                              <MapPin className="h-4 w-4" />
-                            </div>
-                            <h2 className="asv-title truncate">{t.name}</h2>
-                          </div>
-                          <div className="mt-3 flex flex-wrap items-center gap-2">
-                            <span className="asv-pill asv-pill--primary">
-                              {flag(t.passport_code)} {getCountryName(t.passport_code)}
-                            </span>
-                            <span className="text-xs text-[var(--asv-ink-tertiary)]">→</span>
-                            <span className="asv-pill asv-pill--accent">
-                              {flag(t.destination_code)} {getCountryName(t.destination_code)}
-                            </span>
-                          </div>
-                          {dates && (
-                            <p className="mt-2.5 flex items-center gap-1.5 text-xs font-medium text-[var(--asv-ink-secondary)]">
-                              <Calendar className="h-3.5 w-3.5 shrink-0 text-[var(--asv-primary)]" />
-                              {dates}
-                            </p>
-                          )}
-                          {t.notes && (
-                            <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-[var(--asv-ink-secondary)]">
-                              {t.notes}
-                            </p>
-                          )}
+                    <Input
+                      value={draft.notes || ""}
+                      onChange={(e) => setDraft({ ...draft, notes: e.target.value })}
+                      placeholder="Notes"
+                    />
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={save} className="flex-1 rounded-2xl">
+                        Save
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setEditing(null)}
+                        className="flex-1 rounded-2xl"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-navy to-navy/80 text-primary-foreground shadow-soft">
+                          <MapPin className="h-4 w-4" />
                         </div>
-                        <div className="flex shrink-0 gap-1">
-                          <button
-                            type="button"
-                            onClick={() => startEdit(t)}
-                            className="asv-btn asv-btn-icon !min-h-9 !w-9"
-                            aria-label="Edit trip"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => remove(t.id)}
-                            className="asv-btn asv-btn-icon !min-h-9 !w-9 text-[var(--asv-coral)]"
-                            aria-label="Delete trip"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
+                        <p className="truncate text-[15px] font-semibold tracking-[-0.01em] text-foreground">
+                          {t.name}
+                        </p>
                       </div>
-                    </>
-                  )}
-                </article>
-              );
-            })}
+                      <p className="mt-2.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <CountryFlag code={t.passport_code} size="sm" rounded="rounded" />
+                        {getCountryName(t.passport_code)}
+                        <span className="text-primary">→</span>
+                        <CountryFlag code={t.destination_code} size="sm" rounded="rounded" />
+                        {getCountryName(t.destination_code)}
+                      </p>
+                      {(t.start_date || t.end_date) && (
+                        <p className="mt-1 text-[11px] font-medium text-muted-foreground">
+                          {t.start_date || "?"} – {t.end_date || "?"}
+                        </p>
+                      )}
+                      {t.notes && (
+                        <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                          {t.notes}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex shrink-0 gap-1">
+                      <button
+                        onClick={() => startEdit(t)}
+                        className="premium-pill flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition-all hover:text-foreground active:scale-90"
+                        aria-label="Edit trip"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => remove(t.id)}
+                        className="premium-pill flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive active:scale-90"
+                        aria-label="Delete trip"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         )}
       </section>
