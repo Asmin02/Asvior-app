@@ -745,7 +745,7 @@ function BookmarksSheet({
     >
       <div className="absolute inset-0 bg-background/50" />
       <div
-        className="premium-card relative max-h-[80vh] w-full overflow-y-auto rounded-t-2xl p-4 sm:max-w-md sm:rounded-2xl"
+        className="premium-card relative max-h-[80vh] w-full overflow-y-auto rounded-t-3xl p-4 sm:max-w-md sm:rounded-3xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-3 flex items-center justify-between">
@@ -773,7 +773,7 @@ function BookmarksSheet({
         ) : (
           <ul className="space-y-2">
             {bookmarks.map((b) => (
-              <li key={b.id} className="premium-card rounded-[1.3rem] p-3">
+              <li key={b.id} className="premium-card rounded-2xl p-3">
                 <div className="flex items-start gap-2">
                   <button onClick={() => onRestore(b)} className="flex-1 text-left">
                     <div className="line-clamp-1 text-sm font-semibold">{b.title}</div>
