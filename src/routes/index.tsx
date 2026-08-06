@@ -404,176 +404,226 @@ function HomePage() {
   }, [popularApi]);
 
   return (
-    <div className="pb-6">
-      {/* Immersive hero */}
-      <header className="relative overflow-hidden rounded-b-[2.25rem]">
-        <img
-          src={heroSkyline}
-          alt="Aerial view of a turquoise coastline at golden hour"
-          width={1280}
-          height={1600}
-          className="absolute inset-0 h-full w-full object-cover"
+    <div className="animate-page-enter pb-8">
+      {/* Cinematic hero */}
+      <header className="relative overflow-hidden rounded-b-[2rem]">
+        <div ref={heroRef} className="parallax-layer absolute inset-0">
+          <img
+            src={heroSkyline}
+            alt="Aerial view of a turquoise coastline at golden hour"
+            width={1280}
+            height={1600}
+            className="ken-burns h-[118%] w-full object-cover"
+          />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-b from-ink/65 via-ink/25 to-ink/85" />
+        <div
+          aria-hidden
+          className="animate-aurora-drift pointer-events-none absolute -left-16 top-10 h-56 w-56 rounded-full bg-aurora/20 blur-3xl"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-ink/70 via-ink/35 to-ink/85" />
 
-        <div className="relative px-4 pb-24 pt-[calc(env(safe-area-inset-top)+1rem)]">
+        <div className="relative px-5 pb-28 pt-[calc(env(safe-area-inset-top)+1.25rem)]">
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-2.5">
               <AsviorMark className="h-9 w-9 shrink-0" />
-              <p className="truncate text-base font-bold tracking-[0.18em] text-white">ASVIOR</p>
+              <p className="truncate text-base font-bold tracking-[0.2em] text-white">ASVIOR</p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
               <Link
                 to="/settings"
                 aria-label="Open settings"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/25 bg-white/12 text-white backdrop-blur-md transition-colors hover:bg-white/20"
+                className="glass-control inline-flex h-11 w-11 items-center justify-center rounded-2xl text-white"
               >
-                <Settings className="h-4 w-4" />
+                <Settings className="h-4.5 w-4.5" strokeWidth={1.8} />
               </Link>
               <Link
                 to={signedIn ? "/profile" : "/auth"}
-                className="inline-flex h-10 items-center rounded-xl border border-white/25 bg-white/12 px-3.5 text-xs font-semibold text-white backdrop-blur-md transition-colors hover:bg-white/20"
+                className="glass-control inline-flex h-11 items-center gap-2 rounded-2xl px-4 text-xs font-semibold text-white"
               >
+                <User className="h-4 w-4" strokeWidth={1.9} />
                 {signedIn ? "Profile" : "Sign in"}
               </Link>
             </div>
           </div>
 
-          <div className="mt-10 animate-fade-in">
-            <p className="text-eyebrow text-white/70">
+          <div className="mt-14">
+            <p
+              className="animate-fade-up text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70"
+              style={{ animationDelay: "60ms" }}
+            >
               {greeting}
               {name ? `, ${name.split(" ")[0]}` : ""}
             </p>
-            <h1 className="mt-2 max-w-[15ch] text-3xl leading-tight font-semibold text-white">
+            <h1
+              className="animate-fade-up mt-3 max-w-[14ch] text-[2.4rem] font-semibold leading-[1.05] tracking-[-0.035em] text-white"
+              style={{ animationDelay: "140ms" }}
+            >
               The world is closer than you think.
             </h1>
-            <p className="mt-2.5 max-w-[32ch] text-sm leading-relaxed text-white/75">
+            <p
+              className="animate-fade-up mt-3.5 max-w-[32ch] text-[0.9375rem] leading-relaxed text-white/80"
+              style={{ animationDelay: "230ms" }}
+            >
               Visas, budgets and itineraries — planned by your AI travel companion.
             </p>
           </div>
         </div>
       </header>
 
-      <div className="space-y-6 px-4 pt-4">
+      <div className="space-y-9 px-5 pt-5">
         {/* Floating premium search */}
         <Link
           to="/visa-check"
           aria-label="Search destinations, visas, or travel plans"
-          className="-mt-[4.5rem] relative z-10 flex items-center gap-3 rounded-2xl border border-white/50 bg-card/90 p-4 elev-4 backdrop-blur-xl transition-transform duration-200 hover:-translate-y-0.5"
+          className="search-float animate-fade-up relative z-10 -mt-[5rem]"
+          style={{ animationDelay: "320ms" }}
         >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl grad-signal text-white">
-            <Search className="h-5 w-5" />
+          <span className="grad-signal flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white">
+            <Search className="h-5 w-5" strokeWidth={1.9} />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-foreground">Where would you like to go?</p>
-            <p className="text-xs text-muted-foreground">Destinations · Visas · Budgets</p>
+            <p className="text-[0.9375rem] font-semibold tracking-tight text-foreground">
+              Where would you like to go?
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">Destinations · Visas · Budgets</p>
           </div>
           <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
         </Link>
 
-        {/* AI travel companion */}
-        <Link
-          to="/assistant"
-          className="group relative block overflow-hidden rounded-2xl grad-ink p-5 text-white elev-3 transition-transform duration-200 hover:-translate-y-0.5"
-        >
-          <span className="pointer-events-none absolute -right-10 -top-12 h-40 w-40 rounded-full bg-aurora/25 blur-2xl" />
-          <span className="pointer-events-none absolute -bottom-16 -left-8 h-40 w-40 rounded-full bg-gold/20 blur-2xl" />
-          <div className="relative flex items-start gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/12">
-              <Sparkles className="h-5 w-5" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-eyebrow text-white/60">Asvior AI</p>
-              <p className="mt-1 text-base font-semibold">Your personal travel companion</p>
-              <p className="mt-1 text-xs leading-relaxed text-white/70">
-                Ask anything — entry rules, 7-day plans, what a week really costs.
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {["Plan my trip", "Do I need a visa?", "Best time to go"].map((q) => (
-                  <span
-                    key={q}
-                    className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-2xs font-medium text-white/85"
-                  >
-                    {q}
-                  </span>
-                ))}
+        {/* AI insight — premium glass */}
+        <Reveal delay={40}>
+          <Link to="/assistant" className="glass-insight spring-press block p-6">
+            <span
+              aria-hidden
+              className="animate-aurora-drift pointer-events-none absolute -right-12 -top-14 h-44 w-44 rounded-full bg-primary/25 blur-3xl"
+            />
+            <span
+              aria-hidden
+              className="animate-aurora-drift pointer-events-none absolute -bottom-16 -left-10 h-44 w-44 rounded-full bg-gold/20 blur-3xl"
+              style={{ animationDelay: "3s" }}
+            />
+            <div className="relative flex items-start gap-3.5">
+              <span className="grad-signal flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white shadow-[0_12px_28px_-14px_color-mix(in_oklab,var(--primary)_85%,transparent)]">
+                <Sparkles className="h-5 w-5" strokeWidth={1.9} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
+                  Asvior AI
+                </p>
+                <p className="mt-1.5 text-lg font-semibold tracking-[-0.02em] text-foreground">
+                  Your personal travel companion
+                </p>
+                <p className="mt-1.5 text-[0.8125rem] leading-relaxed text-muted-foreground">
+                  Ask anything — entry rules, 7-day plans, what a week really costs.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {["Plan my trip", "Do I need a visa?", "Best time to go"].map((q) => (
+                    <span
+                      key={q}
+                      className="rounded-full border border-primary/20 bg-primary/8 px-3 py-1.5 text-[11px] font-medium text-primary"
+                    >
+                      {q}
+                    </span>
+                  ))}
+                </div>
               </div>
+              <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
             </div>
-            <ArrowRight className="h-4 w-4 shrink-0 opacity-70 transition-transform duration-200 group-hover:translate-x-0.5" />
-          </div>
-        </Link>
+          </Link>
+        </Reveal>
 
         {/* Quick tools */}
         <section>
-          <h2 className="section-title mb-3">Travel tools</h2>
-          <div className="grid grid-cols-2 gap-3">
-            <ToolCard
-              to="/visa-check"
-              title="Visa Check"
-              desc="199 countries"
-              icon={<Plane className="h-5 w-5" />}
-            />
-            <ToolCard
-              to="/checklist"
-              title="Checklist"
-              desc="Pre-departure"
-              icon={<CheckSquare className="h-5 w-5" />}
-            />
-            <ToolCard
-              to="/budget-planner"
-              title="Budget"
-              desc="Plan costs"
-              icon={<Wallet className="h-5 w-5" />}
-            />
-            <ToolCard
-              to="/countries"
-              title="Explore"
-              desc="Country guides"
-              icon={<Globe2 className="h-5 w-5" />}
-            />
+          <Reveal>
+            <h2 className="section-title mb-4">Travel tools</h2>
+          </Reveal>
+          <div className="grid grid-cols-2 gap-3.5">
+            {[
+              {
+                to: "/visa-check",
+                title: "Visa Check",
+                desc: "199 countries",
+                icon: <Plane className="h-5 w-5" strokeWidth={1.8} />,
+              },
+              {
+                to: "/checklist",
+                title: "Checklist",
+                desc: "Pre-departure",
+                icon: <CheckSquare className="h-5 w-5" strokeWidth={1.8} />,
+              },
+              {
+                to: "/budget-planner",
+                title: "Budget",
+                desc: "Plan costs",
+                icon: <Wallet className="h-5 w-5" strokeWidth={1.8} />,
+              },
+              {
+                to: "/countries",
+                title: "Explore",
+                desc: "Country guides",
+                icon: <Globe2 className="h-5 w-5" strokeWidth={1.8} />,
+              },
+            ].map((tool, i) => (
+              <Reveal key={tool.to} delay={i * 70}>
+                <ToolCard {...tool} />
+              </Reveal>
+            ))}
           </div>
         </section>
 
         {/* Continue / Recent trips */}
         {signedIn && continueActivity && (
           <section>
-            <h2 className="section-title mb-3">Continue planning</h2>
-            <ContinuePlanningCard activity={continueActivity} />
+            <Reveal>
+              <h2 className="section-title mb-4">Continue planning</h2>
+              <ContinuePlanningCard activity={continueActivity} />
+            </Reveal>
           </section>
         )}
 
         {/* Recent searches */}
         <section>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="section-title">Recent searches</h2>
-            {recent.length > 0 && (
-              <Link to="/visa-check" className="text-xs font-semibold text-navy">
-                New search
-              </Link>
-            )}
-          </div>
-          {recent.length === 0 ? (
-            <div className="premium-card rounded-2xl p-4 text-sm text-muted-foreground">
-              No recent destinations yet. Start with a visa check.
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {recent.slice(0, 5).map((r) => (
-                <Link
-                  key={`${r.passport}-${r.destination}-${r.timestamp}`}
-                  to="/country/$code"
-                  params={{ code: r.destination }}
-                  className="premium-card flex items-center gap-3 rounded-2xl p-3 transition-colors hover:bg-secondary/30"
-                >
-                  <CountryFlag code={r.destination} size="sm" />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-foreground">
-                      {getCountryName(r.destination)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{r.status}</p>
-                  </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+          <Reveal>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="section-title">Recent searches</h2>
+              {recent.length > 0 && (
+                <Link to="/visa-check" className="text-xs font-semibold text-primary">
+                  New search
                 </Link>
+              )}
+            </div>
+          </Reveal>
+          {!hydrated ? (
+            <div className="space-y-2.5">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="skeleton-block h-[4.25rem] r-28" />
+              ))}
+            </div>
+          ) : recent.length === 0 ? (
+            <Reveal>
+              <div className="float-card p-5 text-sm text-muted-foreground">
+                No recent destinations yet. Start with a visa check.
+              </div>
+            </Reveal>
+          ) : (
+            <div className="space-y-2.5">
+              {recent.slice(0, 5).map((r, i) => (
+                <Reveal key={`${r.passport}-${r.destination}-${r.timestamp}`} delay={i * 60}>
+                  <Link
+                    to="/country/$code"
+                    params={{ code: r.destination }}
+                    className="float-card flex items-center gap-3.5 p-4"
+                  >
+                    <CountryFlag code={r.destination} size="sm" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-foreground">
+                        {getCountryName(r.destination)}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">{r.status}</p>
+                    </div>
+                    <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  </Link>
+                </Reveal>
               ))}
             </div>
           )}
@@ -581,56 +631,41 @@ function HomePage() {
 
         {/* Popular destinations */}
         <section>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="section-title">Popular destinations</h2>
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                aria-label="Previous destination"
-                onClick={() => popularApi?.scrollPrev()}
-                disabled={!canScrollPopularPrev}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border disabled:opacity-40"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                aria-label="Next destination"
-                onClick={() => popularApi?.scrollNext()}
-                disabled={!canScrollPopularNext}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border disabled:opacity-40"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-              <Link to="/countries" className="ml-1 text-xs font-semibold text-navy">
-                See all
-              </Link>
+          <Reveal>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="section-title">Popular destinations</h2>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  aria-label="Previous destination"
+                  onClick={() => popularApi?.scrollPrev()}
+                  disabled={!canScrollPopularPrev}
+                  className="spring-press inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card disabled:opacity-40"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Next destination"
+                  onClick={() => popularApi?.scrollNext()}
+                  disabled={!canScrollPopularNext}
+                  className="spring-press inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card disabled:opacity-40"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+                <Link to="/countries" className="ml-1 text-xs font-semibold text-primary">
+                  See all
+                </Link>
+              </div>
             </div>
-          </div>
+          </Reveal>
           <Carousel setApi={setPopularApi} opts={{ align: "start", containScroll: "trimSnaps" }}>
-            <CarouselContent className="-ml-3">
-              {POPULAR.map((d) => (
-                <CarouselItem key={d.code} className="basis-[44%] pl-3 sm:basis-[38%]">
-                  <Link
-                    to="/country/$code"
-                    params={{ code: d.code }}
-                    className="group block overflow-hidden rounded-2xl border border-border bg-card shadow-soft"
-                  >
-                    <div className="relative h-32 overflow-hidden">
-                      <img
-                        src={d.image}
-                        alt={d.name}
-                        loading="lazy"
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-navy/70 to-transparent" />
-                      <div className="absolute inset-x-2 bottom-2 flex items-center gap-2">
-                        <CountryFlag code={d.code} size="sm" className="ring-white/40" />
-                        <p className="truncate text-sm font-semibold text-white">{d.name}</p>
-                      </div>
-                    </div>
-                    <p className="px-3 py-2 text-xs text-muted-foreground">{d.tagline}</p>
-                  </Link>
+            <CarouselContent className="-ml-3.5">
+              {POPULAR.map((d, i) => (
+                <CarouselItem key={d.code} className="basis-[52%] pl-3.5 sm:basis-[42%]">
+                  <Reveal delay={i * 60}>
+                    <DestinationCard destination={d} />
+                  </Reveal>
                 </CarouselItem>
               ))}
             </CarouselContent>
@@ -639,70 +674,104 @@ function HomePage() {
 
         {/* Travel inspiration */}
         <section>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="section-title">Travel inspiration</h2>
-            <span className="text-xs text-muted-foreground">Updated daily</span>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            {dailyTrending.slice(0, 4).map((destination) => (
-              <Link
-                key={destination.code}
-                to="/country/$code"
-                params={{ code: destination.code }}
-                className="group overflow-hidden rounded-2xl border border-border bg-card shadow-soft"
-              >
-                <div className="relative h-24 overflow-hidden">
-                  <img
-                    src={TRENDING_IMAGES[destination.imageIndex]}
-                    alt={destination.name}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-navy/60 to-transparent" />
-                  <div className="absolute inset-x-2 bottom-2 flex items-center gap-1.5">
-                    <CountryFlag code={destination.code} size="sm" className="ring-white/40" />
-                    <p className="truncate text-xs font-semibold text-white">{destination.name}</p>
+          <Reveal>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="section-title">Travel inspiration</h2>
+              <span className="text-xs text-muted-foreground">Updated daily</span>
+            </div>
+          </Reveal>
+          <div className="grid grid-cols-2 gap-3.5">
+            {dailyTrending.slice(0, 4).map((destination, i) => (
+              <Reveal key={destination.code} delay={i * 70}>
+                <Link
+                  to="/country/$code"
+                  params={{ code: destination.code }}
+                  className="float-card group block overflow-hidden p-0"
+                >
+                  <div className="relative h-28 overflow-hidden r-28">
+                    <img
+                      src={TRENDING_IMAGES[destination.imageIndex]}
+                      alt={destination.name}
+                      loading="lazy"
+                      className="h-full w-full object-cover transition-transform duration-[700ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/10 to-transparent" />
+                    <div className="absolute inset-x-3 bottom-2.5 flex items-center gap-1.5">
+                      <CountryFlag code={destination.code} size="sm" className="ring-white/40" />
+                      <p className="truncate text-xs font-semibold text-white">
+                        {destination.name}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </Link>
+                </Link>
+              </Reveal>
             ))}
           </div>
         </section>
 
         {/* Visa updates */}
         <section>
-          <h2 className="section-title mb-3">Latest visa updates</h2>
-          <div className="space-y-2">
-            {visaUpdates.slice(0, 4).map((item) => (
-              <VisaUpdateCard key={item.id} item={item} />
+          <Reveal>
+            <h2 className="section-title mb-4">Latest visa updates</h2>
+          </Reveal>
+          <div className="space-y-2.5">
+            {visaUpdates.slice(0, 4).map((item, i) => (
+              <Reveal key={item.id} delay={i * 60}>
+                <VisaUpdateCard item={item} />
+              </Reveal>
             ))}
           </div>
         </section>
 
-        <footer className="border-t border-border pt-4 text-center">
+        <footer className="border-t border-border/70 pt-6 text-center">
           <nav
             aria-label="Legal"
-            className="flex flex-wrap items-center justify-center gap-3 text-xs text-muted-foreground"
+            className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground"
           >
-            <Link to="/about" className="hover:text-foreground">
+            <Link to="/about" className="transition-colors hover:text-foreground">
               About
             </Link>
-            <Link to="/privacy" className="hover:text-foreground">
+            <Link to="/privacy" className="transition-colors hover:text-foreground">
               Privacy
             </Link>
-            <Link to="/terms" className="hover:text-foreground">
+            <Link to="/terms" className="transition-colors hover:text-foreground">
               Terms
             </Link>
-            <Link to="/contact" className="hover:text-foreground">
+            <Link to="/contact" className="transition-colors hover:text-foreground">
               Contact
             </Link>
-            <Link to="/support" className="hover:text-foreground">
+            <Link to="/support" className="transition-colors hover:text-foreground">
               Support
             </Link>
           </nav>
         </footer>
       </div>
     </div>
+  );
+}
+
+function DestinationCard({ destination }: { destination: Destination }) {
+  return (
+    <Link
+      to="/country/$code"
+      params={{ code: destination.code }}
+      className="float-card group block overflow-hidden p-0"
+    >
+      <div className="relative h-40 overflow-hidden rounded-t-[1.75rem]">
+        <img
+          src={destination.image}
+          alt={destination.name}
+          loading="lazy"
+          className="h-full w-full object-cover transition-transform duration-[700ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink/75 via-ink/10 to-transparent" />
+        <div className="absolute inset-x-3.5 bottom-3 flex items-center gap-2">
+          <CountryFlag code={destination.code} size="sm" className="ring-white/40" />
+          <p className="truncate text-sm font-semibold text-white">{destination.name}</p>
+        </div>
+      </div>
+      <p className="px-4 py-3 text-xs text-muted-foreground">{destination.tagline}</p>
+    </Link>
   );
 }
 
@@ -718,17 +787,15 @@ function ToolCard({
   icon: React.ReactNode;
 }) {
   return (
-    <Link
-      to={to}
-      className="premium-card flex flex-col gap-3 rounded-2xl p-4 transition-colors hover:bg-secondary/30"
-    >
-      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-navy">
+    <Link to={to} className="float-card flex h-full flex-col gap-3.5 p-4.5">
+      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
         {icon}
       </div>
       <div>
-        <p className="text-sm font-semibold text-foreground">{title}</p>
-        <p className="text-xs text-muted-foreground">{desc}</p>
+        <p className="text-sm font-semibold tracking-tight text-foreground">{title}</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">{desc}</p>
       </div>
     </Link>
   );
 }
+
