@@ -352,7 +352,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <main className="mx-auto min-h-dvh max-w-md bg-background pb-[calc(4.5rem+env(safe-area-inset-bottom))] font-sans antialiased">
+      <main className="mx-auto min-h-dvh max-w-md bg-background pb-[calc(6rem+env(safe-area-inset-bottom))] font-sans antialiased">
         <Outlet />
       </main>
       <FloatingAIButton />

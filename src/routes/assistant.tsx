@@ -575,43 +575,46 @@ function AssistantPage() {
 
 function EmptyState({ onPick }: { onPick: (prompt: string) => void }) {
   return (
-    <div>
-      <div className="mb-6 mt-2 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-navy">
+    <div className="animate-fade-in">
+      <div className="relative mb-7 mt-2 overflow-hidden rounded-3xl grad-ink px-6 py-8 text-center elev-3">
+        <span className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-aurora/25 blur-2xl" />
+        <span className="pointer-events-none absolute -bottom-12 -left-6 h-32 w-32 rounded-full bg-gold/20 blur-2xl" />
+        <div className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md">
           <AsviorMark className="h-10 w-10" />
         </div>
-        <h2 className="mt-4 text-xl font-bold text-foreground">Hi, I'm Asvior AI</h2>
-        <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-muted-foreground">
-          Tell me your nationality and destination — I'll guide you through visas, documents, and
-          trip planning.
+        <p className="relative mt-4 text-eyebrow text-white/60">Asvior AI</p>
+        <h2 className="relative mt-1.5 text-[1.6rem] font-semibold tracking-[-0.03em] text-primary-foreground">
+          Hi, I&apos;m your travel concierge
+        </h2>
+        <p className="relative mx-auto mt-2 max-w-xs text-sm leading-relaxed text-primary-foreground/70">
+          Tell me your nationality and destination — I&apos;ll guide you through visas, documents,
+          and trip planning.
         </p>
       </div>
 
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        Quick actions
-      </p>
-      <div className="grid grid-cols-2 gap-2">
-        {QUICK_ACTIONS.map((a) => (
+      <p className="mb-2 text-eyebrow text-muted-foreground">Quick actions</p>
+      <div className="grid grid-cols-2 gap-2.5">
+        {QUICK_ACTIONS.map((a, i) => (
           <button
             key={a.label}
             onClick={() => onPick(a.prompt)}
-            className="premium-card flex items-center gap-2 rounded-xl p-3 text-left transition-colors hover:bg-secondary/40"
+            style={{ animationDelay: `${i * 40}ms` }}
+            className="premium-card flex animate-fade-in items-center gap-2.5 rounded-2xl p-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
           >
             <span className="text-lg">{a.icon}</span>
-            <span className="text-xs font-semibold leading-tight">{a.label}</span>
+            <span className="text-xs font-semibold leading-tight text-foreground">{a.label}</span>
           </button>
         ))}
       </div>
 
-      <p className="mb-2 mt-5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        Try asking
-      </p>
+      <p className="mb-2 mt-6 text-eyebrow text-muted-foreground">Try asking</p>
       <div className="space-y-2">
-        {SUGGESTIONS.map((s) => (
+        {SUGGESTIONS.map((s, i) => (
           <button
             key={s}
             onClick={() => onPick(s)}
-            className="premium-card flex w-full items-center justify-between gap-2 rounded-xl p-3 text-left text-sm transition-colors hover:bg-secondary/40"
+            style={{ animationDelay: `${i * 40}ms` }}
+            className="premium-card flex w-full animate-fade-in items-center justify-between gap-2 rounded-2xl p-3.5 text-left text-sm text-foreground transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
           >
             <span className="line-clamp-2">{s}</span>
             <svg
@@ -648,7 +651,7 @@ function MessageBubble({
   if (isUser) {
     return (
       <div className="flex justify-end">
-        <div className="max-w-[85%] rounded-2xl rounded-tr-md bg-navy px-4 py-3 text-sm text-primary-foreground">
+        <div className="max-w-[85%] rounded-3xl rounded-tr-md bg-primary px-4 py-3 text-sm leading-relaxed text-primary-foreground elev-2">
           {text}
         </div>
       </div>
@@ -662,14 +665,14 @@ function MessageBubble({
     .trim();
 
   return (
-    <div className="flex gap-2">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-navy">
+    <div className="flex gap-2.5">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl grad-ink elev-1">
         <AsviorMark className="h-5 w-5" />
       </div>
       <div className="min-w-0 flex-1 space-y-2">
         {segments.length === 0 ||
         (segments.length === 1 && segments[0].kind === "text" && !segments[0].content.trim()) ? (
-          <div className="premium-card rounded-2xl rounded-tl-md px-4 py-3 text-sm">
+          <div className="px-1 py-2 text-sm">
             <span className="text-muted-foreground">…</span>
           </div>
         ) : (
@@ -680,7 +683,7 @@ function MessageBubble({
               return (
                 <div
                   key={i}
-                  className="premium-card prose prose-sm max-w-none rounded-2xl rounded-tl-md px-4 py-3 text-sm text-foreground prose-headings:mt-2 prose-headings:mb-1 prose-p:my-1.5 prose-ul:my-1.5 prose-li:my-0 prose-a:text-navy dark:prose-invert"
+                  className="prose prose-sm max-w-none px-1 py-1 text-sm leading-relaxed text-foreground prose-headings:mt-2 prose-headings:mb-1 prose-p:my-1.5 prose-ul:my-1.5 prose-li:my-0 prose-a:text-primary dark:prose-invert"
                 >
                   <ReactMarkdown>{content}</ReactMarkdown>
                 </div>
