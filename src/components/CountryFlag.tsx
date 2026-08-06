@@ -55,12 +55,11 @@ export function CountryFlag({
   }
 
   return (
-    <img
+    <SmoothImage
       src={`https://flagcdn.com/${s.src}/${iso}.png`}
       alt=""
       aria-hidden
       loading="lazy"
-      decoding="async"
       onError={() => setFailed(true)}
       className={cn(
         "shrink-0 object-cover ring-1 ring-inset ring-border/50",
