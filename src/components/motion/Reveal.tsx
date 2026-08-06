@@ -27,10 +27,28 @@ export function Reveal({
     const node = ref.current;
     if (!node) return;
 
+    // Respect the OS accessibility setting: show content immediately.
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+    ) {
+      setRevealed(true);
+      return;
+    }
+
     if (typeof IntersectionObserver === "undefined") {
       setRevealed(true);
       return;
     }
+
+    // Already in view on mount (above the fold): reveal on the next frame so
+    // the transition still runs but nothing is ever stuck invisible.
+    const rect = node.getBoundingClientRect();
+    if (rect.top < (window.innerHeight || 0) && rect.bottom > 0) {
+      const raf = requestAnimationFrame(() => setRevealed(true));
+      if (once) return () => cancelAnimationFrame(raf);
+    }
+
 
     const observer = new IntersectionObserver(
       (entries) => {
