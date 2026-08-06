@@ -117,9 +117,18 @@ function AssistantPage() {
   const [authScope, setAuthScope] = useState<string>(GUEST_STORAGE_SCOPE);
   const [authResolved, setAuthResolved] = useState(false);
   const transport = useMemo(
-    () => new DefaultChatTransport({ api: resolveApiUrl("/api/chat") }),
+    () =>
+      new DefaultChatTransport({
+        api: resolveApiUrl("/api/chat"),
+        headers: async (): Promise<Record<string, string>> => {
+          const { data } = await supabase.auth.getSession();
+          const token = data.session?.access_token;
+          return token ? { Authorization: `Bearer ${token}` } : {};
+        },
+      }),
     [],
   );
+
   const isSignedIn = authScope !== GUEST_STORAGE_SCOPE;
   const storageKey = useMemo(() => buildScopedStorageKey(STORAGE_KEY, authScope), [authScope]);
 
