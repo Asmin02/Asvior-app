@@ -37,8 +37,8 @@ import { getCountryName, loadRecentSearches, type RecentSearch } from "@/lib/vis
 import { CountryFlag } from "@/components/CountryFlag";
 import { loadBookmarks } from "@/components/ai-cards";
 import { GUEST_STORAGE_SCOPE } from "@/lib/app-session";
-import {
 import { SmoothImage } from "@/components/motion/SmoothImage";
+import {
   getDailyTrendingDestinations,
   getLatestVisaUpdates,
   type HomeVisaUpdate,
