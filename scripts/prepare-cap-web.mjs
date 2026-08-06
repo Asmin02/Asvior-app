@@ -1,4 +1,4 @@
-import { cpSync, mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,10 +10,14 @@ const previewPort = 4173;
 const previewHost = "127.0.0.1";
 
 function copyStaticAssets() {
+  // Nitro (vercel preset) builds emit to .vercel/output/static; the default
+  // TanStack Start build already writes straight to dist/client.
+  if (!existsSync(staticDir)) return;
   rmSync(outDir, { recursive: true, force: true });
   mkdirSync(outDir, { recursive: true });
   cpSync(staticDir, outDir, { recursive: true });
 }
+
 
 function assetBaseName(filename) {
   return filename.replace(/-[A-Za-z0-9_-]+\.[^.]+$/, "");
