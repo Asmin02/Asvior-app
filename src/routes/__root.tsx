@@ -187,41 +187,8 @@ function RootShell({ children }: { children: ReactNode }) {
 function MobileNav() {
   const router = useRouter();
   const pathname = router.state.location.pathname;
-  const [signedIn, setSignedIn] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
 
-    const refresh = async () => {
-      try {
-        const { data } = await supabase.auth.getSession();
-        if (cancelled) return;
-        setSignedIn(!!data.session?.user);
-      } catch {
-        if (cancelled) return;
-        setSignedIn(false);
-      }
-    };
-
-    void refresh();
-
-    let unsubscribe = () => {};
-
-    try {
-      const { data: authSub } = supabase.auth.onAuthStateChange((_event, session) => {
-        if (cancelled) return;
-        setSignedIn(!!session?.user);
-      });
-      unsubscribe = () => authSub.subscription.unsubscribe();
-    } catch {
-      setSignedIn(false);
-    }
-
-    return () => {
-      cancelled = true;
-      unsubscribe();
-    };
-  }, []);
 
   const leftItems = [
     { to: "/", label: "Home", icon: Home },
