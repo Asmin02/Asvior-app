@@ -328,6 +328,9 @@ function HomePage() {
     }
   }, []);
 
+  const heroRef = useParallax<HTMLDivElement>(0.16, 90);
+  const hydrated = homeNow !== null;
+
   useEffect(() => {
     setHomeNow(new Date());
   }, []);
