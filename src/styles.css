@@ -1483,6 +1483,262 @@
 }
 
 /* =========================================================
+   V8 MOTION & POLISH LAYER
+   Cinematic hero, scroll reveals, spring presses, parallax,
+   floating dock. Presentation only — GPU-friendly transforms
+   and opacity so every animation holds 60fps.
+   ========================================================= */
+
+@keyframes ken-burns {
+  0% {
+    transform: scale(1.08) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: scale(1.18) translate3d(-1.5%, -1.5%, 0);
+  }
+  100% {
+    transform: scale(1.08) translate3d(0, 0, 0);
+  }
+}
+
+@keyframes sheen-sweep {
+  0% {
+    transform: translateX(-120%) skewX(-16deg);
+  }
+  100% {
+    transform: translateX(220%) skewX(-16deg);
+  }
+}
+
+@keyframes aurora-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(6%, -8%, 0) scale(1.12);
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Slow, cinematic background drift for hero photography. */
+@utility ken-burns {
+  animation: ken-burns 38s ease-in-out infinite;
+  will-change: transform;
+  transform-origin: 52% 45%;
+}
+
+@utility animate-aurora-drift {
+  animation: aurora-drift 16s ease-in-out infinite;
+  will-change: transform;
+}
+
+@utility animate-page-enter {
+  animation: page-enter 0.5s var(--ease-out-expo) both;
+}
+
+/* Scroll reveal — element starts offset, `data-revealed` settles it. */
+@utility reveal {
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+  transition:
+    opacity 620ms var(--ease-out-expo),
+    transform 620ms var(--ease-out-expo);
+  will-change: opacity, transform;
+  &[data-revealed="true"] {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Spring press for any tappable surface. */
+@utility spring-press {
+  transition:
+    transform 260ms var(--ease-spring),
+    box-shadow 260ms var(--ease-out-expo),
+    background-color 200ms var(--ease-standard);
+  will-change: transform;
+  &:active {
+    transform: scale(0.965);
+  }
+}
+
+/* Floating card: rests above the page, lifts on touch/hover. */
+@utility float-card {
+  position: relative;
+  border-radius: 1.75rem;
+  background: var(--card);
+  border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  box-shadow:
+    0 1px 2px color-mix(in oklab, var(--ink, var(--foreground)) 5%, transparent),
+    0 8px 20px -12px color-mix(in oklab, var(--ink, var(--foreground)) 22%, transparent),
+    0 24px 48px -28px color-mix(in oklab, var(--ink, var(--foreground)) 30%, transparent);
+  transition:
+    transform 320ms var(--ease-out-expo),
+    box-shadow 320ms var(--ease-out-expo);
+  will-change: transform;
+  &:hover {
+    transform: translate3d(0, -4px, 0);
+    box-shadow:
+      0 2px 4px color-mix(in oklab, var(--ink, var(--foreground)) 6%, transparent),
+      0 16px 32px -16px color-mix(in oklab, var(--ink, var(--foreground)) 26%, transparent),
+      0 36px 64px -32px color-mix(in oklab, var(--ink, var(--foreground)) 34%, transparent);
+  }
+  &:active {
+    transform: scale(0.985) translate3d(0, -1px, 0);
+  }
+}
+
+/* Frosted glass control — profile button, hero chips. */
+@utility glass-control {
+  background: color-mix(in oklab, white 18%, transparent);
+  border: 1px solid color-mix(in oklab, white 34%, transparent);
+  backdrop-filter: blur(18px) saturate(180%);
+  box-shadow: 0 8px 24px -14px color-mix(in oklab, black 55%, transparent);
+  transition:
+    transform 260ms var(--ease-spring),
+    background-color 220ms var(--ease-standard);
+  &:hover {
+    background: color-mix(in oklab, white 26%, transparent);
+  }
+  &:active {
+    transform: scale(0.94);
+  }
+}
+
+/* Floating search bar with a calm focus expansion. */
+@utility search-float {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  border-radius: 1.75rem;
+  padding: 1rem 1.125rem;
+  background: color-mix(in oklab, var(--card) 88%, transparent);
+  border: 1px solid color-mix(in oklab, white 60%, var(--border));
+  backdrop-filter: blur(24px) saturate(180%);
+  box-shadow:
+    0 2px 6px color-mix(in oklab, var(--foreground) 6%, transparent),
+    0 18px 40px -22px color-mix(in oklab, var(--foreground) 40%, transparent);
+  transition:
+    transform 320ms var(--ease-out-expo),
+    box-shadow 320ms var(--ease-out-expo),
+    border-color 240ms var(--ease-standard);
+  will-change: transform;
+  &:hover,
+  &:focus-within {
+    transform: translate3d(0, -3px, 0);
+    border-color: color-mix(in oklab, var(--primary) 45%, var(--border));
+    box-shadow:
+      0 4px 10px color-mix(in oklab, var(--foreground) 7%, transparent),
+      0 26px 56px -24px color-mix(in oklab, var(--primary) 46%, transparent);
+  }
+  &:active {
+    transform: scale(0.99);
+  }
+}
+
+/* Pastel glass surface for the AI insight card. */
+@utility glass-insight {
+  position: relative;
+  overflow: hidden;
+  border-radius: 2rem;
+  border: 1px solid color-mix(in oklab, white 55%, var(--border));
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--primary) 12%, transparent),
+      color-mix(in oklab, var(--card) 92%, transparent) 45%,
+      color-mix(in oklab, var(--color-gold, var(--primary)) 12%, transparent)
+    ),
+    color-mix(in oklab, var(--card) 86%, transparent);
+  backdrop-filter: blur(26px) saturate(170%);
+  box-shadow:
+    0 2px 6px color-mix(in oklab, var(--foreground) 5%, transparent),
+    0 28px 60px -30px color-mix(in oklab, var(--primary) 45%, transparent);
+  transition:
+    transform 320ms var(--ease-out-expo),
+    box-shadow 320ms var(--ease-out-expo);
+  &:active {
+    transform: scale(0.99);
+  }
+}
+
+/* Soft sheen that sweeps once on entrance. */
+@utility sheen-once {
+  position: relative;
+  overflow: hidden;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, white 38%, transparent),
+      transparent
+    );
+    animation: sheen-sweep 2.6s var(--ease-out-expo) 0.6s both;
+    pointer-events: none;
+  }
+}
+
+/* Parallax layer — translateY driven by a CSS var set from JS. */
+@utility parallax-layer {
+  transform: translate3d(0, var(--parallax-y, 0px), 0) scale(var(--parallax-scale, 1));
+  will-change: transform;
+}
+
+/* Premium radius scale for the V8 pass. */
+@utility r-28 {
+  border-radius: 1.75rem;
+}
+@utility r-32 {
+  border-radius: 2rem;
+}
+
+/* Floating dock with a raised center action. */
+@utility dock-float {
+  border-radius: 2rem;
+  background: color-mix(in oklab, var(--card) 82%, transparent);
+  border: 1px solid color-mix(in oklab, white 45%, var(--border));
+  backdrop-filter: blur(28px) saturate(180%);
+  box-shadow:
+    0 2px 6px color-mix(in oklab, var(--foreground) 6%, transparent),
+    0 20px 46px -24px color-mix(in oklab, var(--foreground) 45%, transparent);
+}
+
+@utility skeleton-block {
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in oklab, var(--muted) 70%, transparent);
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, white 45%, transparent),
+      transparent
+    );
+    animation: shimmer 1.6s ease-in-out infinite;
+  }
+}
+
+
+/* =========================================================
    REDUCED MOTION
    ========================================================= */
 @media (prefers-reduced-motion: reduce) {
