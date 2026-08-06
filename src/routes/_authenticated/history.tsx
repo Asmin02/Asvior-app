@@ -27,10 +27,6 @@ function getCountryName(code: string) {
     return code;
   }
 }
-function flag(code: string) {
-  if (code.length !== 2) return "";
-  return String.fromCodePoint(...[...code.toUpperCase()].map((c) => 0x1f1a5 + c.charCodeAt(0)));
-}
 
 interface HistoryRow {
   id: string;
@@ -156,7 +152,7 @@ function HistoryPage() {
       id: row.id,
       kind: "visa",
       createdAt: toTimestamp(row.created_at),
-      title: `${flag(row.passport_code)} ${getCountryName(row.passport_code)} -> ${flag(row.destination_code)} ${getCountryName(row.destination_code)}`,
+      title: `${getCountryName(row.passport_code)} → ${getCountryName(row.destination_code)}`,
       subtitle: "Visa check",
       status: row.status,
       destinationCode: row.destination_code,
@@ -169,7 +165,7 @@ function HistoryPage() {
       createdAt: toTimestamp(row.created_at),
       title: row.name,
       subtitle: row.destination_code
-        ? `${flag(row.destination_code)} ${getCountryName(row.destination_code)}`
+        ? `${getCountryName(row.destination_code)}`
         : "Saved trip",
       destinationCode: row.destination_code || undefined,
     }));
@@ -179,7 +175,7 @@ function HistoryPage() {
       id: row.id,
       kind: "favorites",
       createdAt: toTimestamp(row.created_at),
-      title: `${flag(row.country_code)} ${getCountryName(row.country_code)}`,
+      title: `${getCountryName(row.country_code)}`,
       subtitle: "Saved country",
       destinationCode: row.country_code,
     }));
@@ -189,7 +185,7 @@ function HistoryPage() {
       id: `${row.passport}-${row.destination}-${row.timestamp}`,
       kind: "recent",
       createdAt: row.timestamp,
-      title: `${flag(row.passport)} ${getCountryName(row.passport)} -> ${flag(row.destination)} ${getCountryName(row.destination)}`,
+      title: `${getCountryName(row.passport)} → ${getCountryName(row.destination)}`,
       subtitle: "Recent local search",
       status: row.status,
       destinationCode: row.destination,
