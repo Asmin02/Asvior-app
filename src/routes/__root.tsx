@@ -244,10 +244,11 @@ function MobileNav() {
         key={item.to}
         to={item.to}
         aria-current={isActive ? "page" : undefined}
-        className="spring-press relative flex min-h-12 flex-1 flex-col items-center justify-center gap-1 rounded-2xl py-1.5"
+        className="tap relative flex min-h-12 flex-1 flex-col items-center justify-center gap-1 rounded-2xl py-1.5"
       >
         <Icon
-          className={`h-5 w-5 transition-colors duration-300 ${isActive ? "text-primary" : "text-muted-foreground"}`}
+          data-active={isActive ? "true" : "false"}
+          className={`nav-icon h-5 w-5 ${isActive ? "text-primary" : "text-muted-foreground"}`}
           strokeWidth={isActive ? 2.2 : 1.8}
         />
         <span
@@ -257,7 +258,7 @@ function MobileNav() {
         </span>
         <span
           aria-hidden
-          className={`absolute -bottom-0.5 h-1 w-1 rounded-full bg-primary transition-all duration-300 ${isActive ? "scale-100 opacity-100" : "scale-0 opacity-0"}`}
+          className={`absolute -bottom-0.5 h-1 w-1 rounded-full bg-primary transition-[transform,opacity] duration-[420ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isActive ? "scale-100 opacity-100" : "scale-0 opacity-0"}`}
         />
       </Link>
     );
@@ -275,10 +276,11 @@ function MobileNav() {
           to="/assistant"
           aria-label="Open AI Concierge"
           aria-current={isAiActive ? "page" : undefined}
-          className="spring-press grad-signal -mt-7 flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-primary-foreground shadow-[0_14px_30px_-10px_color-mix(in_oklab,var(--primary)_85%,transparent)] ring-4 ring-[color-mix(in_oklab,var(--card)_85%,transparent)]"
+          className="tap grad-signal -mt-7 flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-primary-foreground shadow-[0_14px_30px_-10px_color-mix(in_oklab,var(--primary)_85%,transparent)] ring-4 ring-[color-mix(in_oklab,var(--card)_85%,transparent)]"
         >
-          <Sparkles className="h-6 w-6" strokeWidth={1.9} />
+          <Sparkles className={`h-6 w-6 ${isAiActive ? "" : "breathe"}`} strokeWidth={1.9} />
         </Link>
+
 
         {rightItems.map(renderItem)}
       </div>
