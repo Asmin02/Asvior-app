@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { CountryFlag } from "@/components/CountryFlag";
 import { useEffect, useState } from "react";
 import { Luggage, MapPin, Pencil, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
