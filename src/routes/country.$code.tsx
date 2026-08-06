@@ -42,6 +42,7 @@ import {
 import { getCountryProfile } from "@/data/country-profiles";
 import { REGION_META } from "@/data/regions";
 import { supabase } from "@/integrations/supabase/client";
+import { SmoothImage } from "@/components/motion/SmoothImage";
 
 export const Route = createFileRoute("/country/$code")({
   loader: ({ params }) => {
@@ -167,7 +168,7 @@ function CountryHubPage() {
     <div className="relative overflow-x-hidden pb-6">
       {/* ============ HERO ============ */}
       <section className="relative min-h-[26rem] overflow-hidden rounded-b-[2.25rem]">
-        <img
+        <SmoothImage
           src={regionMeta.image}
           alt={`${name} travel scenery`}
           width={1024}
@@ -397,7 +398,7 @@ function CountryHubPage() {
               key={a.name}
               className="relative h-48 w-40 shrink-0 overflow-hidden rounded-3xl elev-2"
             >
-              <img
+              <SmoothImage
                 src={regionMeta.image}
                 alt={a.name}
                 width={1024}

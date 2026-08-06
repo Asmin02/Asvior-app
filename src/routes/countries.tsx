@@ -7,6 +7,7 @@ import { CountryFlag } from "@/components/CountryFlag";
 import { PageBadge, PageHeader, PageShell } from "@/components/PageShell";
 import { COUNTRY_PROFILES } from "@/data/country-profiles";
 import { REGION_META, REGION_ORDER, type Region } from "@/data/regions";
+import { SmoothImage } from "@/components/motion/SmoothImage";
 
 export const Route = createFileRoute("/countries")({
   head: () => ({
@@ -115,7 +116,7 @@ function CountriesPage() {
                   style={{ animationDelay: `${i * 40}ms` }}
                 >
                   {img && (
-                    <img
+                    <SmoothImage
                       src={img}
                       alt={getCountryName(code)}
                       width={1024}
