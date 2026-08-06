@@ -13,7 +13,6 @@ import {
   MessageCircle,
   BookOpen,
   Compass,
-  Settings,
   User,
 } from "lucide-react";
 import { Reveal } from "@/components/motion/Reveal";
@@ -436,21 +435,25 @@ function HomePage() {
               <p className="truncate text-base font-bold tracking-[0.2em] text-white">ASVIOR</p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
-              <Link
-                to="/settings"
-                aria-label="Open settings"
-                className="glass-control inline-flex h-11 w-11 items-center justify-center rounded-2xl text-white"
-              >
-                <Settings className="h-4.5 w-4.5" strokeWidth={1.8} />
-              </Link>
-              <Link
-                to={signedIn ? "/profile" : "/auth"}
-                className="glass-control inline-flex h-11 items-center gap-2 rounded-2xl px-4 text-xs font-semibold text-white"
-              >
-                <User className="h-4 w-4" strokeWidth={1.9} />
-                {signedIn ? "Profile" : "Sign in"}
-              </Link>
+              {signedIn ? (
+                <Link
+                  to="/profile"
+                  aria-label="Open your profile"
+                  className="tap glass-control inline-flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold uppercase text-white"
+                >
+                  {name ? name.trim().charAt(0) : <User className="h-4 w-4" strokeWidth={1.9} />}
+                </Link>
+              ) : (
+                <Link
+                  to="/auth"
+                  className="tap glass-control inline-flex h-11 items-center gap-2 rounded-2xl px-4 text-xs font-semibold text-white"
+                >
+                  <User className="h-4 w-4" strokeWidth={1.9} />
+                  Sign in
+                </Link>
+              )}
             </div>
+
           </div>
 
           <div className="mt-14">

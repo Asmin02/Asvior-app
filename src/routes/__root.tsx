@@ -8,7 +8,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Home, Plane, CheckSquare, Wallet, User, Sparkles } from "lucide-react";
+import { Home, Plane, CheckSquare, Wallet, Sparkles } from "lucide-react";
 
 import appCss from "../styles.css?url";
 import { reportError } from "../lib/error-reporting";
@@ -187,52 +187,19 @@ function RootShell({ children }: { children: ReactNode }) {
 function MobileNav() {
   const router = useRouter();
   const pathname = router.state.location.pathname;
-  const [signedIn, setSignedIn] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
 
-    const refresh = async () => {
-      try {
-        const { data } = await supabase.auth.getSession();
-        if (cancelled) return;
-        setSignedIn(!!data.session?.user);
-      } catch {
-        if (cancelled) return;
-        setSignedIn(false);
-      }
-    };
-
-    void refresh();
-
-    let unsubscribe = () => {};
-
-    try {
-      const { data: authSub } = supabase.auth.onAuthStateChange((_event, session) => {
-        if (cancelled) return;
-        setSignedIn(!!session?.user);
-      });
-      unsubscribe = () => authSub.subscription.unsubscribe();
-    } catch {
-      setSignedIn(false);
-    }
-
-    return () => {
-      cancelled = true;
-      unsubscribe();
-    };
-  }, []);
 
   const leftItems = [
     { to: "/", label: "Home", icon: Home },
     { to: "/visa-check", label: "Visa", icon: Plane },
-    { to: "/checklist", label: "List", icon: CheckSquare },
   ] as const;
 
   const rightItems = [
+    { to: "/checklist", label: "Checklist", icon: CheckSquare },
     { to: "/budget-planner", label: "Budget", icon: Wallet },
-    { to: signedIn ? "/profile" : "/auth", label: "Profile", icon: User },
   ] as const;
+
 
   const isAiActive = pathname.startsWith("/assistant");
 
