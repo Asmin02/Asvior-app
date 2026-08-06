@@ -27,11 +27,6 @@ function getCountryName(code: string | null) {
   }
 }
 
-function flag(code: string | null) {
-  if (!code || code.length !== 2) return "";
-  return String.fromCodePoint(...[...code.toUpperCase()].map((c) => 0x1f1a5 + c.charCodeAt(0)));
-}
-
 interface Trip {
   id: string;
   name: string;
@@ -210,10 +205,10 @@ function TripsPage() {
                         </p>
                       </div>
                       <p className="mt-2.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <span className="text-sm">{flag(t.passport_code)}</span>
+                        <CountryFlag code={t.passport_code} size="sm" rounded="rounded" />
                         {getCountryName(t.passport_code)}
                         <span className="text-primary">→</span>
-                        <span className="text-sm">{flag(t.destination_code)}</span>
+                        <CountryFlag code={t.destination_code} size="sm" rounded="rounded" />
                         {getCountryName(t.destination_code)}
                       </p>
                       {(t.start_date || t.end_date) && (

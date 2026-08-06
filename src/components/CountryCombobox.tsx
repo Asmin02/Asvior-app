@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { computeComboboxViewport } from "@/lib/combobox-viewport";
+import { CountryFlag } from "@/components/CountryFlag";
 
 export interface CountryOption {
   code: string;
@@ -13,15 +14,6 @@ interface Props {
   options: CountryOption[];
   placeholder?: string;
   id?: string;
-}
-
-function flagEmoji(code: string) {
-  if (!code || code.length !== 2) return "";
-  const A = 0x1f1e6;
-  return (
-    String.fromCodePoint(A + (code.charCodeAt(0) - 65)) +
-    String.fromCodePoint(A + (code.charCodeAt(1) - 65))
-  );
 }
 
 export function CountryCombobox({
@@ -145,8 +137,11 @@ export function CountryCombobox({
         }}
         className="premium-card flex min-h-12 w-full items-center justify-between rounded-xl px-4 py-3 text-left text-sm font-medium text-foreground outline-none transition-colors focus-visible:ring-2 focus-visible:ring-navy/20"
       >
-        <span className={selected ? "text-foreground" : "text-muted-foreground"}>
-          {selected ? `${flagEmoji(selected.code)} ${selected.name}` : placeholder}
+        <span
+          className={`flex min-w-0 items-center gap-2.5 ${selected ? "text-foreground" : "text-muted-foreground"}`}
+        >
+          {selected && <CountryFlag code={selected.code} size="sm" />}
+          <span className="truncate">{selected ? selected.name : placeholder}</span>
         </span>
         <svg
           className="h-4 w-4 text-muted-foreground"
@@ -205,7 +200,7 @@ export function CountryCombobox({
                     }`}
                   >
                     <span className="flex items-center gap-2">
-                      <span className="text-base leading-none">{flagEmoji(opt.code)}</span>
+                      <CountryFlag code={opt.code} size="sm" />
                       <span>{opt.name}</span>
                     </span>
                     {value === opt.code && (

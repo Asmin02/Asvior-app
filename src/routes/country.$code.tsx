@@ -27,7 +27,6 @@ import {
 import { CountryCombobox, type CountryOption } from "@/components/CountryCombobox";
 import { VISA_CODES } from "@/data/visa-data";
 import {
-  flagEmoji,
   getCountryName,
   getVisaRequirement,
   loadSavedPassport,
@@ -193,7 +192,12 @@ function CountryHubPage() {
         </div>
 
         <div className="absolute inset-x-0 bottom-0 px-4 pb-5 animate-fade-in">
-          <span className="text-5xl drop-shadow-lg">{flagEmoji(code)}</span>
+          <CountryFlag
+            code={code}
+            size="xl"
+            rounded="rounded-xl"
+            className="shadow-[0_10px_28px_-12px_rgba(0,0,0,0.7)] ring-white/40"
+          />
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <h1 className="text-3xl font-semibold tracking-[-0.03em] text-white">{name}</h1>
             {visa && (
