@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CountryFlag } from "@/components/CountryFlag";
 import { useEffect, useState } from "react";
-import { Globe2, Heart, Plus, Trash2 } from "lucide-react";
+import { Globe2, Heart, Plus, Trash2, WifiOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CountryCombobox, type CountryOption } from "@/components/CountryCombobox";
 import { VISA_CODES } from "@/data/visa-data";
@@ -130,7 +130,7 @@ function FavoritesPage() {
           <LoadingSkeleton rows={4} />
         ) : loadError ? (
           <EmptyStateCard
-            icon="📡"
+            icon={<WifiOff className="h-6 w-6 text-muted-foreground" />}
             title="Couldn't load your favorites"
             description="Check your connection and try again."
             action={

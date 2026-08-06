@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CountryFlag } from "@/components/CountryFlag";
 import { useEffect, useState } from "react";
-import { Luggage, MapPin, Pencil, Trash2 } from "lucide-react";
+import { Luggage, MapPin, Pencil, Trash2, WifiOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -125,7 +125,7 @@ function TripsPage() {
           <LoadingSkeleton rows={3} />
         ) : loadError ? (
           <EmptyStateCard
-            icon="📡"
+            icon={<WifiOff className="h-6 w-6 text-muted-foreground" />}
             title="Couldn't load your trips"
             description="Check your connection and try again."
             action={

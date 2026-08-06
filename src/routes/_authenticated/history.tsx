@@ -1,6 +1,17 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Clock3, Compass, Heart, History, MessageCircle, Trash2 } from "lucide-react";
+import {
+  CheckCircle2,
+  Clock3,
+  Compass,
+  Heart,
+  History,
+  Luggage,
+  MessageCircle,
+  Plane,
+  Trash2,
+  WifiOff,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -405,7 +416,7 @@ function HistoryPage() {
           <LoadingSkeleton rows={4} />
         ) : loadError ? (
           <EmptyStateCard
-            icon="📡"
+            icon={<WifiOff className="h-6 w-6 text-muted-foreground" />}
             title="Couldn't load your history"
             description="Check your connection and try again."
             action={
@@ -424,7 +435,7 @@ function HistoryPage() {
           />
         ) : visibleItems.length === 0 ? (
           <EmptyStateCard
-            icon="✈️"
+            icon={<Plane className="h-6 w-6 text-primary" />}
             title="No travel history yet"
             description="Start exploring and your activity will appear here."
             action={
@@ -467,7 +478,7 @@ function HistoryPage() {
                     {(item.kind === "visa" || item.kind === "recent") && (
                       <Compass className="h-4 w-4 text-primary" />
                     )}
-                    {item.kind === "trips" && "🧳"}
+                    {item.kind === "trips" && <Luggage className="h-4 w-4 text-primary" />}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-bold text-foreground">{item.title}</p>
