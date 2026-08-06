@@ -3,6 +3,14 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import {
+  BadgeCheck,
+  FileText,
+  Landmark,
+  ListChecks,
+  Globe2,
+  Wallet,
+} from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AsviorMark } from "@/components/AsviorMark";
@@ -45,34 +53,34 @@ const STORAGE_KEY = "vp_ai_chat_v1";
 const QUICK_ACTIONS = [
   {
     label: "Check Visa",
-    icon: "🛂",
+    icon: BadgeCheck,
     prompt: "Help me check if I need a visa. Ask me my passport country and destination.",
   },
   {
     label: "Required Documents",
-    icon: "📄",
+    icon: FileText,
     prompt:
       "What documents do I typically need for an international trip? Walk me through a checklist.",
   },
   {
     label: "Travel Checklist",
-    icon: "✅",
+    icon: ListChecks,
     prompt: "Build me a smart pre-departure travel checklist.",
   },
   {
     label: "Budget Planner",
-    icon: "💰",
+    icon: Wallet,
     prompt:
       "Help me estimate a realistic travel budget. Ask me destination, duration, and travel style.",
   },
   {
     label: "Embassy Finder",
-    icon: "🏛️",
+    icon: Landmark,
     prompt: "How do I find the nearest embassy or consulate for a country I'm visiting?",
   },
   {
     label: "Travel Tips",
-    icon: "🌍",
+    icon: Globe2,
     prompt: "Give me your top 10 smart travel tips for international travelers.",
   },
 ];
@@ -594,17 +602,22 @@ function EmptyState({ onPick }: { onPick: (prompt: string) => void }) {
 
       <p className="mb-2 text-eyebrow text-muted-foreground">Quick actions</p>
       <div className="grid grid-cols-2 gap-2.5">
-        {QUICK_ACTIONS.map((a, i) => (
-          <button
-            key={a.label}
-            onClick={() => onPick(a.prompt)}
-            style={{ animationDelay: `${i * 40}ms` }}
-            className="premium-card flex animate-fade-in items-center gap-2.5 rounded-2xl p-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
-          >
-            <span className="text-lg">{a.icon}</span>
-            <span className="text-xs font-semibold leading-tight text-foreground">{a.label}</span>
-          </button>
-        ))}
+        {QUICK_ACTIONS.map((a, i) => {
+          const Icon = a.icon;
+          return (
+            <button
+              key={a.label}
+              onClick={() => onPick(a.prompt)}
+              style={{ animationDelay: `${i * 40}ms` }}
+              className="premium-card flex animate-fade-in items-center gap-2.5 rounded-2xl p-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
+            >
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Icon className="h-4 w-4" strokeWidth={1.9} />
+              </span>
+              <span className="text-xs font-semibold leading-tight text-foreground">{a.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       <p className="mb-2 mt-6 text-eyebrow text-muted-foreground">Try asking</p>
