@@ -443,17 +443,21 @@ function HistoryPage() {
             }
           />
         ) : (
-          visibleItems.map((item) => {
+          visibleItems.map((item, i) => {
             const isSelected = selected.has(item.key);
             return (
-              <div key={item.key} className="premium-card rounded-2xl p-4">
+              <div
+                key={item.key}
+                className="premium-card animate-fade-in rounded-2xl p-4 transition-transform"
+                style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}
+              >
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => toggleSelected(item.key)}
                     aria-label={isSelected ? "Deselect history item" : "Select history item"}
-                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors ${
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all active:scale-90 ${
                       isSelected
-                        ? "bg-navy text-primary-foreground"
+                        ? "bg-navy text-primary-foreground shadow-soft"
                         : "bg-muted text-muted-foreground"
                     }`}
                   >

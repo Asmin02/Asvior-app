@@ -108,9 +108,9 @@ function FavoritesPage() {
         subtitle="Quick-access list of countries you love."
       />
 
-      <section className="relative mt-6 px-4">
-        <div className="premium-card rounded-2xl p-5">
-          <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+      <section className="relative mt-6 animate-fade-in px-4">
+        <div className="premium-card rounded-3xl p-5">
+          <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
             Add a country
           </label>
           <div className="flex gap-2">
@@ -159,20 +159,25 @@ function FavoritesPage() {
           />
         ) : (
           <div className="grid grid-cols-2 gap-3">
-            {favs.map((code) => (
+            {favs.map((code, i) => (
               <div
                 key={code}
-                className="premium-card group relative overflow-hidden rounded-2xl p-4 text-center"
+                className="premium-card group relative animate-fade-in overflow-hidden rounded-3xl p-4 text-center transition-transform"
+                style={{ animationDelay: `${i * 50}ms` }}
               >
-                <Link to="/country/$code" params={{ code }} className="block">
-                  <div className="text-4xl drop-shadow">{flag(code)}</div>
-                  <p className="mt-2 truncate text-sm font-bold text-foreground">
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute -right-6 -top-8 h-20 w-20 rounded-full bg-primary/8 blur-2xl"
+                />
+                <Link to="/country/$code" params={{ code }} className="relative block">
+                  <div className="text-4xl drop-shadow-sm">{flag(code)}</div>
+                  <p className="mt-2 truncate text-sm font-semibold tracking-[-0.01em] text-foreground">
                     {getCountryName(code)}
                   </p>
                 </Link>
                 <button
                   onClick={() => remove(code)}
-                  className="mt-3 inline-flex items-center gap-1 rounded-full bg-destructive/10 px-3 py-1 text-[10px] font-semibold text-destructive transition-colors hover:bg-destructive/15"
+                  className="relative mt-3 inline-flex items-center gap-1 rounded-full bg-destructive/10 px-3 py-1 text-[10px] font-semibold text-destructive transition-all hover:bg-destructive/15 active:scale-95"
                   aria-label={`Remove ${getCountryName(code)} from favorites`}
                 >
                   <Trash2 className="h-3 w-3" />

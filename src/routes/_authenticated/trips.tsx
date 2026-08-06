@@ -154,8 +154,12 @@ function TripsPage() {
           />
         ) : (
           <div className="space-y-3">
-            {trips.map((t) => (
-              <div key={t.id} className="premium-card rounded-2xl p-5">
+            {trips.map((t, i) => (
+              <div
+                key={t.id}
+                className="premium-card animate-fade-in rounded-3xl p-5 transition-transform"
+                style={{ animationDelay: `${i * 60}ms` }}
+              >
                 {editing === t.id ? (
                   <div className="space-y-3">
                     <Input
@@ -197,15 +201,20 @@ function TripsPage() {
                 ) : (
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-navy text-primary-foreground">
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-navy to-navy/80 text-primary-foreground shadow-soft">
                           <MapPin className="h-4 w-4" />
                         </div>
-                        <p className="truncate text-[15px] font-bold text-foreground">{t.name}</p>
+                        <p className="truncate text-[15px] font-semibold tracking-[-0.01em] text-foreground">
+                          {t.name}
+                        </p>
                       </div>
-                      <p className="mt-2 text-xs text-muted-foreground">
-                        {flag(t.passport_code)} {getCountryName(t.passport_code)} →{" "}
-                        {flag(t.destination_code)} {getCountryName(t.destination_code)}
+                      <p className="mt-2.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <span className="text-sm">{flag(t.passport_code)}</span>
+                        {getCountryName(t.passport_code)}
+                        <span className="text-primary">→</span>
+                        <span className="text-sm">{flag(t.destination_code)}</span>
+                        {getCountryName(t.destination_code)}
                       </p>
                       {(t.start_date || t.end_date) && (
                         <p className="mt-1 text-[11px] font-medium text-muted-foreground">
@@ -221,14 +230,14 @@ function TripsPage() {
                     <div className="flex shrink-0 gap-1">
                       <button
                         onClick={() => startEdit(t)}
-                        className="premium-pill flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:text-foreground"
+                        className="premium-pill flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition-all hover:text-foreground active:scale-90"
                         aria-label="Edit trip"
                       >
                         <Pencil className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => remove(t.id)}
-                        className="premium-pill flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                        className="premium-pill flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive active:scale-90"
                         aria-label="Delete trip"
                       >
                         <Trash2 className="h-4 w-4" />

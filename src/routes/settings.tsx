@@ -203,7 +203,7 @@ function SettingsPage() {
       />
 
       <section className="mt-6 space-y-3 px-4 pb-6">
-        <SettingsCard icon={<Moon className="h-4 w-4" />} title="Appearance">
+        <SettingsCard icon={<Moon className="h-4 w-4" />} title="Appearance" delay={0}>
           <Row label="Dark mode" hint="Easier on the eyes at night.">
             <Switch
               checked={s.dark_mode}
@@ -213,7 +213,7 @@ function SettingsPage() {
           </Row>
         </SettingsCard>
 
-        <SettingsCard icon={<Languages className="h-4 w-4" />} title="Preferences">
+        <SettingsCard icon={<Languages className="h-4 w-4" />} title="Preferences" delay={60}>
           <Select
             label="Language"
             value={s.language}
@@ -231,7 +231,7 @@ function SettingsPage() {
           </div>
         </SettingsCard>
 
-        <SettingsCard icon={<Bell className="h-4 w-4" />} title="Notifications">
+        <SettingsCard icon={<Bell className="h-4 w-4" />} title="Notifications" delay={120}>
           <Row label="Passport expiry" hint="Warn me before my passport expires.">
             <Switch
               checked={s.notify_passport_expiry}
@@ -262,7 +262,7 @@ function SettingsPage() {
           </Row>
         </SettingsCard>
 
-        <SettingsCard icon={<Info className="h-4 w-4" />} title="Support & Legal">
+        <SettingsCard icon={<Info className="h-4 w-4" />} title="Support & Legal" delay={180}>
           <div className="divide-y divide-border/60">
             <LinkRow to="/about" icon={<Plane className="h-4 w-4" />} label="About Asvior" />
             <LinkRow to="/contact" icon={<Mail className="h-4 w-4" />} label="Contact" />
@@ -292,21 +292,22 @@ function SettingsPage() {
         </SettingsCard>
 
         {userId && (
-          <SettingsCard icon={<Trash2 className="h-4 w-4" />} title="Account">
-            <p className="text-xs leading-relaxed text-muted-foreground">
-              Permanently delete your account, profile, trips, favorites, and search history. This
-              cannot be undone.
-            </p>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <button
-                  disabled={deleting}
-                  className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-destructive/10 px-4 py-3 text-sm font-semibold text-destructive transition-transform active:scale-[0.98] disabled:opacity-60"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  {deleting ? "Deleting account…" : "Delete account"}
-                </button>
-              </AlertDialogTrigger>
+          <SettingsCard icon={<Trash2 className="h-4 w-4" />} title="Account" delay={240}>
+            <div className="rounded-2xl bg-destructive/5 p-4 ring-1 ring-destructive/10">
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                Permanently delete your account, profile, trips, favorites, and search history.
+                This cannot be undone.
+              </p>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <button
+                    disabled={deleting}
+                    className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-destructive/10 px-4 py-3 text-sm font-semibold text-destructive transition-transform active:scale-[0.98] disabled:opacity-60"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    {deleting ? "Deleting account…" : "Delete account"}
+                  </button>
+                </AlertDialogTrigger>
               <AlertDialogContent className="rounded-2xl">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete your account?</AlertDialogTitle>
@@ -325,7 +326,8 @@ function SettingsPage() {
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
-            </AlertDialog>
+              </AlertDialog>
+            </div>
           </SettingsCard>
         )}
       </section>
@@ -337,14 +339,19 @@ function SettingsCard({
   icon,
   title,
   children,
+  delay = 0,
 }: {
   icon: React.ReactNode;
   title: string;
   children: React.ReactNode;
+  delay?: number;
 }) {
   return (
-    <div className="premium-card rounded-2xl p-5">
-      <p className="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+    <div
+      className="premium-card animate-fade-in rounded-3xl p-5"
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <p className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
         <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-secondary text-navy">
           {icon}
         </span>
