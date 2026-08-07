@@ -431,13 +431,14 @@ function HomePage() {
               <Reveal key={action.title} delay={i * 55}>
                 <Link
                   to={action.to}
-                  className="float-card group flex h-full flex-col gap-3 rounded-3xl p-4"
+                  className="float-card qa-tile group flex h-full flex-col gap-3 rounded-3xl p-4"
                 >
                   <span
-                    className={`flex h-11 w-11 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-105 ${TONE_CLASS[action.tone]}`}
+                    className={`qa-icon flex h-11 w-11 items-center justify-center rounded-2xl ${TONE_CLASS[action.tone]}`}
                   >
                     <action.icon className="h-[1.15rem] w-[1.15rem]" strokeWidth={1.8} />
                   </span>
+
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-semibold tracking-[-0.01em] text-foreground">
                       {action.title}
