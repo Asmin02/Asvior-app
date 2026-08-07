@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import heroSkyline from "@/assets/hero-skyline.jpg";
 
 export const Route = createFileRoute("/reset-password")({
+  ssr: false,
   head: () => ({ meta: [{ title: "Reset password — Asvior" }] }),
   component: ResetPasswordPage,
 });

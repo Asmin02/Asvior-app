@@ -43,24 +43,56 @@ skip them.
 
 ## 2) Authentication → Email Templates
 
-Open **Auth → Email Templates → Confirm signup**.
+**Critical:** Email links must use `token_hash` so confirmation and password reset work when the mail app opens a different browser. The old `{{ .ConfirmationURL }}` PKCE redirect causes **"PKCE code verifier not found in storage"** because the code verifier lives only in the browser where sign-up started.
 
-Supabase's default body uses the placeholder `{{ .ConfirmationURL }}`, which
-resolves to a URL that already carries our `redirect_to`. If the current
-template contains **any raw URL** — especially anything ending in
-`.lovable.app`, `.lovableproject.com`, a Vercel preview subdomain, or an old
-Netlify domain — that is the cause of the "verify email opened old Asvior /
-Lovable version" bug.
+Open **Auth → Email Templates** and set each template body as follows.
 
-Fix by clicking **Reset to default** on that template so the button becomes:
+### Confirm signup
+
+Subject (keep default or use): `Confirm your email — Asvior`
+
+Body:
 
 ```html
-<a href="{{ .ConfirmationURL }}">Confirm your mail</a>
+<h2>Confirm your email</h2>
+<p>Tap the button below to verify your Asvior account.</p>
+<p>
+  <a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email">
+    Confirm email
+  </a>
+</p>
 ```
 
-Repeat for **Reset password**, **Magic link**, **Change email address**, and
-**Invite user** — they must all use their `{{ .*URL }}` placeholder rather
-than a baked-in URL.
+### Reset password
+
+Subject: `Reset your Asvior password`
+
+Body:
+
+```html
+<h2>Reset your password</h2>
+<p>We received a request to reset your password. Tap the button below to choose a new one.</p>
+<p>
+  <a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=recovery">
+    Reset password
+  </a>
+</p>
+<p>If you didn't request this, you can safely ignore this email.</p>
+```
+
+### Magic link (if enabled later)
+
+```html
+<a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=magiclink">Sign in</a>
+```
+
+Repeat the same pattern for **Change email address** and **Invite user** — always use `{{ .TokenHash }}`, never a hard-coded domain or `{{ .ConfirmationURL }}` alone.
+
+You can apply these via the Supabase Dashboard or run:
+
+```bash
+SUPABASE_ACCESS_TOKEN=... node scripts/update-supabase-auth-templates.mjs
+```
 
 ## 3) Authentication → Providers → Email
 
@@ -100,4 +132,7 @@ that no future stale env can point auth flows at the wrong domain.
 
 Once every box is ticked, sign up with a **new** email address (do not
 retry an existing user; Supabase will not re-send a link for a confirmed
-account). The confirmation email should land in `https://asvior.app/auth/callback?code=…`.
+account). The confirmation email should link to
+`https://asvior.app/auth/callback?token_hash=…&type=email`.
+Password reset emails should link to
+`https://asvior.app/auth/callback?token_hash=…&type=recovery`.

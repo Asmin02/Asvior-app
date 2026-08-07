@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { inferAuthFlowType } from "@/routes/auth.callback";
+import { inferAuthFlowType } from "@/lib/auth-callback-exchange";
 import { shouldBypassAuthPage } from "@/routes/auth";
 
 describe("auth callback flow type detection", () => {
@@ -14,9 +14,15 @@ describe("auth callback flow type detection", () => {
     );
   });
 
-  it("treats non-recovery links as other", () => {
-    expect(inferAuthFlowType(undefined, "#type=signup")).toBe("other");
+  it("detects signup/email confirmation flows", () => {
+    expect(inferAuthFlowType("email", "")).toBe("signup");
+    expect(inferAuthFlowType("signup", "")).toBe("signup");
+    expect(inferAuthFlowType(undefined, "#type=signup")).toBe("signup");
+  });
+
+  it("treats other auth links as other", () => {
     expect(inferAuthFlowType(undefined, "")).toBe("other");
+    expect(inferAuthFlowType("magiclink", "")).toBe("other");
   });
 });
 

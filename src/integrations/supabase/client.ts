@@ -66,7 +66,7 @@ function createSupabaseClient() {
       // On native builds the WebView isn't a browser tab, so URL-based
       // detection of a magic-link/reset callback must be handled explicitly
       // by the AppUrlOpen listener in `native-init.ts`.
-      detectSessionInUrl: !Capacitor.isNativePlatform(),
+      detectSessionInUrl: false,
       flowType: "pkce",
     },
   });

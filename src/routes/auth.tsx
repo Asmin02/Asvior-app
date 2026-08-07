@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Mail, Lock, User as UserIcon, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getEmailVerificationRedirectUrl, getPasswordResetRedirectUrl } from "@/lib/auth-redirects";
+import { mirrorPkceVerifierToCookie } from "@/lib/auth-callback-exchange";
 import { AsviorMark } from "@/components/AsviorMark";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -76,6 +77,7 @@ function AuthPage() {
   const handle = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
     try {
       if (mode === "signin") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -92,6 +94,7 @@ function AuthPage() {
           },
         });
         if (error) throw error;
+        mirrorPkceVerifierToCookie(supabaseUrl);
         if (data.session) {
           // Email confirmations disabled — user is signed in immediately.
           toast.success("Account created — you're signed in.");
@@ -107,6 +110,7 @@ function AuthPage() {
           redirectTo: getPasswordResetRedirectUrl(),
         });
         if (error) throw error;
+        mirrorPkceVerifierToCookie(supabaseUrl);
         toast.success("Check your email for a reset link.");
         setMode("signin");
       }
