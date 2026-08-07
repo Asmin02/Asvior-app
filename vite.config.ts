@@ -1,33 +1,26 @@
-import { defineConfig } from "vite";
-import { tanstackStart } from "@tanstack/react-start/plugin/vite";
-import viteReact from "@vitejs/plugin-react";
-import tailwindcss from "@tailwindcss/vite";
-import { nitro } from "nitro/vite";
+import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import path from "node:path";
 
-// Nitro deployment preset. `vercel` is the canonical production target
-// (https://asvior.app). Override with NITRO_PRESET (e.g. `node-server`,
-// `cloudflare-module`) at build time to target a different provider.
-const preset = process.env.NITRO_PRESET || "vercel";
+// Lovable hosting adapter. It wires Tailwind, TanStack Start, React and the
+// Nitro deploy plugin, and emits the build to `dist/` (dist/client +
+// dist/server) which is what the hosting dist-check expects.
+//
+// Override the deploy target with NITRO_PRESET at build time (e.g.
+// `vercel`, `node-server`) when deploying elsewhere.
+const preset = process.env['NITRO_PRESET'];
 
 export default defineConfig({
-  plugins: [
-    tailwindcss(),
-    tanstackStart({
-      // Point TanStack Start at src/server.ts (our SSR error wrapper).
-      server: { entry: "server" },
-    }),
-    nitro({ preset }),
-    viteReact(),
-  ],
-  resolve: {
-    alias: {
-      "@": path.resolve(process.cwd(), "src"),
-    },
-    dedupe: ["react", "react-dom", "@tanstack/react-router", "@tanstack/react-query"],
+  tanstackStart: {
+    // Point TanStack Start at src/server.ts (our SSR error wrapper).
+    server: { entry: "server" },
   },
-  server: {
-    port: 3000,
-    host: true,
+  ...(preset ? { nitro: { preset } } : {}),
+  vite: {
+    resolve: {
+      alias: {
+        "@": path.resolve(process.cwd(), "src"),
+      },
+      dedupe: ["react", "react-dom", "@tanstack/react-router", "@tanstack/react-query"],
+    },
   },
 });
