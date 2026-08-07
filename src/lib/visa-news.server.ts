@@ -11,7 +11,11 @@ const FEED_SOURCES = [
   // Americas
   { url: "https://travel.state.gov/_res/rss/TAs.xml", source: "U.S. Department of State", defaultCountry: "US" },
   { url: "https://www.uscis.gov/news/rss/news-releases", source: "USCIS", defaultCountry: "US" },
-  { url: "https://www.canada.ca/en/immigration-refugees-citizenship/news.atom", source: "Immigration, Refugees and Citizenship Canada", defaultCountry: "CA" },
+  {
+    url: "https://api.io.canada.ca/io-server/gc/news/en/v2?dept=departmentofcitizenshipandimmigration&sort=publishedDate&orderBy=desc&publishedDate%3E=2024-01-01&pick=30&format=atom",
+    source: "Immigration, Refugees and Citizenship Canada",
+    defaultCountry: "CA",
+  },
   { url: "https://www.gob.mx/sre/rss", source: "Secretaría de Relaciones Exteriores Mexico", defaultCountry: "MX" },
   { url: "https://www.gov.br/mre/pt-br/assuntos/rss", source: "Ministry of Foreign Affairs Brazil", defaultCountry: "BR" },
   { url: "https://www.cancilleria.gob.ar/rss", source: "Ministry of Foreign Affairs Argentina", defaultCountry: "AR" },
@@ -46,7 +50,7 @@ const FEED_SOURCES = [
   { url: "https://www.mofa.go.jp/mofaj/rss/whatsnew.xml", source: "Ministry of Foreign Affairs of Japan", defaultCountry: "JP" },
   { url: "https://www.mofa.go.kr/eng/rss/notice.xml", source: "Ministry of Foreign Affairs, Republic of Korea", defaultCountry: "KR" },
   { url: "https://www.ica.gov.sg/rss/news", source: "Immigration & Checkpoints Authority Singapore", defaultCountry: "SG" },
-  { url: "https://www.immi.gov.my/index.php/feed/", source: "Immigration Department of Malaysia", defaultCountry: "MY" },
+  { url: "https://www.imi.gov.my/index.php/feed/", source: "Immigration Department of Malaysia", defaultCountry: "MY" },
   { url: "https://www.immigration.go.th/rss", source: "Thailand Immigration Bureau", defaultCountry: "TH" },
   { url: "https://www.mofa.gov.vn/en/rss", source: "Ministry of Foreign Affairs Vietnam", defaultCountry: "VN" },
   { url: "https://kemlu.go.id/en/rss", source: "Ministry of Foreign Affairs Indonesia", defaultCountry: "ID" },
@@ -185,6 +189,21 @@ export type VisaNewsPayload = {
   source: "live" | "cache" | "empty";
 };
 
+async function fetchAllFeeds(now: number): Promise<HomeVisaUpdate[]> {
+  const batchSize = 6;
+  const items: HomeVisaUpdate[] = [];
+
+  for (let i = 0; i < FEED_SOURCES.length; i += batchSize) {
+    const batch = FEED_SOURCES.slice(i, i + batchSize);
+    const batches = await Promise.all(
+      batch.map((feed) => fetchFeed(feed.url, feed.source, feed.defaultCountry, now)),
+    );
+    items.push(...batches.flat());
+  }
+
+  return items;
+}
+
 export async function getVisaNewsUpdates(
   force = false,
   affinity: Set<string> = new Set(),
@@ -201,11 +220,11 @@ export async function getVisaNewsUpdates(
     };
   }
 
-  const batches = await Promise.all(
-    FEED_SOURCES.map((f) => fetchFeed(f.url, f.source, f.defaultCountry, now)),
-  );
-
-  const merged = rankImmigrationUpdates(batches.flat(), { limit: FEED_LIMIT, affinity, now });
+  const merged = rankImmigrationUpdates(await fetchAllFeeds(now), {
+    limit: FEED_LIMIT,
+    affinity,
+    now,
+  });
 
   if (merged.length > 0) {
     memoryCache = { fetchedAt: now, items: merged };
