@@ -2,10 +2,8 @@ import { useDeferredValue, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   ArrowUpRight,
-  Clock3,
   Globe2,
   Search,
-  Sparkles,
   X,
 } from "lucide-react";
 import type { HomeVisaUpdate, ImmigrationBadge } from "@/data/home-feed";
@@ -58,12 +56,6 @@ function formatDate(iso: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "Recently";
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
-
-function formatUpdated(iso: string): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "just now";
-  return date.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 }
 
 function matchesSearch(item: HomeVisaUpdate, query: string): boolean {
@@ -165,7 +157,7 @@ export function GlobalImmigrationUpdates({
 }: {
   items: HomeVisaUpdate[];
   loading: boolean;
-  meta: { fetchedAt: string; stale: boolean } | null;
+  meta: { fetchedAt: string; stale: boolean; countryCount?: number } | null;
   affinity?: Set<string>;
   maxVisible?: number;
 }) {
@@ -188,37 +180,33 @@ export function GlobalImmigrationUpdates({
     [filtered, affinity],
   );
 
-  const countryCount = useMemo(
-    () => new Set(items.map((item) => item.countryCode)).size,
-    [items],
-  );
+  const countryCount = useMemo(() => {
+    if (meta?.countryCount && meta.countryCount > 0) return meta.countryCount;
+    return new Set(items.map((item) => item.countryCode)).size;
+  }, [items, meta?.countryCount]);
 
   return (
     <section aria-labelledby="global-immigration-heading" className="space-y-4">
       <Reveal>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="grad-signal inline-flex h-8 w-8 items-center justify-center rounded-xl text-white">
-                <Globe2 className="h-4 w-4" strokeWidth={1.8} />
-              </span>
-              <div>
-                <h2 id="global-immigration-heading" className="section-title">
-                  Global Immigration Updates
-                </h2>
-                <p className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                  <Clock3 className="h-3 w-3 shrink-0" strokeWidth={2} />
-                  <span className="truncate">
-                    Official government sources · {countryCount} countries · refreshed every 24h
-                    {meta ? ` · updated ${formatUpdated(meta.fetchedAt)}` : ""}
-                  </span>
-                </p>
-              </div>
+        <div className="premium-card rounded-3xl px-4 py-4 sm:px-5 sm:py-5">
+          <div className="flex items-start gap-3">
+            <span
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-lg"
+              aria-hidden
+            >
+              🌍
+            </span>
+            <div className="min-w-0 space-y-1">
+              <h2 id="global-immigration-heading" className="section-title leading-tight">
+                Global Immigration Updates
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Official government immigration sources
+              </p>
+              <p className="text-xs font-medium text-muted-foreground/90">
+                {countryCount} countries • Refreshed every 24 hours
+              </p>
             </div>
-          </div>
-          <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
-            <Sparkles className="h-3.5 w-3.5 text-primary" strokeWidth={2} />
-            Smart global feed
           </div>
         </div>
       </Reveal>

@@ -168,7 +168,11 @@ function HomePage() {
   const [now, setNow] = useState<Date | null>(null);
   const [news, setNews] = useState<HomeVisaUpdate[]>([]);
   const [newsLoading, setNewsLoading] = useState(true);
-  const [newsMeta, setNewsMeta] = useState<{ fetchedAt: string; stale: boolean } | null>(null);
+  const [newsMeta, setNewsMeta] = useState<{
+    fetchedAt: string;
+    stale: boolean;
+    countryCount?: number;
+  } | null>(null);
 
   const hydrated = now !== null;
   const referenceDate = now ?? HOME_REFERENCE_DATE;
@@ -243,10 +247,15 @@ function HomePage() {
           items: HomeVisaUpdate[];
           fetchedAt: string;
           stale: boolean;
+          countryCount?: number;
         };
         if (cancelled) return;
         setNews(normalizeHomeVisaUpdates(payload.items));
-        setNewsMeta({ fetchedAt: payload.fetchedAt, stale: !!payload.stale });
+        setNewsMeta({
+          fetchedAt: payload.fetchedAt,
+          stale: !!payload.stale,
+          countryCount: payload.countryCount,
+        });
       } catch {
         if (!cancelled) {
           setNews([]);

@@ -212,8 +212,8 @@ export function dedupeImmigrationUpdates(items: HomeVisaUpdate[]): HomeVisaUpdat
 }
 
 /**
- * Rank with smart diversity: avoid consecutive same country/source when
- * alternatives exist; otherwise prefer importance, freshness, and affinity.
+ * Interleave countries round-robin so the feed reads globally diverse.
+ * Within each country, prefer highest-scored items and alternate sources.
  */
 export function rankImmigrationUpdates(
   items: HomeVisaUpdate[],
@@ -224,36 +224,90 @@ export function rankImmigrationUpdates(
   const now = options.now ?? Date.now();
 
   const deduped = dedupeImmigrationUpdates(items);
-  const pool = deduped.map((item) => scoreItem(item, affinity, now));
-  const selected: ScoredUpdate[] = [];
-  const remaining = [...pool].sort((a, b) => b.score - a.score);
+  const byCountry = new Map<string, ScoredUpdate[]>();
 
-  while (selected.length < limit && remaining.length > 0) {
-    const last = selected[selected.length - 1];
-    let pickIndex = -1;
+  for (const item of deduped) {
+    const scored = scoreItem(item, affinity, now);
+    const bucket = byCountry.get(item.countryCode) ?? [];
+    bucket.push(scored);
+    byCountry.set(item.countryCode, bucket);
+  }
 
-    for (let i = 0; i < remaining.length; i += 1) {
-      const candidate = remaining[i];
-      const sameCountry = last?.countryCode === candidate.countryCode;
-      const sameSource = last?.source === candidate.source;
+  for (const bucket of byCountry.values()) {
+    bucket.sort((a, b) => b.score - a.score);
+  }
 
-      const altCountry = remaining.some(
-        (r, j) => j !== i && r.countryCode !== last?.countryCode,
-      );
-      const altSource = remaining.some((r, j) => j !== i && r.source !== last?.source);
-
-      const countryOk = !last || !sameCountry || !altCountry;
-      const sourceOk = !last || !sameSource || !altSource;
-
-      if (countryOk && sourceOk) {
-        pickIndex = i;
-        break;
-      }
+  // Cap pool depth per country so one source cannot dominate the rotation.
+  const MAX_PER_COUNTRY = 2;
+  for (const [code, bucket] of byCountry) {
+    const bySource = new Map<string, ScoredUpdate[]>();
+    for (const entry of bucket) {
+      const sourceBucket = bySource.get(entry.source) ?? [];
+      sourceBucket.push(entry);
+      bySource.set(entry.source, sourceBucket);
     }
 
-    if (pickIndex < 0) pickIndex = 0;
-    selected.push(remaining[pickIndex]);
-    remaining.splice(pickIndex, 1);
+    const rotated: ScoredUpdate[] = [];
+    const sources = [...bySource.keys()];
+    while (rotated.length < MAX_PER_COUNTRY) {
+      let added = false;
+      for (const source of sources) {
+        const sourceBucket = bySource.get(source);
+        if (!sourceBucket?.length) continue;
+        rotated.push(sourceBucket.shift()!);
+        added = true;
+        if (rotated.length >= MAX_PER_COUNTRY) break;
+      }
+      if (!added) break;
+    }
+
+    byCountry.set(code, rotated.length ? rotated : bucket.slice(0, MAX_PER_COUNTRY));
+  }
+
+  const countryOrder = [...byCountry.keys()].sort((a, b) => {
+    const scoreA = byCountry.get(a)?.[0]?.score ?? 0;
+    const scoreB = byCountry.get(b)?.[0]?.score ?? 0;
+    if (scoreB !== scoreA) return scoreB - scoreA;
+    return a.localeCompare(b);
+  });
+
+  const selected: ScoredUpdate[] = [];
+  let depth = 0;
+
+  while (selected.length < limit) {
+    let added = false;
+
+    for (const code of countryOrder) {
+      const bucket = byCountry.get(code);
+      if (!bucket || depth >= bucket.length) continue;
+
+      const candidate = bucket[depth];
+      const last = selected[selected.length - 1];
+
+      if (last?.countryCode === candidate.countryCode) continue;
+
+      selected.push(candidate);
+      added = true;
+      if (selected.length >= limit) break;
+    }
+
+    depth += 1;
+    if (!added) break;
+  }
+
+  if (selected.length < limit) {
+    const usedIds = new Set(selected.map((entry) => entry.id));
+    const leftovers = [...deduped]
+      .map((item) => scoreItem(item, affinity, now))
+      .filter((entry) => !usedIds.has(entry.id))
+      .sort((a, b) => b.score - a.score);
+
+    for (const candidate of leftovers) {
+      const last = selected[selected.length - 1];
+      if (last?.countryCode === candidate.countryCode && countryOrder.length > 1) continue;
+      selected.push(candidate);
+      if (selected.length >= limit) break;
+    }
   }
 
   return selected.map(({ score: _score, ...item }) => item);

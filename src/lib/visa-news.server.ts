@@ -1,88 +1,169 @@
 import type { HomeVisaUpdate } from "@/data/home-feed";
 import { getCountryName } from "@/lib/visa";
+import { countryCodeFromTravelAdviceUrl, resolveCountryCode } from "@/lib/country-resolver";
 import {
   detectBadges,
   enrichImmigrationUpdate,
   rankImmigrationUpdates,
 } from "@/lib/immigration-news-ranking";
 
-/** Trusted government / immigration RSS sources — global official mix. */
-const FEED_SOURCES = [
-  // Americas
-  { url: "https://travel.state.gov/_res/rss/TAs.xml", source: "U.S. Department of State", defaultCountry: "US" },
-  { url: "https://www.uscis.gov/news/rss/news-releases", source: "USCIS", defaultCountry: "US" },
+type FeedSource = {
+  url: string;
+  source: string;
+  defaultCountry?: string;
+  /** Assign destination country from gov.uk travel advice links/titles. */
+  travelAdvice?: boolean;
+  maxItems?: number;
+};
+
+const FCDO_SOURCE = "UK Foreign, Commonwealth & Development Office";
+
+/** Per-country UK FCDO travel advice feeds — reliable official entry/visa updates worldwide. */
+const TRAVEL_ADVICE_SLUGS = [
+  "australia",
+  "new-zealand",
+  "fiji",
+  "papua-new-guinea",
+  "japan",
+  "singapore",
+  "south-korea",
+  "thailand",
+  "malaysia",
+  "indonesia",
+  "india",
+  "philippines",
+  "vietnam",
+  "taiwan",
+  "mexico",
+  "brazil",
+  "argentina",
+  "colombia",
+  "chile",
+  "germany",
+  "france",
+  "spain",
+  "italy",
+  "netherlands",
+  "poland",
+  "sweden",
+  "portugal",
+  "greece",
+  "switzerland",
+  "united-arab-emirates",
+  "saudi-arabia",
+  "qatar",
+  "israel",
+  "turkey",
+  "south-africa",
+  "kenya",
+  "nigeria",
+  "egypt",
+  "morocco",
+  "ghana",
+];
+
+const travelAdviceFeeds: FeedSource[] = TRAVEL_ADVICE_SLUGS.map((slug) => ({
+  url: `https://www.gov.uk/foreign-travel-advice/${slug}.atom`,
+  source: FCDO_SOURCE,
+  travelAdvice: true,
+  maxItems: 1,
+}));
+
+/** Verified official sources that respond reliably from serverless environments. */
+const FEED_SOURCES: FeedSource[] = [
+  ...travelAdviceFeeds,
   {
-    url: "https://api.io.canada.ca/io-server/gc/news/en/v2?dept=departmentofcitizenshipandimmigration&sort=publishedDate&orderBy=desc&publishedDate%3E=2024-01-01&pick=30&format=atom",
+    url: "https://www.gov.uk/foreign-travel-advice.atom",
+    source: FCDO_SOURCE,
+    travelAdvice: true,
+    maxItems: 25,
+  },
+  {
+    url: "https://www.federalregister.gov/api/v1/documents.rss?conditions[agencies][]=us-citizenship-and-immigration-services&per_page=25",
+    source: "USCIS (Federal Register)",
+    defaultCountry: "US",
+    maxItems: 8,
+  },
+  {
+    url: "https://www.federalregister.gov/api/v1/documents.rss?conditions[agencies][]=department-of-state&per_page=20",
+    source: "U.S. Department of State (Federal Register)",
+    defaultCountry: "US",
+    maxItems: 6,
+  },
+  {
+    url: "https://www.federalregister.gov/api/v1/documents.rss?conditions[agencies][]=us-customs-and-border-protection&per_page=20",
+    source: "U.S. Customs and Border Protection (Federal Register)",
+    defaultCountry: "US",
+    maxItems: 6,
+  },
+  {
+    url: "https://api.io.canada.ca/io-server/gc/news/en/v2?dept=departmentofcitizenshipandimmigration&sort=publishedDate&orderBy=desc&publishedDate%3E=2024-01-01&pick=25&format=atom",
     source: "Immigration, Refugees and Citizenship Canada",
     defaultCountry: "CA",
+    maxItems: 8,
   },
-  { url: "https://www.gob.mx/sre/rss", source: "Secretaría de Relaciones Exteriores Mexico", defaultCountry: "MX" },
-  { url: "https://www.gov.br/mre/pt-br/assuntos/rss", source: "Ministry of Foreign Affairs Brazil", defaultCountry: "BR" },
-  { url: "https://www.cancilleria.gob.ar/rss", source: "Ministry of Foreign Affairs Argentina", defaultCountry: "AR" },
-
-  // Europe
-  { url: "https://www.gov.uk/government/organisations/uk-visas-and-immigration.atom", source: "UK Visas and Immigration", defaultCountry: "GB" },
-  { url: "https://home-affairs.ec.europa.eu/news/rss_en", source: "European Commission — Home Affairs", defaultCountry: "EU" },
-  { url: "https://www.auswaertiges-amt.de/en/newsroom/news/rss", source: "German Federal Foreign Office", defaultCountry: "DE" },
-  { url: "https://www.diplomatie.gouv.fr/spip.php?page=backend-fd&id_rubrique=1", source: "France Diplomatie", defaultCountry: "FR" },
-  { url: "https://www.esteri.it/it/rss/notizie/", source: "Italian Ministry of Foreign Affairs", defaultCountry: "IT" },
-  { url: "https://www.exteriores.gob.es/rss/en/noticias.xml", source: "Ministry of Foreign Affairs Spain", defaultCountry: "ES" },
-  { url: "https://portaldiplomatico.mne.gov.pt/rss", source: "Ministry of Foreign Affairs Portugal", defaultCountry: "PT" },
-  { url: "https://www.government.nl/rss/latest", source: "Government of the Netherlands", defaultCountry: "NL" },
-  { url: "https://www.eda.admin.ch/eda/en/home/news/rss.xml", source: "Swiss Federal Department of Foreign Affairs", defaultCountry: "CH" },
-  { url: "https://www.bmeia.gv.at/en/rss/", source: "Austrian Federal Ministry for European and International Affairs", defaultCountry: "AT" },
-  { url: "https://diplomatie.belgium.be/en/news/rss", source: "Belgian Ministry of Foreign Affairs", defaultCountry: "BE" },
-  { url: "https://www.regjeringen.no/rss/en/id269502/", source: "Norwegian Government", defaultCountry: "NO" },
-  { url: "https://www.government.se/rss/", source: "Swedish Government", defaultCountry: "SE" },
-  { url: "https://um.dk/en/rss/news", source: "Danish Ministry of Foreign Affairs", defaultCountry: "DK" },
-  { url: "https://um.fi/rss/en", source: "Ministry for Foreign Affairs Finland", defaultCountry: "FI" },
-  { url: "https://www.ireland.ie/en/rss/news/", source: "Department of Foreign Affairs Ireland", defaultCountry: "IE" },
-  { url: "https://www.gov.pl/web/rss/diplomacy", source: "Ministry of Foreign Affairs Poland", defaultCountry: "PL" },
-  { url: "https://www.mzv.cz/rss/en", source: "Ministry of Foreign Affairs Czech Republic", defaultCountry: "CZ" },
-  { url: "https://kormany.hu/en/rss", source: "Hungarian Government", defaultCountry: "HU" },
-  { url: "https://www.mfa.gr/rss/en", source: "Ministry of Foreign Affairs Greece", defaultCountry: "GR" },
-
-  // Oceania
-  { url: "https://immi.homeaffairs.gov.au/news-media/archive/rss", source: "Australian Department of Home Affairs", defaultCountry: "AU" },
-  { url: "https://www.immigration.govt.nz/about-us/media-centre/news-notifications/rss", source: "Immigration New Zealand", defaultCountry: "NZ" },
-
-  // Asia
-  { url: "https://www.mofa.go.jp/mofaj/rss/whatsnew.xml", source: "Ministry of Foreign Affairs of Japan", defaultCountry: "JP" },
-  { url: "https://www.mofa.go.kr/eng/rss/notice.xml", source: "Ministry of Foreign Affairs, Republic of Korea", defaultCountry: "KR" },
-  { url: "https://www.ica.gov.sg/rss/news", source: "Immigration & Checkpoints Authority Singapore", defaultCountry: "SG" },
-  { url: "https://www.imi.gov.my/index.php/feed/", source: "Immigration Department of Malaysia", defaultCountry: "MY" },
-  { url: "https://www.immigration.go.th/rss", source: "Thailand Immigration Bureau", defaultCountry: "TH" },
-  { url: "https://www.mofa.gov.vn/en/rss", source: "Ministry of Foreign Affairs Vietnam", defaultCountry: "VN" },
-  { url: "https://kemlu.go.id/en/rss", source: "Ministry of Foreign Affairs Indonesia", defaultCountry: "ID" },
-  { url: "https://dfa.gov.ph/rss", source: "Department of Foreign Affairs Philippines", defaultCountry: "PH" },
-  { url: "https://www.immd.gov.hk/rss/news_en.xml", source: "Hong Kong Immigration Department", defaultCountry: "HK" },
-  { url: "https://www.mofa.gov.tw/rss", source: "Ministry of Foreign Affairs Taiwan", defaultCountry: "TW" },
-  { url: "https://www.mea.gov.in/press-releases.htm?51/rss", source: "Ministry of External Affairs India", defaultCountry: "IN" },
-  { url: "https://www.immigration.gov.np/feed", source: "Department of Immigration Nepal", defaultCountry: "NP" },
-
-  // Middle East
-  { url: "https://u.ae/en/rss/news", source: "United Arab Emirates Government", defaultCountry: "AE" },
-  { url: "https://www.moi.gov.qa/en/rss", source: "Ministry of Interior Qatar", defaultCountry: "QA" },
-  { url: "https://www.mofa.gov.sa/en/rss", source: "Ministry of Foreign Affairs Saudi Arabia", defaultCountry: "SA" },
-  { url: "https://www.mfa.gov.tr/rss.en.mfa", source: "Ministry of Foreign Affairs Türkiye", defaultCountry: "TR" },
-
-  // Africa
-  { url: "https://www.dirco.gov.za/rss", source: "Department of International Relations South Africa", defaultCountry: "ZA" },
-  { url: "https://www.diplomatie.ma/en/rss", source: "Ministry of Foreign Affairs Morocco", defaultCountry: "MA" },
-  { url: "https://www.mfa.gov.eg/en/rss", source: "Ministry of Foreign Affairs Egypt", defaultCountry: "EG" },
-] as const;
+  {
+    url: "https://api.io.canada.ca/io-server/gc/news/en/v2?dept=canadaborderservicesagency&sort=publishedDate&orderBy=desc&publishedDate%3E=2024-01-01&pick=20&format=atom",
+    source: "Canada Border Services Agency",
+    defaultCountry: "CA",
+    maxItems: 6,
+  },
+  {
+    url: "https://www.gov.uk/government/organisations/uk-visas-and-immigration.atom",
+    source: "UK Visas and Immigration",
+    defaultCountry: "GB",
+    maxItems: 8,
+  },
+  {
+    url: "https://www.imi.gov.my/index.php/feed/",
+    source: "Immigration Department of Malaysia",
+    defaultCountry: "MY",
+    maxItems: 6,
+  },
+  {
+    url: "https://www.migration.gov.gr/feed/",
+    source: "Greek Ministry of Migration and Asylum",
+    defaultCountry: "GR",
+    maxItems: 6,
+  },
+  {
+    url: "https://igi.mai.gov.ro/en/feed/",
+    source: "Romanian General Inspectorate for Immigration",
+    defaultCountry: "RO",
+    maxItems: 6,
+  },
+  {
+    url: "https://www.immigration.go.ke/feed/",
+    source: "Kenya Department of Immigration",
+    defaultCountry: "KE",
+    maxItems: 6,
+  },
+  {
+    url: "https://www.gis.gov.gh/feed/",
+    source: "Ghana Immigration Service",
+    defaultCountry: "GH",
+    maxItems: 6,
+  },
+  {
+    url: "https://www.europarl.europa.eu/rss/doc/press-releases/en.xml",
+    source: "European Parliament",
+    defaultCountry: "EU",
+    maxItems: 6,
+  },
+];
 
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
-const FEED_LIMIT = 36;
+const FEED_LIMIT = 48;
 const MAX_ITEM_AGE_MS = 90 * 24 * 60 * 60 * 1000;
 const FEED_HEADERS = {
-  Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml",
-  "User-Agent": "Asvior/1.0 (+https://asvior.app; immigration feed)",
+  Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml, application/atom+xml;q=0.9,*/*;q=0.8",
+  "User-Agent": "Mozilla/5.0 (compatible; AsviorBot/1.0; +https://asvior.app; immigration feed)",
 };
 
 type NewsCache = {
   fetchedAt: number;
   items: HomeVisaUpdate[];
+  countryCount: number;
 };
 
 let memoryCache: NewsCache | null = null;
@@ -109,22 +190,22 @@ function stripTags(html: string): string {
   );
 }
 
-function parseFeedItems(
-  xml: string,
-  source: string,
-  defaultCountry: string,
-  now: number,
-): HomeVisaUpdate[] {
+function immigrationRelevant(text: string): boolean {
+  const normalized = text.toLowerCase();
+  return /(visa|immigration|passport|border|entry|customs|citizenship|residen|asylum|schengen|e-?visa|work permit|travel advice|travel advisory)/.test(
+    normalized,
+  );
+}
+
+function parseFeedItems(feed: FeedSource, xml: string, now: number): HomeVisaUpdate[] {
   const items: HomeVisaUpdate[] = [];
   const blocks =
     xml.match(/<item[\s\S]*?<\/item>/gi) ??
     xml.match(/<entry[\s\S]*?<\/entry>/gi) ??
     [];
-    const countryName =
-      defaultCountry === "EU" ? "European Union" : getCountryName(defaultCountry);
 
   for (const block of blocks) {
-    const title = stripTags(block.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? "");
+    const rawTitle = stripTags(block.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? "");
     const link =
       stripTags(block.match(/<link[^>]*>([\s\S]*?)<\/link>/i)?.[1] ?? "") ||
       block.match(/<link[^>]*href="([^"]+)"/i)?.[1] ||
@@ -140,46 +221,87 @@ function parseFeedItems(
       "";
     const publishedAt = pub ? new Date(pub).toISOString() : new Date().toISOString();
 
-    if (!title) continue;
+    if (!rawTitle) continue;
 
     const publishedMs = new Date(publishedAt).getTime();
     if (!Number.isNaN(publishedMs) && now - publishedMs > MAX_ITEM_AGE_MS) continue;
 
-    const summary = (desc || title).slice(0, 280);
+    let countryCode = feed.defaultCountry ?? "";
+    let title = rawTitle.slice(0, 160);
+    let summary = (desc || rawTitle).slice(0, 280);
+
+    if (feed.travelAdvice) {
+      const destination =
+        countryCodeFromTravelAdviceUrl(link) ?? resolveCountryCode(rawTitle);
+      if (!destination) continue;
+      countryCode = destination;
+      title = `${getCountryName(destination)} travel & entry update`;
+      summary = (desc || `Official foreign travel advice for ${getCountryName(destination)}.`).slice(
+        0,
+        280,
+      );
+    }
+
+    if (!countryCode) continue;
+
+    const haystack = `${title} ${summary}`;
+    if (!feed.travelAdvice && !immigrationRelevant(haystack)) continue;
+
+    const countryName =
+      countryCode === "EU" ? "European Union" : getCountryName(countryCode);
+
     const base = {
-      id: `${source}-${link || title}`.slice(0, 120).replace(/[^a-zA-Z0-9-_]/g, "-"),
-      countryCode: defaultCountry,
-      title: title.slice(0, 160),
+      id: `${feed.source}-${link || title}`.slice(0, 120).replace(/[^a-zA-Z0-9-_]/g, "-"),
+      countryCode,
+      title,
       summary,
       publishedAt,
-      source,
+      source: feed.source,
       url: link || undefined,
     };
 
     items.push(enrichImmigrationUpdate(base, countryName, now));
   }
 
-  return items;
+  const cap = feed.maxItems ?? 10;
+  if (feed.travelAdvice) {
+    const seen = new Set<string>();
+    const unique = items.filter((entry) => {
+      if (seen.has(entry.countryCode)) return false;
+      seen.add(entry.countryCode);
+      return true;
+    });
+    return unique.slice(0, cap);
+  }
+  return items.slice(0, cap);
 }
 
-async function fetchFeed(
-  url: string,
-  source: string,
-  defaultCountry: string,
-  now: number,
-): Promise<HomeVisaUpdate[]> {
+async function fetchFeed(feed: FeedSource, now: number): Promise<HomeVisaUpdate[]> {
   try {
-    const res = await fetch(url, {
+    const res = await fetch(feed.url, {
       headers: FEED_HEADERS,
-      signal: AbortSignal.timeout(8_000),
+      signal: AbortSignal.timeout(10_000),
     });
     if (!res.ok) return [];
     const xml = await res.text();
-    return parseFeedItems(xml, source, defaultCountry, now);
+    return parseFeedItems(feed, xml, now);
   } catch (err) {
-    console.warn("[visa-news] feed fetch failed:", url, err);
+    console.warn("[visa-news] feed fetch failed:", feed.url, err);
     return [];
   }
+}
+
+async function fetchAllFeeds(now: number): Promise<HomeVisaUpdate[]> {
+  const batchSize = 8;
+  const items: HomeVisaUpdate[] = [];
+
+  for (let i = 0; i < FEED_SOURCES.length; i += batchSize) {
+    const batch = FEED_SOURCES.slice(i, i + batchSize);
+    const batches = await Promise.all(batch.map((feed) => fetchFeed(feed, now)));
+    items.push(...batches.flat());
+  }
+
+  return items;
 }
 
 export type VisaNewsPayload = {
@@ -187,22 +309,8 @@ export type VisaNewsPayload = {
   fetchedAt: string;
   stale: boolean;
   source: "live" | "cache" | "empty";
+  countryCount: number;
 };
-
-async function fetchAllFeeds(now: number): Promise<HomeVisaUpdate[]> {
-  const batchSize = 6;
-  const items: HomeVisaUpdate[] = [];
-
-  for (let i = 0; i < FEED_SOURCES.length; i += batchSize) {
-    const batch = FEED_SOURCES.slice(i, i + batchSize);
-    const batches = await Promise.all(
-      batch.map((feed) => fetchFeed(feed.url, feed.source, feed.defaultCountry, now)),
-    );
-    items.push(...batches.flat());
-  }
-
-  return items;
-}
 
 export async function getVisaNewsUpdates(
   force = false,
@@ -217,22 +325,26 @@ export async function getVisaNewsUpdates(
       fetchedAt: new Date(memoryCache.fetchedAt).toISOString(),
       stale: false,
       source: "cache",
+      countryCount: memoryCache.countryCount,
     };
   }
 
-  const merged = rankImmigrationUpdates(await fetchAllFeeds(now), {
+  const raw = await fetchAllFeeds(now);
+  const countryCount = new Set(raw.map((item) => item.countryCode)).size;
+  const merged = rankImmigrationUpdates(raw, {
     limit: FEED_LIMIT,
     affinity,
     now,
   });
 
   if (merged.length > 0) {
-    memoryCache = { fetchedAt: now, items: merged };
+    memoryCache = { fetchedAt: now, items: raw, countryCount };
     return {
       items: merged,
       fetchedAt: new Date(now).toISOString(),
       stale: false,
       source: "live",
+      countryCount,
     };
   }
 
@@ -243,6 +355,7 @@ export async function getVisaNewsUpdates(
       fetchedAt: new Date(memoryCache.fetchedAt).toISOString(),
       stale: true,
       source: "cache",
+      countryCount: memoryCache.countryCount,
     };
   }
 
@@ -251,8 +364,8 @@ export async function getVisaNewsUpdates(
     fetchedAt: new Date(now).toISOString(),
     stale: true,
     source: "empty",
+    countryCount: 0,
   };
 }
 
-// Re-export for tests
 export { detectBadges, rankImmigrationUpdates, dedupeImmigrationUpdates } from "@/lib/immigration-news-ranking";
