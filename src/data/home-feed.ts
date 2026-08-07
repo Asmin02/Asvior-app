@@ -1,12 +1,17 @@
 import { VISA_CODES } from "@/data/visa-data";
 import { getCountryName } from "@/lib/visa";
 
+export type TrendingLabel = "Trending" | "Popular" | "New";
+
 export interface HomeTrendingDestination {
   code: string;
   name: string;
   places: string[];
   imageIndex: number;
+  continent?: string;
+  label?: TrendingLabel;
 }
+
 
 export interface HomeVisaUpdate {
   id: string;
@@ -74,21 +79,95 @@ export const LOCAL_COUNTRY_DATASET: HomeTrendingDestination[] = VISA_CODES.map((
   };
 });
 
+/** Curated, continent-balanced trending pool.
+ * imageIndex maps to [europe, asia, americas, oceania, middleEast, africa]. */
+const TRENDING_POOL: Array<{
+  code: string;
+  continent: string;
+  imageIndex: number;
+}> = [
+  { code: "JP", continent: "Asia", imageIndex: 1 },
+  { code: "TH", continent: "Asia", imageIndex: 1 },
+  { code: "KR", continent: "Asia", imageIndex: 1 },
+  { code: "SG", continent: "Asia", imageIndex: 1 },
+  { code: "ID", continent: "Asia", imageIndex: 1 },
+  { code: "VN", continent: "Asia", imageIndex: 1 },
+  { code: "IT", continent: "Europe", imageIndex: 0 },
+  { code: "FR", continent: "Europe", imageIndex: 0 },
+  { code: "CH", continent: "Europe", imageIndex: 0 },
+  { code: "NO", continent: "Europe", imageIndex: 0 },
+  { code: "PT", continent: "Europe", imageIndex: 0 },
+  { code: "GR", continent: "Europe", imageIndex: 0 },
+  { code: "CA", continent: "Americas", imageIndex: 2 },
+  { code: "BR", continent: "Americas", imageIndex: 2 },
+  { code: "MX", continent: "Americas", imageIndex: 2 },
+  { code: "US", continent: "Americas", imageIndex: 2 },
+  { code: "AU", continent: "Oceania", imageIndex: 3 },
+  { code: "NZ", continent: "Oceania", imageIndex: 3 },
+  { code: "AE", continent: "Middle East", imageIndex: 4 },
+  { code: "TR", continent: "Middle East", imageIndex: 4 },
+  { code: "MA", continent: "Africa", imageIndex: 5 },
+  { code: "ZA", continent: "Africa", imageIndex: 5 },
+  { code: "EG", continent: "Africa", imageIndex: 5 },
+  { code: "KE", continent: "Africa", imageIndex: 5 },
+];
+
+const LABELS: TrendingLabel[] = ["Trending", "Popular", "New"];
+
+/**
+ * Deterministic per-UTC-day selection: rotates automatically every 24 hours,
+ * balanced across continents and never repeating a destination in one batch.
+ */
 export function getDailyTrendingDestinations(date: Date, count = 6): HomeTrendingDestination[] {
-  const total = LOCAL_COUNTRY_DATASET.length;
-  if (total === 0) return [];
-  const size = Math.max(1, Math.min(count, total));
+  const random = seededRandom(daySeed(date) * 2654435761);
 
-  const indices = Array.from({ length: total }, (_, i) => i);
-  const random = seededRandom(daySeed(date) + total * 37);
-
-  for (let i = indices.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(random() * (i + 1));
-    const tmp = indices[i];
-    indices[i] = indices[j];
-    indices[j] = tmp;
+  const byContinent = new Map<string, typeof TRENDING_POOL>();
+  for (const entry of TRENDING_POOL) {
+    const list = byContinent.get(entry.continent) ?? [];
+    list.push(entry);
+    byContinent.set(entry.continent, list);
   }
 
-  return indices.slice(0, size).map((i) => LOCAL_COUNTRY_DATASET[i]);
+  // Shuffle each continent bucket and the continent order for the day.
+  const shuffle = <T,>(arr: T[]): T[] => {
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(random() * (i + 1));
+      const tmp = copy[i];
+      copy[i] = copy[j];
+      copy[j] = tmp;
+    }
+    return copy;
+  };
+
+  const queues = shuffle([...byContinent.values()].map(shuffle));
+
+  const picked: typeof TRENDING_POOL = [];
+  const seen = new Set<string>();
+  let round = 0;
+  while (picked.length < count && queues.some((q) => q.length > round)) {
+    for (const q of queues) {
+      const next = q[round];
+      if (next && !seen.has(next.code)) {
+        seen.add(next.code);
+        picked.push(next);
+      }
+      if (picked.length >= count) break;
+    }
+    round += 1;
+  }
+
+  return picked.map((entry, i) => {
+    const name = getCountryName(entry.code);
+    return {
+      code: entry.code,
+      name,
+      places: PLACE_OVERRIDES[entry.code] ?? fallbackPlaces(name),
+      imageIndex: entry.imageIndex,
+      continent: entry.continent,
+      label: LABELS[(daySeed(date) + i) % LABELS.length],
+    };
+  });
 }
+
 
