@@ -17,7 +17,58 @@ const FEED_SOURCES = [
     source: "Immigration, Refugees and Citizenship Canada",
     defaultCountry: "CA",
   },
+  {
+    url: "https://immi.homeaffairs.gov.au/news-media/archive/rss",
+    source: "Australian Department of Home Affairs",
+    defaultCountry: "AU",
+  },
+  {
+    url: "https://www.immigration.govt.nz/about-us/media-centre/news-notifications/rss",
+    source: "Immigration New Zealand",
+    defaultCountry: "NZ",
+  },
+  {
+    url: "https://www.ica.gov.sg/rss/news",
+    source: "Immigration & Checkpoints Authority Singapore",
+    defaultCountry: "SG",
+  },
+  {
+    url: "https://www.mofa.go.jp/mofaj/rss/whatsnew.xml",
+    source: "Ministry of Foreign Affairs of Japan",
+    defaultCountry: "JP",
+  },
+  {
+    url: "https://www.schengenvisainfo.com/news/feed/",
+    source: "Schengen Visa Info",
+    defaultCountry: "EU",
+  },
 ] as const;
+
+/** Round-robin across countries so one source cannot dominate the feed. */
+function interleaveByCountry(items: HomeVisaUpdate[], limit: number): HomeVisaUpdate[] {
+  const buckets = new Map<string, HomeVisaUpdate[]>();
+  for (const item of items) {
+    const list = buckets.get(item.countryCode) ?? [];
+    list.push(item);
+    buckets.set(item.countryCode, list);
+  }
+  const queues = [...buckets.values()].map((list) =>
+    [...list].sort(
+      (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
+    ),
+  );
+  const out: HomeVisaUpdate[] = [];
+  let round = 0;
+  while (out.length < limit && queues.some((q) => q.length > round)) {
+    for (const q of queues) {
+      const next = q[round];
+      if (next) out.push(next);
+      if (out.length >= limit) break;
+    }
+    round += 1;
+  }
+  return out;
+}
 
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -122,10 +173,7 @@ export async function getVisaNewsUpdates(force = false): Promise<VisaNewsPayload
     FEED_SOURCES.map((f) => fetchFeed(f.url, f.source, f.defaultCountry)),
   );
 
-  const merged = batches
-    .flat()
-    .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
-    .slice(0, 12);
+  const merged = interleaveByCountry(batches.flat(), 12);
 
   if (merged.length > 0) {
     memoryCache = { fetchedAt: now, items: merged };

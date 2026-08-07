@@ -222,6 +222,11 @@ export function getVisaRequirement(passport: string, destination: string): VisaR
 const PASSPORT_KEY = "vp_passport_code";
 const RECENT_KEY = "vp_recent_searches";
 
+/** Items shown on the home screen. */
+export const MAX_RECENT_SEARCHES = 5;
+/** Items kept in storage. */
+export const MAX_RECENT_STORAGE = 50;
+
 export interface RecentSearch {
   passport: string;
   destination: string;
@@ -253,7 +258,7 @@ export function saveRecentSearch(search: RecentSearch, scope = GUEST_STORAGE_SCO
     const next = [
       search,
       ...arr.filter((s) => s.passport !== search.passport || s.destination !== search.destination),
-    ].slice(0, 6);
+    ].slice(0, MAX_RECENT_STORAGE);
     localStorage.setItem(buildScopedStorageKey(RECENT_KEY, scope), JSON.stringify(next));
   } catch (error) {
     void error;
@@ -275,4 +280,31 @@ export function loadRecentSearches(scope = GUEST_STORAGE_SCOPE): RecentSearch[] 
   } catch {
     return [];
   }
+}
+
+
+export function removeRecentSearch(
+  passport: string,
+  destination: string,
+  scope = GUEST_STORAGE_SCOPE,
+): RecentSearch[] {
+  const next = loadRecentSearches(scope).filter(
+    (s) => !(s.passport === passport && s.destination === destination),
+  );
+  try {
+    localStorage.setItem(buildScopedStorageKey(RECENT_KEY, scope), JSON.stringify(next));
+  } catch (error) {
+    void error;
+  }
+  return next;
+}
+
+export function clearRecentSearches(scope = GUEST_STORAGE_SCOPE): RecentSearch[] {
+  try {
+    localStorage.removeItem(buildScopedStorageKey(RECENT_KEY, scope));
+    if (scope === GUEST_STORAGE_SCOPE) localStorage.removeItem(RECENT_KEY);
+  } catch (error) {
+    void error;
+  }
+  return [];
 }
