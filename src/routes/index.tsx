@@ -19,7 +19,7 @@ import {
   MapPinned,
 } from "lucide-react";
 import { Reveal } from "@/components/motion/Reveal";
-import heroVoyage from "@/assets/hero-voyage.jpg";
+import { AnimatedHero } from "@/components/home/AnimatedHero";
 import regionEurope from "@/assets/region-europe.jpg";
 import regionAsia from "@/assets/region-asia.jpg";
 import regionAmericas from "@/assets/region-americas.jpg";
@@ -240,7 +240,7 @@ function HomePage() {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    const load = async () => {
       try {
         const res = await fetch(resolveApiUrl("/api/visa-news"));
         if (!res.ok) throw new Error("failed");
@@ -260,11 +260,16 @@ function HomePage() {
       } finally {
         if (!cancelled) setNewsLoading(false);
       }
-    })();
+    };
+    void load();
+    // Auto-refresh the official feed every 24 hours while the app stays open.
+    const timer = window.setInterval(() => void load(), 24 * 60 * 60 * 1000);
     return () => {
       cancelled = true;
+      window.clearInterval(timer);
     };
   }, []);
+
 
   const plans = useMemo<PlanItem[]>(() => {
     const items: PlanItem[] = [];
@@ -370,44 +375,35 @@ function HomePage() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-3xl space-y-10 px-5 pt-5">
-        {/* ---------- Compact hero ---------- */}
-        <section className="relative overflow-hidden rounded-[1.75rem] border border-border/60 shadow-[0_24px_60px_-40px_rgb(0_0_0/0.6)]">
-          <SmoothImage
-            src={heroVoyage}
-            alt="Illustration of an aircraft wing above an ocean at sunrise"
-            width={1536}
-            height={1024}
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-tr from-slate-950/90 via-slate-900/60 to-sky-700/30" />
-          <div className="relative px-6 py-7">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/70">
-              Your travel companion
-            </p>
-            <h1 className="mt-2 max-w-[16ch] text-[1.75rem] font-semibold leading-[1.1] tracking-[-0.03em] text-white">
-              Plan your next journey with confidence.
-            </h1>
-            <p className="mt-2 max-w-[34ch] text-sm leading-relaxed text-white/75">
-              Visa answers, budgets and AI itineraries — in one calm place.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-2.5">
-              <Link
-                to="/assistant"
-                className="spring-press inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-slate-900 shadow-lg"
-              >
-                Start Planning
-                <ArrowRight className="h-4 w-4" strokeWidth={2} />
-              </Link>
-              <Link
-                to="/visa-check"
-                className="spring-press glass-control inline-flex h-11 items-center gap-2 rounded-full px-5 text-sm font-semibold text-white"
-              >
-                Visa Checker
-              </Link>
-            </div>
+      <div className="mx-auto max-w-3xl space-y-7 px-5 pt-4">
+        {/* ---------- Living animated hero ---------- */}
+        <AnimatedHero>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/75">
+            Your travel companion
+          </p>
+          <h1 className="mt-2 max-w-[16ch] text-[1.75rem] font-semibold leading-[1.1] tracking-[-0.03em] text-white">
+            Plan your next journey with confidence.
+          </h1>
+          <p className="mt-2 max-w-[34ch] text-sm leading-relaxed text-white/80">
+            Visa answers, budgets and AI itineraries — in one calm place.
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2.5">
+            <Link
+              to="/assistant"
+              className="spring-press inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-slate-900 shadow-lg"
+            >
+              Start Planning
+              <ArrowRight className="h-4 w-4" strokeWidth={2} />
+            </Link>
+            <Link
+              to="/visa-check"
+              className="spring-press glass-control inline-flex h-11 items-center gap-2 rounded-full px-5 text-sm font-semibold text-white"
+            >
+              Visa Checker
+            </Link>
           </div>
-        </section>
+        </AnimatedHero>
+
 
         {/* ---------- Search ---------- */}
         <Link to="/visa-check" className="search-float -mt-4" aria-label="Search destinations">
@@ -428,7 +424,7 @@ function HomePage() {
         {/* ---------- Quick actions ---------- */}
         <section>
           <Reveal>
-            <h2 className="section-title mb-4">Quick actions</h2>
+            <h2 className="section-title mb-3">Quick actions</h2>
           </Reveal>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {QUICK_ACTIONS.map((action, i) => (
@@ -459,7 +455,7 @@ function HomePage() {
         {/* ---------- Continue planning ---------- */}
         <section>
           <Reveal>
-            <div className="mb-4 flex items-center justify-between gap-3">
+            <div className="mb-3 flex items-center justify-between gap-3">
               <h2 className="section-title">Continue planning</h2>
               {hydrated && plans.length > 0 && (
                 <button
@@ -482,8 +478,8 @@ function HomePage() {
             <EmptyPanel
               icon={<MapPinned className="h-5 w-5" strokeWidth={1.7} />}
               title="No trips in progress"
-              body="Start a visa check or ask the AI assistant — your plans appear here automatically."
-              actionLabel="Start planning"
+              body="Your visa checks, budgets and chats appear here."
+              actionLabel="Start"
               actionTo="/assistant"
             />
           ) : (
@@ -522,7 +518,7 @@ function HomePage() {
         {/* ---------- Recent searches ---------- */}
         <section>
           <Reveal>
-            <div className="mb-4 flex items-center justify-between gap-3">
+            <div className="mb-3 flex items-center justify-between gap-3">
               <h2 className="section-title">Recent searches</h2>
               {hydrated && recent.length > 0 && (
                 <button
@@ -545,8 +541,8 @@ function HomePage() {
             <EmptyPanel
               icon={<Search className="h-5 w-5" strokeWidth={1.7} />}
               title="No searches yet"
-              body="Check whether you need a visa for your next destination — results are saved here."
-              actionLabel="Run a visa check"
+              body="Visa results you check are saved here."
+              actionLabel="Check visa"
               actionTo="/visa-check"
             />
           ) : (
@@ -583,8 +579,8 @@ function HomePage() {
         {/* ---------- Inspiration ---------- */}
         <section>
           <Reveal>
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <h2 className="section-title">Where travellers are going</h2>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h2 className="section-title">Trending Destinations</h2>
               <Link to="/countries" className="text-xs font-semibold text-primary">
                 See all
               </Link>
@@ -605,7 +601,12 @@ function HomePage() {
                       loading="lazy"
                       className="h-full w-full object-cover transition-transform duration-[700ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/10 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/78 via-slate-950/12 to-transparent" />
+                    {destination.label && (
+                      <span className="absolute left-2.5 top-2.5 rounded-full bg-white/22 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-white backdrop-blur-md">
+                        {destination.label}
+                      </span>
+                    )}
                     <div className="absolute inset-x-3 bottom-2.5 flex items-center gap-1.5">
                       <CountryFlag code={destination.code} size="sm" className="ring-white/40" />
                       <p className="truncate text-xs font-semibold text-white">
@@ -619,10 +620,11 @@ function HomePage() {
           </div>
         </section>
 
+
         {/* ---------- Live travel & visa news ---------- */}
         <section>
           <Reveal>
-            <div className="mb-4 flex items-end justify-between gap-3">
+            <div className="mb-3 flex items-end justify-between gap-3">
               <div className="min-w-0">
                 <h2 className="section-title">Latest travel &amp; visa news</h2>
                 <p className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
@@ -645,8 +647,8 @@ function HomePage() {
             <EmptyPanel
               icon={<Globe2 className="h-5 w-5" strokeWidth={1.7} />}
               title="No live updates right now"
-              body="We refresh official government travel and visa sources every 24 hours. Explore country guides in the meantime."
-              actionLabel="Browse countries"
+              body="Official sources refresh every 24 hours."
+              actionLabel="Countries"
               actionTo="/countries"
             />
           ) : (
@@ -742,15 +744,17 @@ function EmptyPanel({
 }) {
   return (
     <Reveal>
-      <div className="premium-card flex flex-col items-center rounded-3xl px-6 py-8 text-center">
-        <span className="grad-signal flex h-12 w-12 items-center justify-center rounded-2xl text-white">
+      <div className="premium-card flex items-center gap-3 rounded-3xl px-4 py-3.5">
+        <span className="grad-signal flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-white">
           {icon}
         </span>
-        <p className="mt-4 text-sm font-semibold text-foreground">{title}</p>
-        <p className="mt-1.5 max-w-[34ch] text-xs leading-relaxed text-muted-foreground">{body}</p>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-foreground">{title}</p>
+          <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{body}</p>
+        </div>
         <Link
           to={actionTo}
-          className="spring-press mt-4 inline-flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-xs font-semibold text-primary-foreground"
+          className="spring-press inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-primary px-3.5 text-xs font-semibold text-primary-foreground"
         >
           {actionLabel}
           <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
@@ -759,3 +763,4 @@ function EmptyPanel({
     </Reveal>
   );
 }
+
