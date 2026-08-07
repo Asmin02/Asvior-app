@@ -204,7 +204,9 @@ export function GlobalImmigrationUpdates({
                 Official government immigration sources
               </p>
               <p className="text-xs font-medium text-muted-foreground/90">
-                {countryCount} countries • Refreshed every 24 hours
+                {loading
+                  ? "Refreshed every 24 hours"
+                  : `${countryCount} countries • Refreshed every 24 hours`}
               </p>
             </div>
           </div>

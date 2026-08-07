@@ -258,6 +258,30 @@ function HomePage() {
         });
       } catch {
         if (!cancelled) {
+          try {
+            const retry = await fetch(resolveApiUrl("/api/visa-news?schema=2"), {
+              cache: "no-store",
+            });
+            if (retry.ok) {
+              const payload = (await retry.json()) as {
+                items: HomeVisaUpdate[];
+                fetchedAt: string;
+                stale: boolean;
+                countryCount?: number;
+              };
+              if (!cancelled && payload.items?.length) {
+                setNews(normalizeHomeVisaUpdates(payload.items));
+                setNewsMeta({
+                  fetchedAt: payload.fetchedAt,
+                  stale: !!payload.stale,
+                  countryCount: payload.countryCount,
+                });
+                return;
+              }
+            }
+          } catch {
+            // fall through to empty state
+          }
           setNews([]);
           setNewsMeta({ fetchedAt: new Date().toISOString(), stale: true });
         }
