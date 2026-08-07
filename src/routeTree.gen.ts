@@ -31,6 +31,7 @@ import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedTripsRouteImport } from './routes/_authenticated/trips'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as ApiVisaNewsRouteImport } from './routes/api/visa-news'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as CountryCodeRouteImport } from './routes/country.$code'
 
@@ -143,6 +144,11 @@ const ApiHealthRoute = ApiHealthRouteImport.update({
   path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiVisaNewsRoute = ApiVisaNewsRouteImport.update({
+  id: '/api/visa-news',
+  path: '/api/visa-news',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/callback',
   path: '/callback',
@@ -176,6 +182,7 @@ export interface FileRoutesByFullPath {
   '/trips': typeof AuthenticatedTripsRoute
   '/api/chat': typeof ApiChatRoute
   '/api/health': typeof ApiHealthRoute
+  '/api/visa-news': typeof ApiVisaNewsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/country/$code': typeof CountryCodeRoute
 }
@@ -201,6 +208,7 @@ export interface FileRoutesByTo {
   '/trips': typeof AuthenticatedTripsRoute
   '/api/chat': typeof ApiChatRoute
   '/api/health': typeof ApiHealthRoute
+  '/api/visa-news': typeof ApiVisaNewsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/country/$code': typeof CountryCodeRoute
 }
@@ -228,6 +236,7 @@ export interface FileRoutesById {
   '/_authenticated/trips': typeof AuthenticatedTripsRoute
   '/api/chat': typeof ApiChatRoute
   '/api/health': typeof ApiHealthRoute
+  '/api/visa-news': typeof ApiVisaNewsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/country/$code': typeof CountryCodeRoute
 }
@@ -255,6 +264,7 @@ export interface FileRouteTypes {
     | '/trips'
     | '/api/chat'
     | '/api/health'
+    | '/api/visa-news'
     | '/auth/callback'
     | '/country/$code'
   fileRoutesByTo: FileRoutesByTo
@@ -280,6 +290,7 @@ export interface FileRouteTypes {
     | '/trips'
     | '/api/chat'
     | '/api/health'
+    | '/api/visa-news'
     | '/auth/callback'
     | '/country/$code'
   id:
@@ -306,6 +317,7 @@ export interface FileRouteTypes {
     | '/_authenticated/trips'
     | '/api/chat'
     | '/api/health'
+    | '/api/visa-news'
     | '/auth/callback'
     | '/country/$code'
   fileRoutesById: FileRoutesById
@@ -329,6 +341,7 @@ export interface RootRouteChildren {
   VisaCheckRoute: typeof VisaCheckRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiHealthRoute: typeof ApiHealthRoute
+  ApiVisaNewsRoute: typeof ApiVisaNewsRoute
   CountryCodeRoute: typeof CountryCodeRoute
 }
 
@@ -488,6 +501,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/visa-news': {
+      id: '/api/visa-news'
+      path: '/api/visa-news'
+      fullPath: '/api/visa-news'
+      preLoaderRoute: typeof ApiVisaNewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/callback': {
       id: '/auth/callback'
       path: '/callback'
@@ -551,6 +571,7 @@ const rootRouteChildren: RootRouteChildren = {
   VisaCheckRoute: VisaCheckRoute,
   ApiChatRoute: ApiChatRoute,
   ApiHealthRoute: ApiHealthRoute,
+  ApiVisaNewsRoute: ApiVisaNewsRoute,
   CountryCodeRoute: CountryCodeRoute,
 }
 export const routeTree = rootRouteImport

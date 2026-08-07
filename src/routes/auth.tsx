@@ -10,8 +10,9 @@ import { toast } from "sonner";
 import heroSkyline from "@/assets/hero-skyline.jpg";
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (search: Record<string, unknown>): { message?: string } => ({
+  validateSearch: (search: Record<string, unknown>): { message?: string; redirect?: string } => ({
     message: typeof search.message === "string" ? search.message : undefined,
+    redirect: typeof search.redirect === "string" ? search.redirect : undefined,
   }),
   head: () => ({
     meta: [
@@ -40,23 +41,26 @@ function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
 
+  const postAuthPath =
+    search.redirect && search.redirect.startsWith("/") ? search.redirect : "/profile";
+
   useEffect(() => {
     if (shouldRenderChildRoute) return;
 
     let cancelled = false;
     supabase.auth.getSession().then(({ data }) => {
       if (cancelled) return;
-      if (data.session) navigate({ to: "/profile" });
+      if (data.session) navigate({ to: postAuthPath });
     });
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (cancelled) return;
-      if (event === "SIGNED_IN" && session) navigate({ to: "/profile" });
+      if (event === "SIGNED_IN" && session) navigate({ to: postAuthPath });
     });
     return () => {
       cancelled = true;
       sub.subscription.unsubscribe();
     };
-  }, [navigate, shouldRenderChildRoute]);
+  }, [navigate, postAuthPath, shouldRenderChildRoute]);
 
   useEffect(() => {
     if (shouldRenderChildRoute) return;
@@ -77,7 +81,7 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Welcome back!");
-        navigate({ to: "/profile" });
+        navigate({ to: postAuthPath });
       } else if (mode === "signup") {
         const { data, error } = await supabase.auth.signUp({
           email,
@@ -91,7 +95,7 @@ function AuthPage() {
         if (data.session) {
           // Email confirmations disabled — user is signed in immediately.
           toast.success("Account created — you're signed in.");
-          navigate({ to: "/profile" });
+          navigate({ to: postAuthPath });
         } else {
           // Email confirmations enabled — wait for verification link.
           toast.success("Account created — check your email to verify, then sign in.");

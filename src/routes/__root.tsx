@@ -23,6 +23,7 @@ import {
   DEFAULT_CURRENCY,
 } from "@/lib/app-session";
 import { Toaster } from "@/components/ui/sonner";
+import { SplashScreen } from "@/components/SplashScreen";
 import { useRouterState } from "@tanstack/react-router";
 
 /** Fade + slide transition applied on every route change. */
@@ -151,7 +152,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "canonical", href: "https://asvior.app" },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
-      { rel: "apple-touch-icon", href: "/icon-192.svg" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -187,6 +188,8 @@ function RootShell({ children }: { children: ReactNode }) {
 function MobileNav() {
   const router = useRouter();
   const pathname = router.state.location.pathname;
+
+  if (pathname.startsWith("/assistant")) return null;
 
 
 
@@ -259,6 +262,8 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   const activeUserIdRef = useRef<string | null>(null);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isAssistant = pathname.startsWith("/assistant");
 
   useEffect(() => {
     let cancelled = false;
@@ -349,7 +354,10 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <main className="mx-auto min-h-dvh max-w-md bg-background pb-[calc(7rem+env(safe-area-inset-bottom))] font-sans antialiased">
+      <SplashScreen />
+      <main
+        className={`mx-auto min-h-dvh max-w-md bg-background font-sans antialiased ${isAssistant ? "pb-0" : "pb-[calc(7rem+env(safe-area-inset-bottom))]"}`}
+      >
         <PageTransition>
           <Outlet />
         </PageTransition>

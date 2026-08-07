@@ -10,6 +10,14 @@ import { AsviorMark } from "@/components/AsviorMark";
 import { resolveApiUrl } from "@/lib/api-base";
 import { buildScopedStorageKey, GUEST_STORAGE_SCOPE } from "@/lib/app-session";
 import {
+  getGuestAiMessageCount,
+  getGuestAiRemaining,
+  GUEST_AI_MESSAGE_LIMIT,
+  incrementGuestAiMessageCount,
+  isGuestAiLimitReached,
+} from "@/lib/guest-ai";
+import { useKeyboardInset } from "@/lib/use-keyboard-inset";
+import {
   BudgetCard,
   DocChecklistCard,
   ErrorRetry,
@@ -123,7 +131,8 @@ function AssistantPage() {
         headers: async (): Promise<Record<string, string>> => {
           const { data } = await supabase.auth.getSession();
           const token = data.session?.access_token;
-          return token ? { Authorization: `Bearer ${token}` } : {};
+          if (token) return { Authorization: `Bearer ${token}` };
+          return { "X-Asvior-Guest-Messages": String(getGuestAiMessageCount()) };
         },
       }),
     [],
@@ -154,6 +163,13 @@ function AssistantPage() {
     status: "ready",
   });
   const isLoading = status === "submitted" || status === "streaming";
+  const keyboardInset = useKeyboardInset();
+  const guestRemaining = isSignedIn ? null : getGuestAiRemaining();
+  const authErrorRequiresSignIn =
+    !!error &&
+    (error.message.includes("Sign in") ||
+      error.message.includes("free AI messages") ||
+      error.message.includes("401"));
   const lastMessage = messages[messages.length - 1];
   const lastMessageText = lastMessage ? getText(lastMessage) : "";
 
@@ -303,6 +319,12 @@ function AssistantPage() {
   }, [isLoading, scrollToBottom, lastMessageText]);
 
   useEffect(() => {
+    if (keyboardInset <= 0) return;
+    stickToBottomRef.current = true;
+    scrollToBottom("auto");
+  }, [keyboardInset, scrollToBottom]);
+
+  useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
@@ -313,8 +335,16 @@ function AssistantPage() {
   const handleSend = async (text: string) => {
     const value = text.trim();
     if (!value || isLoading) return;
+
+    if (!isSignedIn && isGuestAiLimitReached()) {
+      toast.info("You've used your free AI messages. Sign in for unlimited access.");
+      navigate({ to: "/auth", search: { redirect: "/assistant" } });
+      return;
+    }
+
     stickToBottomRef.current = true;
     setInput("");
+    if (!isSignedIn) incrementGuestAiMessageCount();
     await sendMessage({ text: value });
     requestAnimationFrame(() => {
       scrollToBottom("auto");
@@ -398,7 +428,12 @@ function AssistantPage() {
   const lastIsUserOrSubmitted = status === "submitted";
 
   return (
-    <div className="relative flex h-[calc(100dvh-6rem-var(--safe-bottom))] flex-col overflow-hidden bg-background">
+    <div className="fixed inset-x-0 top-0 z-40 mx-auto flex max-w-md flex-col overflow-hidden bg-background"
+      style={{
+        height: `calc(100dvh - ${keyboardInset}px)`,
+        paddingBottom: "var(--safe-bottom)",
+      }}
+    >
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 z-0 h-72 bg-[radial-gradient(70%_100%_at_50%_0%,color-mix(in_oklab,var(--primary)_14%,transparent),transparent)]"
@@ -489,7 +524,11 @@ function AssistantPage() {
             ))}
             {lastIsUserOrSubmitted && <PremiumSkeleton />}
             {error && !isLoading && (
-              <ErrorRetry message={error.message} onRetry={() => regenerate()} />
+              <ErrorRetry
+                message={error.message}
+                onRetry={() => regenerate()}
+                signInRequired={authErrorRequiresSignIn}
+              />
             )}
             <div ref={bottomRef} aria-hidden className="h-px" />
           </div>
@@ -505,7 +544,12 @@ function AssistantPage() {
         />
       )}
 
-      <div className="relative z-30 shrink-0 px-3 pb-2">
+      <div
+        className="relative z-30 shrink-0 px-3"
+        style={{
+          paddingBottom: `max(0.5rem, calc(var(--safe-bottom) + ${keyboardInset}px))`,
+        }}
+      >
         <div className="rounded-3xl border border-border/50 bg-card/80 p-2 elev-4 backdrop-blur-xl">
           <div className="flex items-end gap-2">
             <button
@@ -576,6 +620,9 @@ function AssistantPage() {
           </div>
         </div>
         <p className="mt-1.5 text-center text-[10px] text-muted-foreground">
+          {!isSignedIn && guestRemaining !== null
+            ? `${guestRemaining} of ${GUEST_AI_MESSAGE_LIMIT} free messages remaining · `
+            : ""}
           Always verify with official embassy or government sources.
         </p>
       </div>

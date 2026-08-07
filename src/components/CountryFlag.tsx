@@ -16,7 +16,7 @@ import { SmoothImage } from "@/components/motion/SmoothImage";
 const SIZES = {
   sm: { box: "h-5 w-7", src: "w40", text: "text-[9px]" },
   md: { box: "h-7 w-10", src: "w80", text: "text-[10px]" },
-  lg: { box: "h-9 w-13", src: "w160", text: "text-xs" },
+  lg: { box: "h-9 w-[3.25rem]", src: "w160", text: "text-xs" },
   xl: { box: "h-12 w-[4.5rem]", src: "w320", text: "text-sm" },
 } as const;
 

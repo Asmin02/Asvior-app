@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { buildScopedStorageKey, GUEST_STORAGE_SCOPE } from "@/lib/app-session";
 
@@ -589,7 +590,15 @@ export function removeBookmark(id: string, scope = GUEST_STORAGE_SCOPE) {
 }
 
 // ---------- Error retry ----------
-export function ErrorRetry({ message, onRetry }: { message?: string; onRetry: () => void }) {
+export function ErrorRetry({
+  message,
+  onRetry,
+  signInRequired,
+}: {
+  message?: string;
+  onRetry: () => void;
+  signInRequired?: boolean;
+}) {
   return (
     <div className="flex gap-2 animate-in fade-in slide-in-from-bottom-1 duration-200">
       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-rose-500/20 text-rose-600">
@@ -609,15 +618,26 @@ export function ErrorRetry({ message, onRetry }: { message?: string; onRetry: ()
       </div>
       <div className="flex-1 rounded-2xl rounded-tl-md border border-rose-500/30 bg-rose-500/5 p-3.5 backdrop-blur-xl">
         <p className="text-xs font-semibold text-rose-700 dark:text-rose-300">
-          Couldn't reach Asvior AI
+          {signInRequired ? "Sign in to continue" : "Couldn't reach Asvior AI"}
         </p>
         <p className="mt-0.5 text-[11px] text-muted-foreground">
           {message || "Network or service hiccup. Your question is safe — give it another try."}
         </p>
-        <button
-          onClick={onRetry}
-          className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-rose-500 px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm transition-transform active:scale-95"
-        >
+        <div className="mt-2 flex flex-wrap gap-2">
+          {signInRequired && (
+            <Link
+              to="/auth"
+              search={{ redirect: "/assistant" }}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-[11px] font-semibold text-primary-foreground shadow-sm transition-transform active:scale-95"
+            >
+              Sign in
+            </Link>
+          )}
+          {!signInRequired && (
+            <button
+              onClick={onRetry}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-rose-500 px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm transition-transform active:scale-95"
+            >
           <svg
             className="h-3 w-3"
             viewBox="0 0 24 24"
@@ -632,7 +652,9 @@ export function ErrorRetry({ message, onRetry }: { message?: string; onRetry: ()
             />
           </svg>
           Retry
-        </button>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

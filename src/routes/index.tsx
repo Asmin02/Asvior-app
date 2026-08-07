@@ -39,9 +39,9 @@ import { GUEST_STORAGE_SCOPE } from "@/lib/app-session";
 import { SmoothImage } from "@/components/motion/SmoothImage";
 import {
   getDailyTrendingDestinations,
-  getLatestVisaUpdates,
   type HomeVisaUpdate,
 } from "@/data/home-feed";
+import { resolveApiUrl } from "@/lib/api-base";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -249,22 +249,39 @@ function ContinuePlanningCard({ activity }: { activity: ContinueActivity }) {
 }
 
 function VisaUpdateCard({ item }: { item: HomeVisaUpdate; delay?: number }) {
+  const inner = (
+    <div className="flex items-start gap-3">
+      <CountryFlag code={item.countryCode} size="sm" />
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-foreground">{item.title}</p>
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{item.summary}</p>
+        <p className="mt-2 text-[10px] font-medium text-muted-foreground">
+          {formatPublished(item.publishedAt)} · {item.source}
+        </p>
+      </div>
+    </div>
+  );
+
+  if (item.url) {
+    return (
+      <a
+        href={item.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="premium-card block rounded-2xl p-4 transition-colors hover:bg-secondary/30"
+      >
+        {inner}
+      </a>
+    );
+  }
+
   return (
     <Link
       to="/country/$code"
       params={{ code: item.countryCode }}
       className="premium-card block rounded-2xl p-4 transition-colors hover:bg-secondary/30"
     >
-      <div className="flex items-start gap-3">
-        <CountryFlag code={item.countryCode} size="sm" />
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-foreground">{item.title}</p>
-          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{item.summary}</p>
-          <p className="mt-2 text-[10px] font-medium text-muted-foreground">
-            {formatPublished(item.publishedAt)} · {item.source}
-          </p>
-        </div>
-      </div>
+      {inner}
     </Link>
   );
 }
@@ -280,13 +297,18 @@ function HomePage() {
   const [canScrollPopularPrev, setCanScrollPopularPrev] = useState(false);
   const [canScrollPopularNext, setCanScrollPopularNext] = useState(false);
   const [homeNow, setHomeNow] = useState<Date | null>(null);
+  const [visaUpdates, setVisaUpdates] = useState<HomeVisaUpdate[]>([]);
+  const [visaNewsLoading, setVisaNewsLoading] = useState(true);
+  const [visaNewsMeta, setVisaNewsMeta] = useState<{
+    fetchedAt: string;
+    stale: boolean;
+  } | null>(null);
   const referenceDate = homeNow ?? HOME_REFERENCE_DATE;
   const greeting = useMemo(() => (homeNow ? greetingFor(homeNow) : "Welcome"), [homeNow]);
   const dailyTrending = useMemo(
     () => getDailyTrendingDestinations(referenceDate, 6),
     [referenceDate],
   );
-  const visaUpdates = useMemo(() => getLatestVisaUpdates(referenceDate, 8), [referenceDate]);
   const continueActivity = useMemo(
     () =>
       signedIn ? buildContinueActivity(recent, hasBudget, hasChecklist, latestAiBookmark) : null,
@@ -333,6 +355,37 @@ function HomePage() {
 
   useEffect(() => {
     setHomeNow(new Date());
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadVisaNews = async () => {
+      try {
+        const res = await fetch(resolveApiUrl("/api/visa-news"));
+        if (!res.ok) throw new Error("Failed to load visa news");
+        const payload = (await res.json()) as {
+          items: HomeVisaUpdate[];
+          fetchedAt: string;
+          stale: boolean;
+        };
+        if (cancelled) return;
+        setVisaUpdates(payload.items ?? []);
+        setVisaNewsMeta({ fetchedAt: payload.fetchedAt, stale: !!payload.stale });
+      } catch {
+        if (!cancelled) {
+          setVisaUpdates([]);
+          setVisaNewsMeta({ fetchedAt: new Date().toISOString(), stale: true });
+        }
+      } finally {
+        if (!cancelled) setVisaNewsLoading(false);
+      }
+    };
+
+    void loadVisaNews();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -722,15 +775,41 @@ function HomePage() {
         {/* Visa updates */}
         <section>
           <Reveal>
-            <h2 className="section-title mb-4">Latest visa updates</h2>
+            <div className="mb-4 flex items-end justify-between gap-3">
+              <h2 className="section-title">Latest visa updates</h2>
+              {visaNewsMeta && (
+                <p className="text-[10px] text-muted-foreground">
+                  {visaNewsMeta.stale ? "Last updated " : "Updated "}
+                  {formatPublished(visaNewsMeta.fetchedAt)}
+                </p>
+              )}
+            </div>
           </Reveal>
-          <div className="space-y-2.5">
-            {visaUpdates.slice(0, 4).map((item, i) => (
-              <Reveal key={item.id} delay={i * 60}>
-                <VisaUpdateCard item={item} />
-              </Reveal>
-            ))}
-          </div>
+          {visaNewsLoading ? (
+            <div className="space-y-2.5">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="premium-card h-24 animate-pulse rounded-2xl" />
+              ))}
+            </div>
+          ) : visaUpdates.length === 0 ? (
+            <div className="premium-card rounded-2xl p-4 text-sm text-muted-foreground">
+              Live visa news is temporarily unavailable. Check back soon — we refresh official
+              sources every 24 hours.
+              {visaNewsMeta && (
+                <p className="mt-2 text-[10px]">
+                  Last checked {formatPublished(visaNewsMeta.fetchedAt)}
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {visaUpdates.slice(0, 4).map((item, i) => (
+                <Reveal key={item.id} delay={i * 60}>
+                  <VisaUpdateCard item={item} />
+                </Reveal>
+              ))}
+            </div>
+          )}
         </section>
 
         <footer className="border-t border-border/70 pt-6 text-center">

@@ -87,12 +87,22 @@ export const Route = createFileRoute("/api/chat")({
       POST: async ({ request }) => {
         try {
           const { getAuthenticatedUserId } = await import("@/lib/chat-auth.server");
+          const { GUEST_AI_MESSAGE_LIMIT } = await import("@/lib/guest-ai");
           const userId = await getAuthenticatedUserId(request);
           if (!userId) {
-            return applyCapacitorCors(
-              request,
-              new Response("Sign in to use Asvior AI", { status: 401 }),
+            const guestCount = parseInt(
+              request.headers.get("X-Asvior-Guest-Messages") || "0",
+              10,
             );
+            if (!Number.isFinite(guestCount) || guestCount >= GUEST_AI_MESSAGE_LIMIT) {
+              return applyCapacitorCors(
+                request,
+                new Response(
+                  "You've used your free AI messages. Sign in for unlimited access.",
+                  { status: 401 },
+                ),
+              );
+            }
           }
 
           const body = (await request.json()) as { messages?: UIMessage[] };

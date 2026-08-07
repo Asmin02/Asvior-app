@@ -24,7 +24,10 @@ export function applyCapacitorCors(request: Request, response: Response): Respon
   headers.set("Access-Control-Allow-Origin", origin);
   headers.set("Vary", "Origin");
   headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-  headers.set("Access-Control-Allow-Headers", "Content-Type, Accept, Authorization");
+  headers.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Accept, Authorization, X-Asvior-Guest-Messages",
+  );
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,

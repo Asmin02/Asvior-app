@@ -1,1 +1,1 @@
-export { SplashScreen } from "@/components/asvior/SplashScreen";
+export { SplashScreen } from "@/components/SplashScreen";
