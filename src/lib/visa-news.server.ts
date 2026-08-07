@@ -101,7 +101,11 @@ const COUNTRY_ORDER = [
 ];
 
 
-/** Round-robin across countries so one source cannot dominate the feed. */
+/**
+ * Strict round-robin: never two articles from the same country in a row, and
+ * the newest article of each country wins its slot. Country order rotates by
+ * UTC day so the feed does not open with the same country every time.
+ */
 function interleaveByCountry(items: HomeVisaUpdate[], limit: number): HomeVisaUpdate[] {
   const buckets = new Map<string, HomeVisaUpdate[]>();
   for (const item of items) {
@@ -109,11 +113,22 @@ function interleaveByCountry(items: HomeVisaUpdate[], limit: number): HomeVisaUp
     list.push(item);
     buckets.set(item.countryCode, list);
   }
-  const queues = [...buckets.values()].map((list) =>
-    [...list].sort(
+
+  const dayIndex = Math.floor(Date.now() / 86_400_000);
+  const present = [...buckets.keys()].sort((a, b) => {
+    const ia = COUNTRY_ORDER.indexOf(a);
+    const ib = COUNTRY_ORDER.indexOf(b);
+    return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib);
+  });
+  const offset = present.length ? dayIndex % present.length : 0;
+  const rotated = [...present.slice(offset), ...present.slice(0, offset)];
+
+  const queues = rotated.map((code) =>
+    [...(buckets.get(code) ?? [])].sort(
       (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
     ),
   );
+
   const out: HomeVisaUpdate[] = [];
   let round = 0;
   while (out.length < limit && queues.some((q) => q.length > round)) {
@@ -126,6 +141,7 @@ function interleaveByCountry(items: HomeVisaUpdate[], limit: number): HomeVisaUp
   }
   return out;
 }
+
 
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
