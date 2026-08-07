@@ -1,4 +1,25 @@
-import { getOpenRouterModel } from "@/lib/openrouter.server";
+import { getOpenRouterApiKey, getOpenRouterModel } from "@/lib/openrouter.server";
+
+describe("OpenRouter API key resolution", () => {
+  const originalKey = process.env.OPENROUTER_API_KEY;
+  const originalLovable = process.env.LOVABLE_OPENROUTER_API_KEY;
+  const originalGateway = process.env.AI_GATEWAY_API_KEY;
+
+  afterEach(() => {
+    if (originalKey === undefined) delete process.env.OPENROUTER_API_KEY;
+    else process.env.OPENROUTER_API_KEY = originalKey;
+    if (originalLovable === undefined) delete process.env.LOVABLE_OPENROUTER_API_KEY;
+    else process.env.LOVABLE_OPENROUTER_API_KEY = originalLovable;
+    if (originalGateway === undefined) delete process.env.AI_GATEWAY_API_KEY;
+    else process.env.AI_GATEWAY_API_KEY = originalGateway;
+  });
+
+  it("prefers OPENROUTER_API_KEY", () => {
+    process.env.OPENROUTER_API_KEY = " primary-key ";
+    process.env.LOVABLE_OPENROUTER_API_KEY = "lovable-key";
+    expect(getOpenRouterApiKey()).toBe("primary-key");
+  });
+});
 
 describe("OpenRouter model selection", () => {
   const originalOpenRouterModel = process.env.OPENROUTER_MODEL;

@@ -1,7 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
 import { applyCapacitorCors, corsPreflightResponse } from "@/lib/api-base";
-import { createOpenRouterProvider, getOpenRouterModel } from "@/lib/openrouter.server";
+import {
+  createOpenRouterProvider,
+  getOpenRouterApiKey,
+  getOpenRouterModel,
+} from "@/lib/openrouter.server";
 
 const SYSTEM_PROMPT = `You are Asvior AI, a world-class travel concierge inside the Asvior app. You help travelers with:
 
@@ -113,7 +117,7 @@ export const Route = createFileRoute("/api/chat")({
               new Response("Messages are required", { status: 400 }),
             );
           }
-          const key = process.env.OPENROUTER_API_KEY;
+          const key = getOpenRouterApiKey();
           if (!key) {
             return applyCapacitorCors(
               request,

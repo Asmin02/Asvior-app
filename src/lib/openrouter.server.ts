@@ -5,9 +5,25 @@ const DEFAULT_OPENROUTER_MODEL = "openrouter/free";
 
 export class MissingOpenRouterConfigError extends Error {
   constructor() {
-    super("Missing OPENROUTER_API_KEY. Set it in Vercel Project Settings before using Asvior AI.");
+    super(
+      "Missing OPENROUTER_API_KEY. Set it in Vercel or Lovable project secrets before using Asvior AI.",
+    );
     this.name = "MissingOpenRouterConfigError";
   }
+}
+
+/** Resolve the server-only OpenRouter key from deployment env (Vercel, Lovable, local .env). */
+export function getOpenRouterApiKey(): string | undefined {
+  const candidates = [
+    process.env.OPENROUTER_API_KEY,
+    process.env.LOVABLE_OPENROUTER_API_KEY,
+    process.env.AI_GATEWAY_API_KEY,
+  ];
+  for (const value of candidates) {
+    const trimmed = value?.trim();
+    if (trimmed) return trimmed;
+  }
+  return undefined;
 }
 
 /**

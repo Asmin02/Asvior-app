@@ -94,6 +94,12 @@ const TIME_FMT = new Intl.DateTimeFormat("en-US", {
   minute: "2-digit",
 });
 
+const EMBASSY_FINDER_PROMPT =
+  "How do I find the nearest embassy or consulate for a country I'm visiting?";
+
+const TRAVEL_TIPS_PROMPT =
+  "Give me your top 10 smart travel tips for international travelers.";
+
 const QUICK_ACTIONS = [
   {
     to: "/visa-check",
@@ -110,7 +116,8 @@ const QUICK_ACTIONS = [
     tone: "violet",
   },
   {
-    to: "/countries",
+    to: "/assistant",
+    search: { q: EMBASSY_FINDER_PROMPT },
     title: "Embassy Finder",
     desc: "Official contacts",
     icon: Landmark,
@@ -131,7 +138,8 @@ const QUICK_ACTIONS = [
     tone: "rose",
   },
   {
-    to: "/summary",
+    to: "/assistant",
+    search: { q: TRAVEL_TIPS_PROMPT },
     title: "Travel Tips",
     desc: "Know before you go",
     icon: Lightbulb,
@@ -449,6 +457,7 @@ function HomePage() {
               <Reveal key={action.title} delay={i * 55}>
                 <Link
                   to={action.to}
+                  search={"search" in action ? action.search : undefined}
                   className="float-card qa-tile group flex h-full flex-col gap-3 rounded-3xl p-4"
                 >
                   <span

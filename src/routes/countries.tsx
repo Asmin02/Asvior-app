@@ -153,7 +153,22 @@ function CountriesPage() {
           <Sparkles className="h-3.5 w-3.5 text-primary" />
         </div>
 
-        {filtered.length === 0 ? (
+        {all.length === 0 ? (
+          <div className="premium-card overflow-hidden rounded-3xl">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div
+                key={i}
+                className={`flex items-center gap-3 px-4 py-3.5 ${i !== 0 ? "border-t border-border/60" : ""}`}
+              >
+                <div className="skeleton-block h-10 w-10 shrink-0 rounded-xl" />
+                <div className="min-w-0 flex-1 space-y-2">
+                  <div className="skeleton-block h-3.5 w-2/5 rounded" />
+                  <div className="skeleton-block h-3 w-3/5 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="premium-card animate-fade-in rounded-3xl p-9 text-center">
             <p className="text-sm font-semibold text-foreground">No countries found</p>
             <p className="mt-1 text-xs text-muted-foreground">Try a different name or region.</p>
