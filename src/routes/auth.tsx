@@ -11,9 +11,23 @@ import { toast } from "sonner";
 import heroSkyline from "@/assets/hero-skyline.jpg";
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (search: Record<string, unknown>): { message?: string; redirect?: string } => ({
+  validateSearch: (search: Record<string, unknown>): {
+    message?: string;
+    redirect?: string;
+    code?: string;
+    token_hash?: string;
+    type?: string;
+    error?: string;
+    error_description?: string;
+  } => ({
     message: typeof search.message === "string" ? search.message : undefined,
     redirect: typeof search.redirect === "string" ? search.redirect : undefined,
+    code: typeof search.code === "string" ? search.code : undefined,
+    token_hash: typeof search.token_hash === "string" ? search.token_hash : undefined,
+    type: typeof search.type === "string" ? search.type : undefined,
+    error: typeof search.error === "string" ? search.error : undefined,
+    error_description:
+      typeof search.error_description === "string" ? search.error_description : undefined,
   }),
   head: () => ({
     meta: [
@@ -56,7 +70,11 @@ function AuthPage() {
     });
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (cancelled) return;
-      if (event === "SIGNED_IN" && session) navigate({ to: postAuthPath });
+      if (event === "SIGNED_IN" && session) {
+        // Child routes like /auth/callback handle their own post-auth navigation.
+        if (shouldBypassAuthPage(window.location.pathname)) return;
+        navigate({ to: postAuthPath });
+      }
     });
     return () => {
       cancelled = true;

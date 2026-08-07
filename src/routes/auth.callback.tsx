@@ -1,9 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
-import { exchangeAuthCallbackSession, inferAuthFlowType } from "@/lib/auth-callback-exchange";
+import { exchangeAuthCallbackSession, inferAuthFlowType, type AuthCallbackFlow } from "@/lib/auth-callback-exchange";
 import { setRecoveryInProgress } from "@/lib/auth-recovery";
 import { toast } from "sonner";
 
@@ -34,6 +34,15 @@ export function resolveCallbackParams(search: CallbackSearch): CallbackSearch {
   };
 }
 
+export function resolveCallbackFlowType(params: CallbackSearch, hashFragment?: string): AuthCallbackFlow {
+  if (params.type === "recovery") return "recovery";
+  if (typeof window !== "undefined" && window.location.search.includes("type=recovery")) {
+    return "recovery";
+  }
+  if (params.type === "email" || params.type === "signup") return "signup";
+  return inferAuthFlowType(params.type, hashFragment);
+}
+
 export const Route = createFileRoute("/auth/callback")({
   ssr: false,
   head: () => ({
@@ -55,9 +64,12 @@ function AuthCallbackPage() {
   const search = Route.useSearch();
   const [status, setStatus] = useState<"working" | "ok" | "error">("working");
   const [message, setMessage] = useState("Confirming your email…");
+  const handledRef = useRef(false);
 
   useEffect(() => {
+    if (handledRef.current) return;
     let cancelled = false;
+    let redirectTimer: ReturnType<typeof setTimeout> | undefined;
 
     (async () => {
       try {
@@ -66,7 +78,7 @@ function AuthCallbackPage() {
           typeof window !== "undefined" && window.location.hash.length > 1
             ? window.location.hash
             : undefined;
-        const flowType = inferAuthFlowType(params.type, hashFragment);
+        const flowType = resolveCallbackFlowType(params, hashFragment);
 
         const supabaseUrl =
           import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "";
@@ -89,15 +101,19 @@ function AuthCallbackPage() {
           setStatus("error");
           setMessage(noSessionMessage);
           toast.error(noSessionMessage);
-          setTimeout(() => navigate({ to: "/auth", replace: true }), 1400);
+          redirectTimer = setTimeout(() => navigate({ to: "/auth", replace: true }), 1400);
           return;
         }
 
+        handledRef.current = true;
         setStatus("ok");
         if (flowType === "recovery") {
           await setRecoveryInProgress();
           setMessage("Redirecting to password reset…");
-          setTimeout(() => navigate({ to: "/reset-password", replace: true }), 400);
+          redirectTimer = setTimeout(
+            () => navigate({ to: "/reset-password", replace: true }),
+            400,
+          );
         } else {
           setMessage("You're in. Redirecting…");
           toast.success(
@@ -105,7 +121,7 @@ function AuthCallbackPage() {
               ? "Email confirmed — welcome to Asvior!"
               : "Signed in successfully.",
           );
-          setTimeout(() => navigate({ to: "/profile", replace: true }), 400);
+          redirectTimer = setTimeout(() => navigate({ to: "/profile", replace: true }), 400);
         }
       } catch (err) {
         if (cancelled) return;
@@ -113,12 +129,13 @@ function AuthCallbackPage() {
         setStatus("error");
         setMessage(msg);
         toast.error(msg);
-        setTimeout(() => navigate({ to: "/auth", replace: true }), 1400);
+        redirectTimer = setTimeout(() => navigate({ to: "/auth", replace: true }), 1400);
       }
     })();
 
     return () => {
       cancelled = true;
+      if (redirectTimer) clearTimeout(redirectTimer);
     };
   }, [
     navigate,
