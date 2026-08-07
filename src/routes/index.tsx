@@ -20,12 +20,6 @@ import {
 } from "lucide-react";
 import { Reveal } from "@/components/motion/Reveal";
 import { AnimatedHero } from "@/components/home/AnimatedHero";
-import regionEurope from "@/assets/region-europe.jpg";
-import regionAsia from "@/assets/region-asia.jpg";
-import regionAmericas from "@/assets/region-americas.jpg";
-import regionOceania from "@/assets/region-oceania.jpg";
-import regionMiddleEast from "@/assets/region-middle-east.jpg";
-import regionAfrica from "@/assets/region-africa.jpg";
 import { AsviorMark } from "@/components/AsviorMark";
 import { ProfileMenu } from "@/components/home/ProfileMenu";
 import { supabase } from "@/integrations/supabase/client";
@@ -79,12 +73,12 @@ type PlanItem = {
 };
 
 const TRENDING_IMAGES = [
-  regionEurope,
-  regionAsia,
-  regionAmericas,
-  regionOceania,
-  regionMiddleEast,
-  regionAfrica,
+  "/regions/region-europe.jpg",
+  "/regions/region-asia.jpg",
+  "/regions/region-americas.jpg",
+  "/regions/region-oceania.jpg",
+  "/regions/region-middle-east.jpg",
+  "/regions/region-africa.jpg",
 ];
 
 const HOME_REFERENCE_DATE = new Date("2026-01-01T00:00:00.000Z");
