@@ -611,7 +611,7 @@ function HomePage() {
             </div>
           </Reveal>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {trending.slice(0, 6).map((destination, i) => (
+            {personalTrending.slice(0, 6).map((destination, i) => (
               <Reveal key={destination.code} delay={i * 55}>
                 <Link
                   to="/country/$code"
@@ -677,7 +677,7 @@ function HomePage() {
             />
           ) : (
             <div className="space-y-2.5">
-              {news.slice(0, 6).map((item, i) => (
+              {personalNews.slice(0, 8).map((item, i) => (
                 <Reveal key={item.id} delay={i * 50}>
                   <NewsCard item={item} />
                 </Reveal>
