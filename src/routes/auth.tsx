@@ -118,10 +118,6 @@ function AuthPage() {
     }
   };
 
-  const handleGoogle = async () => {
-    toast.info("Google sign-in coming soon.");
-  };
-
   return (
     <div className="relative min-h-dvh overflow-hidden bg-background">
       <img
@@ -135,7 +131,7 @@ function AuthPage() {
 
       <div
         data-testid="auth-page"
-        className="relative px-4 pt-[calc(var(--safe-top)+1.5rem)] pb-10"
+        className="relative px-4 pt-[calc(var(--safe-top)+1.5rem)] pb-[calc(2rem+env(safe-area-inset-bottom))]"
       >
         <Link
           data-testid="auth-back-link"
@@ -248,8 +244,10 @@ function AuthPage() {
               </div>
               <button
                 type="button"
-                onClick={handleGoogle}
-                className="flex h-12 w-full items-center justify-center gap-2.5 rounded-full border border-border/60 bg-background/70 text-sm font-semibold text-foreground backdrop-blur-md transition-transform active:scale-95"
+                disabled
+                aria-disabled="true"
+                title="Google sign-in will be available in a future update"
+                className="flex h-12 w-full cursor-not-allowed items-center justify-center gap-2.5 rounded-full border border-border/60 bg-background/50 text-sm font-semibold text-muted-foreground opacity-60"
               >
                 <svg className="h-4.5 w-4.5" viewBox="0 0 24 24">
                   <path

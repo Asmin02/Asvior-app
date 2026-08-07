@@ -165,7 +165,7 @@ function CountryHubPage() {
   ];
 
   return (
-    <div className="relative overflow-x-hidden pb-6">
+    <div className="relative overflow-x-hidden pb-[calc(6rem+env(safe-area-inset-bottom))]">
       {/* ============ HERO ============ */}
       <section className="relative min-h-[26rem] overflow-hidden rounded-b-[2.25rem]">
         <SmoothImage

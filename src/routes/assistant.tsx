@@ -164,7 +164,7 @@ function AssistantPage() {
   });
   const isLoading = status === "submitted" || status === "streaming";
   const keyboardInset = useKeyboardInset();
-  const guestRemaining = isSignedIn ? null : getGuestAiRemaining();
+  const [guestRemaining, setGuestRemaining] = useState<number | null>(null);
   const authErrorRequiresSignIn =
     !!error &&
     (error.message.includes("Sign in") ||
@@ -172,6 +172,11 @@ function AssistantPage() {
       error.message.includes("401"));
   const lastMessage = messages[messages.length - 1];
   const lastMessageText = lastMessage ? getText(lastMessage) : "";
+
+  useEffect(() => {
+    if (!authResolved) return;
+    setGuestRemaining(isSignedIn ? null : getGuestAiRemaining());
+  }, [authResolved, isSignedIn, authScope]);
 
   useEffect(() => {
     let cancelled = false;
@@ -344,7 +349,10 @@ function AssistantPage() {
 
     stickToBottomRef.current = true;
     setInput("");
-    if (!isSignedIn) incrementGuestAiMessageCount();
+    if (!isSignedIn) {
+      incrementGuestAiMessageCount();
+      setGuestRemaining(getGuestAiRemaining());
+    }
     await sendMessage({ text: value });
     requestAnimationFrame(() => {
       scrollToBottom("auto");
@@ -363,10 +371,6 @@ function AssistantPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
-
-  const handleVoice = () => {
-    toast.info("Voice input coming soon — type your question for now.");
-  };
 
   const clearChat = () => {
     setMessages([]);
@@ -553,9 +557,10 @@ function AssistantPage() {
         <div className="rounded-3xl border border-border/50 bg-card/80 p-2 elev-4 backdrop-blur-xl">
           <div className="flex items-end gap-2">
             <button
-              onClick={handleVoice}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-secondary text-navy transition-transform active:scale-95"
-              aria-label="Voice input"
+              type="button"
+              disabled
+              aria-label="Voice input (coming soon)"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-secondary text-navy opacity-50"
             >
               <svg
                 className="h-5 w-5"

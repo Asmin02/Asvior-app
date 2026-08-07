@@ -189,7 +189,12 @@ function MobileNav() {
   const router = useRouter();
   const pathname = router.state.location.pathname;
 
-  if (pathname.startsWith("/assistant")) return null;
+  const hideNav =
+    pathname.startsWith("/assistant") ||
+    pathname.startsWith("/auth") ||
+    pathname.startsWith("/reset-password");
+
+  if (hideNav) return null;
 
 
 
@@ -263,7 +268,10 @@ function RootComponent() {
   const router = useRouter();
   const activeUserIdRef = useRef<string | null>(null);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isAssistant = pathname.startsWith("/assistant");
+  const isImmersive =
+    pathname.startsWith("/assistant") ||
+    pathname.startsWith("/auth") ||
+    pathname.startsWith("/reset-password");
 
   useEffect(() => {
     let cancelled = false;
@@ -356,7 +364,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <SplashScreen />
       <main
-        className={`mx-auto min-h-dvh max-w-md bg-background font-sans antialiased ${isAssistant ? "pb-0" : "pb-[calc(7rem+env(safe-area-inset-bottom))]"}`}
+        className={`mx-auto min-h-dvh max-w-md bg-background font-sans antialiased ${isImmersive ? "pb-0" : "pb-[calc(7rem+env(safe-area-inset-bottom))]"}`}
       >
         <PageTransition>
           <Outlet />
