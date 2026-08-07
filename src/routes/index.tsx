@@ -19,7 +19,7 @@ import {
   MapPinned,
 } from "lucide-react";
 import { Reveal } from "@/components/motion/Reveal";
-import { AnimatedHero } from "@/components/home/AnimatedHero";
+import { CinematicHero } from "@/components/home/CinematicHero";
 import { AsviorMark } from "@/components/AsviorMark";
 import { ProfileMenu } from "@/components/home/ProfileMenu";
 import { supabase } from "@/integrations/supabase/client";
@@ -389,38 +389,41 @@ function HomePage() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-3xl space-y-7 px-5 pt-4">
-        {/* ---------- Living animated hero ---------- */}
-        <AnimatedHero>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/75">
-            Your travel companion
-          </p>
-          <h1 className="mt-2 max-w-[16ch] text-[1.75rem] font-semibold leading-[1.1] tracking-[-0.03em] text-white">
-            Plan your next journey with confidence.
-          </h1>
-          <p className="mt-2 max-w-[34ch] text-sm leading-relaxed text-white/80">
-            Visa answers, budgets and AI itineraries — in one calm place.
-          </p>
-          <div className="mt-5 flex flex-wrap gap-2.5">
-            <Link
-              to="/assistant"
-              className="spring-press inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-slate-900 shadow-lg"
-            >
-              Start Planning
-              <ArrowRight className="h-4 w-4" strokeWidth={2} />
-            </Link>
-            <Link
-              to="/visa-check"
-              className="spring-press glass-control inline-flex h-11 items-center gap-2 rounded-full px-5 text-sm font-semibold text-white"
-            >
-              Visa Checker
-            </Link>
-          </div>
-        </AnimatedHero>
+      {/* ---------- Cinematic photographic hero ---------- */}
+      <CinematicHero>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/70">
+          Your travel companion
+        </p>
+        <h1 className="mt-3 max-w-[15ch] text-[2.15rem] font-semibold leading-[1.06] tracking-[-0.035em] text-white">
+          The world is closer than you think.
+        </h1>
+        <p className="mt-3 max-w-[34ch] text-[0.9375rem] leading-relaxed text-white/80">
+          Visas, budgets and itineraries — planned by your AI travel companion.
+        </p>
+        <div className="mt-6 flex flex-wrap gap-2.5">
+          <Link
+            to="/assistant"
+            className="spring-press cine-cta-primary inline-flex h-11 items-center gap-2 rounded-full px-5 text-sm font-semibold"
+          >
+            Start Planning
+            <ArrowRight className="h-4 w-4" strokeWidth={2} />
+          </Link>
+          <Link
+            to="/visa-check"
+            className="spring-press cine-cta-ghost inline-flex h-11 items-center gap-2 rounded-full px-5 text-sm font-semibold"
+          >
+            Visa Checker
+          </Link>
+        </div>
+      </CinematicHero>
 
-
+      <div className="mx-auto max-w-3xl space-y-7 px-5">
         {/* ---------- Search ---------- */}
-        <Link to="/visa-check" className="search-float -mt-4" aria-label="Search destinations">
+        <Link
+          to="/visa-check"
+          className="search-float relative z-10 -mt-9"
+          aria-label="Search destinations"
+        >
           <span className="grad-signal flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-white">
             <Search className="h-[1.15rem] w-[1.15rem]" strokeWidth={1.9} />
           </span>
@@ -434,6 +437,7 @@ function HomePage() {
           </div>
           <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
         </Link>
+
 
         {/* ---------- Quick actions ---------- */}
         <section>
