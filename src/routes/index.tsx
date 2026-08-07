@@ -192,6 +192,26 @@ function HomePage() {
   const greeting = useMemo(() => (now ? greetingFor(now) : "Welcome"), [now]);
   const trending = useMemo(() => getDailyTrendingDestinations(referenceDate, 6), [referenceDate]);
 
+  /** Countries the traveller already engaged with — used to personalise ordering. */
+  const affinity = useMemo(() => new Set(recent.map((r) => r.destination)), [recent]);
+
+  const personalTrending = useMemo(
+    () =>
+      [...trending].sort(
+        (a, b) => Number(affinity.has(b.code)) - Number(affinity.has(a.code)),
+      ),
+    [trending, affinity],
+  );
+
+  const personalNews = useMemo(
+    () =>
+      [...news].sort(
+        (a, b) => Number(affinity.has(b.countryCode)) - Number(affinity.has(a.countryCode)),
+      ),
+    [news, affinity],
+  );
+
+
   const refreshState = useCallback(async () => {
     const { data } = await supabase.auth.getSession();
     const user = data.session?.user;
