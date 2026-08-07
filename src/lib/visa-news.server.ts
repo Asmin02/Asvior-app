@@ -1,16 +1,11 @@
 import type { HomeVisaUpdate } from "@/data/home-feed";
 
-/** Trusted government / immigration RSS sources. */
+/** Trusted government / immigration RSS sources — one per country, global mix. */
 const FEED_SOURCES = [
   {
-    url: "https://travel.state.gov/_res/rss/TAs.xml",
-    source: "U.S. Department of State",
-    defaultCountry: "US",
-  },
-  {
-    url: "https://www.gov.uk/government/organisations/uk-visas-and-immigration.atom",
-    source: "UK Visas and Immigration",
-    defaultCountry: "GB",
+    url: "https://www.mofa.go.jp/mofaj/rss/whatsnew.xml",
+    source: "Ministry of Foreign Affairs of Japan",
+    defaultCountry: "JP",
   },
   {
     url: "https://www.canada.ca/en/immigration-refugees-citizenship/news.atom",
@@ -23,9 +18,9 @@ const FEED_SOURCES = [
     defaultCountry: "AU",
   },
   {
-    url: "https://www.immigration.govt.nz/about-us/media-centre/news-notifications/rss",
-    source: "Immigration New Zealand",
-    defaultCountry: "NZ",
+    url: "https://travel.state.gov/_res/rss/TAs.xml",
+    source: "U.S. Department of State",
+    defaultCountry: "US",
   },
   {
     url: "https://www.ica.gov.sg/rss/news",
@@ -33,16 +28,78 @@ const FEED_SOURCES = [
     defaultCountry: "SG",
   },
   {
-    url: "https://www.mofa.go.jp/mofaj/rss/whatsnew.xml",
-    source: "Ministry of Foreign Affairs of Japan",
-    defaultCountry: "JP",
+    url: "https://www.auswaertiges-amt.de/en/newsroom/news/rss",
+    source: "German Federal Foreign Office",
+    defaultCountry: "DE",
   },
   {
-    url: "https://www.schengenvisainfo.com/news/feed/",
-    source: "Schengen Visa Info",
-    defaultCountry: "EU",
+    url: "https://www.diplomatie.gouv.fr/spip.php?page=backend-fd&id_rubrique=1",
+    source: "France Diplomatie",
+    defaultCountry: "FR",
+  },
+  {
+    url: "https://www.mofa.go.kr/eng/rss/notice.xml",
+    source: "Ministry of Foreign Affairs, Republic of Korea",
+    defaultCountry: "KR",
+  },
+  {
+    url: "https://www.immigration.go.th/rss",
+    source: "Thailand Immigration Bureau",
+    defaultCountry: "TH",
+  },
+  {
+    url: "https://www.immigration.govt.nz/about-us/media-centre/news-notifications/rss",
+    source: "Immigration New Zealand",
+    defaultCountry: "NZ",
+  },
+  {
+    url: "https://www.esteri.it/it/rss/notizie/",
+    source: "Italian Ministry of Foreign Affairs",
+    defaultCountry: "IT",
+  },
+  {
+    url: "https://u.ae/en/rss/news",
+    source: "United Arab Emirates Government",
+    defaultCountry: "AE",
+  },
+  {
+    url: "https://www.imi.gov.my/index.php/feed/",
+    source: "Immigration Department of Malaysia",
+    defaultCountry: "MY",
+  },
+  {
+    url: "https://www.immigration.gov.np/feed",
+    source: "Department of Immigration Nepal",
+    defaultCountry: "NP",
+  },
+  {
+    url: "https://www.gov.uk/government/organisations/uk-visas-and-immigration.atom",
+    source: "UK Visas and Immigration",
+    defaultCountry: "GB",
+  },
+  {
+    url: "https://www.ireland.ie/en/rss/news/",
+    source: "Department of Foreign Affairs Ireland",
+    defaultCountry: "IE",
+  },
+  {
+    url: "https://www.government.nl/rss/latest",
+    source: "Government of the Netherlands",
+    defaultCountry: "NL",
+  },
+  {
+    url: "https://www.mea.gov.in/press-releases.htm?51/rss",
+    source: "Ministry of External Affairs, India",
+    defaultCountry: "IN",
   },
 ] as const;
+
+/** Preferred country order for the feed so no single country dominates. */
+const COUNTRY_ORDER = [
+  "JP", "CA", "AU", "US", "SG", "DE", "FR", "KR",
+  "TH", "NZ", "IT", "AE", "MY", "NP", "GB", "IE", "NL", "IN",
+];
+
 
 /** Round-robin across countries so one source cannot dominate the feed. */
 function interleaveByCountry(items: HomeVisaUpdate[], limit: number): HomeVisaUpdate[] {
