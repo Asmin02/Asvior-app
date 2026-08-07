@@ -20,12 +20,6 @@ import {
 } from "lucide-react";
 import { Reveal } from "@/components/motion/Reveal";
 import { AnimatedHero } from "@/components/home/AnimatedHero";
-import regionEurope from "@/assets/region-europe.jpg";
-import regionAsia from "@/assets/region-asia.jpg";
-import regionAmericas from "@/assets/region-americas.jpg";
-import regionOceania from "@/assets/region-oceania.jpg";
-import regionMiddleEast from "@/assets/region-middle-east.jpg";
-import regionAfrica from "@/assets/region-africa.jpg";
 import { AsviorMark } from "@/components/AsviorMark";
 import { ProfileMenu } from "@/components/home/ProfileMenu";
 import { supabase } from "@/integrations/supabase/client";
@@ -79,12 +73,12 @@ type PlanItem = {
 };
 
 const TRENDING_IMAGES = [
-  regionEurope,
-  regionAsia,
-  regionAmericas,
-  regionOceania,
-  regionMiddleEast,
-  regionAfrica,
+  "/regions/region-europe.jpg",
+  "/regions/region-asia.jpg",
+  "/regions/region-americas.jpg",
+  "/regions/region-oceania.jpg",
+  "/regions/region-middle-east.jpg",
+  "/regions/region-africa.jpg",
 ];
 
 const HOME_REFERENCE_DATE = new Date("2026-01-01T00:00:00.000Z");
@@ -191,6 +185,26 @@ function HomePage() {
   const referenceDate = now ?? HOME_REFERENCE_DATE;
   const greeting = useMemo(() => (now ? greetingFor(now) : "Welcome"), [now]);
   const trending = useMemo(() => getDailyTrendingDestinations(referenceDate, 6), [referenceDate]);
+
+  /** Countries the traveller already engaged with — used to personalise ordering. */
+  const affinity = useMemo(() => new Set(recent.map((r) => r.destination)), [recent]);
+
+  const personalTrending = useMemo(
+    () =>
+      [...trending].sort(
+        (a, b) => Number(affinity.has(b.code)) - Number(affinity.has(a.code)),
+      ),
+    [trending, affinity],
+  );
+
+  const personalNews = useMemo(
+    () =>
+      [...news].sort(
+        (a, b) => Number(affinity.has(b.countryCode)) - Number(affinity.has(a.countryCode)),
+      ),
+    [news, affinity],
+  );
+
 
   const refreshState = useCallback(async () => {
     const { data } = await supabase.auth.getSession();
@@ -431,13 +445,14 @@ function HomePage() {
               <Reveal key={action.title} delay={i * 55}>
                 <Link
                   to={action.to}
-                  className="float-card group flex h-full flex-col gap-3 rounded-3xl p-4"
+                  className="float-card qa-tile group flex h-full flex-col gap-3 rounded-3xl p-4"
                 >
                   <span
-                    className={`flex h-11 w-11 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-105 ${TONE_CLASS[action.tone]}`}
+                    className={`qa-icon flex h-11 w-11 items-center justify-center rounded-2xl ${TONE_CLASS[action.tone]}`}
                   >
                     <action.icon className="h-[1.15rem] w-[1.15rem]" strokeWidth={1.8} />
                   </span>
+
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-semibold tracking-[-0.01em] text-foreground">
                       {action.title}
@@ -532,9 +547,9 @@ function HomePage() {
             </div>
           </Reveal>
           {!hydrated ? (
-            <div className="space-y-2.5">
-              {[0, 1, 2].map((i) => (
-                <div key={i} className="skeleton-block h-[4.25rem] rounded-3xl" />
+            <div className="chip-rail">
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} className="skeleton-block h-10 w-36 shrink-0 rounded-full" />
               ))}
             </div>
           ) : recent.length === 0 ? (
@@ -546,34 +561,37 @@ function HomePage() {
               actionTo="/visa-check"
             />
           ) : (
-            <div className="space-y-2.5">
-              {recent.slice(0, MAX_RECENT_SEARCHES).map((r, i) => (
-                <Reveal key={`${r.passport}-${r.destination}-${r.timestamp}`} delay={i * 50}>
-                  <div className="float-card flex items-center gap-3.5 rounded-3xl p-4">
+            <div className="chip-rail" role="list">
+              {recent.slice(0, MAX_RECENT_SEARCHES).map((r) => (
+                <div
+                  key={`${r.passport}-${r.destination}-${r.timestamp}`}
+                  role="listitem"
+                  className="search-chip float-card group flex shrink-0 items-center gap-2 rounded-full py-1.5 pl-2 pr-1.5"
+                >
+                  <Link
+                    to="/country/$code"
+                    params={{ code: r.destination }}
+                    className="flex items-center gap-2 outline-none"
+                    title={`${getCountryName(r.destination)} · ${r.status}`}
+                  >
                     <CountryFlag code={r.destination} size="sm" />
-                    <Link
-                      to="/country/$code"
-                      params={{ code: r.destination }}
-                      className="min-w-0 flex-1 outline-none"
-                    >
-                      <p className="truncate text-sm font-semibold text-foreground">
-                        {getCountryName(r.destination)}
-                      </p>
-                      <p className="mt-0.5 truncate text-xs text-muted-foreground">{r.status}</p>
-                    </Link>
-                    <button
-                      type="button"
-                      aria-label={`Delete ${getCountryName(r.destination)} search`}
-                      onClick={() => setRecent(removeRecentSearch(r.passport, r.destination, scope))}
-                      className="spring-press flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground"
-                    >
-                      <X className="h-4 w-4" strokeWidth={2} />
-                    </button>
-                  </div>
-                </Reveal>
+                    <span className="whitespace-nowrap text-[0.8125rem] font-semibold text-foreground">
+                      {getCountryName(r.destination)}
+                    </span>
+                  </Link>
+                  <button
+                    type="button"
+                    aria-label={`Delete ${getCountryName(r.destination)} search`}
+                    onClick={() => setRecent(removeRecentSearch(r.passport, r.destination, scope))}
+                    className="spring-press flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                  >
+                    <X className="h-3.5 w-3.5" strokeWidth={2.2} />
+                  </button>
+                </div>
               ))}
             </div>
           )}
+
         </section>
 
         {/* ---------- Inspiration ---------- */}
@@ -587,7 +605,7 @@ function HomePage() {
             </div>
           </Reveal>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {trending.slice(0, 6).map((destination, i) => (
+            {personalTrending.slice(0, 6).map((destination, i) => (
               <Reveal key={destination.code} delay={i * 55}>
                 <Link
                   to="/country/$code"
@@ -653,7 +671,7 @@ function HomePage() {
             />
           ) : (
             <div className="space-y-2.5">
-              {news.slice(0, 6).map((item, i) => (
+              {personalNews.slice(0, 8).map((item, i) => (
                 <Reveal key={item.id} delay={i * 50}>
                   <NewsCard item={item} />
                 </Reveal>

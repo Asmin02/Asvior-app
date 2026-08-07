@@ -2191,3 +2191,228 @@
     animation: none !important;
   }
 }
+
+/* =========================================================
+   V11 HERO SCENE EXTENSIONS + HOME MICRO-INTERACTIONS
+   ========================================================= */
+
+.hero-shell {
+  min-height: 19rem;
+  box-shadow:
+    0 30px 70px -44px rgb(2 6 23 / 0.75),
+    inset 0 1px 0 0 oklch(1 0 0 / 0.12);
+}
+
+/* Slow cinematic camera drift over the entire scene */
+.hero-camera {
+  position: absolute;
+  inset: -3%;
+  animation: hero-camera-drift 30s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes hero-camera-drift {
+  0%, 100% { transform: scale(1.04) translate3d(0, 0, 0); }
+  50% { transform: scale(1.09) translate3d(-1.2%, -1%, 0); }
+}
+
+/* Ambient colour shimmer sweeping corner to corner */
+.hero-shimmer {
+  position: absolute;
+  inset: -30%;
+  background: linear-gradient(
+    115deg,
+    transparent 35%,
+    oklch(1 0 0 / 0.16) 48%,
+    transparent 62%
+  );
+  animation: hero-shimmer-sweep 14s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes hero-shimmer-sweep {
+  0%, 100% { transform: translate3d(-24%, 0, 0); opacity: 0; }
+  45% { opacity: 0.85; }
+  100% { transform: translate3d(30%, 0, 0); opacity: 0; }
+}
+
+/* Low-lying fog band */
+.hero-fog {
+  position: absolute;
+  inset-inline: -20%;
+  bottom: 12%;
+  height: 34%;
+  background: linear-gradient(180deg, transparent, oklch(1 0 0 / 0.28) 55%, transparent);
+  filter: blur(16px);
+  opacity: 0.55;
+  animation: hero-fog-roll 38s ease-in-out infinite;
+  will-change: transform;
+}
+
+.dark .hero-fog { opacity: 0.28; }
+
+@keyframes hero-fog-roll {
+  0%, 100% { transform: translate3d(-6%, 0, 0); }
+  50% { transform: translate3d(6%, -6px, 0); }
+}
+
+/* Water plane with moving reflections */
+.hero-water {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 22%;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, oklch(0.62 0.1 235 / 0.55) 0%, oklch(0.42 0.09 250 / 0.85) 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, black 30%, black 100%);
+}
+
+.dark .hero-water {
+  background: linear-gradient(180deg, oklch(0.32 0.07 258 / 0.7) 0%, oklch(0.2 0.05 262 / 0.95) 100%);
+}
+
+.hero-water-glint {
+  position: absolute;
+  inset-inline: -30%;
+  top: 22%;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    oklch(1 0 0 / 0.55) 0px,
+    oklch(1 0 0 / 0.55) 14px,
+    transparent 14px,
+    transparent 46px
+  );
+  filter: blur(1px);
+  animation: hero-glint 9s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.hero-water-glint-2 {
+  top: 58%;
+  opacity: 0.6;
+  animation-duration: 13s;
+  animation-delay: -4s;
+}
+
+@keyframes hero-glint {
+  0%, 100% { transform: translate3d(-6%, 0, 0); opacity: 0.35; }
+  50% { transform: translate3d(6%, 0, 0); opacity: 0.85; }
+}
+
+/* Bird flock gliding across */
+.hero-bird {
+  position: absolute;
+  left: -12%;
+  color: oklch(1 0 0 / 0.7);
+  animation-name: hero-bird-glide;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes hero-bird-glide {
+  0% { transform: translate3d(0, 0, 0) scale(0.8); opacity: 0; }
+  10% { opacity: 0.8; }
+  50% { transform: translate3d(60vw, -14px, 0) scale(0.8); }
+  85% { opacity: 0.65; }
+  100% { transform: translate3d(125vw, 8px, 0) scale(0.8); opacity: 0; }
+}
+
+/* Second, more distant aircraft */
+.hero-plane-far {
+  top: 12%;
+  color: oklch(1 0 0 / 0.55);
+  animation: hero-plane-cross 44s linear infinite -14s;
+}
+
+.hero-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 90% at 50% 40%, transparent 55%, rgb(2 6 23 / 0.4) 100%);
+  pointer-events: none;
+}
+
+/* ---------- Search bar: glow + expansion on focus ---------- */
+.search-float {
+  transition:
+    transform 0.35s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1)),
+    box-shadow 0.35s ease,
+    border-color 0.35s ease;
+}
+
+.search-float:hover {
+  transform: translate3d(0, -2px, 0) scale(1.008);
+}
+
+.search-float:focus-visible,
+.search-float:active {
+  transform: translate3d(0, -3px, 0) scale(1.014);
+  outline: none;
+  box-shadow:
+    0 0 0 3px color-mix(in oklab, var(--primary) 22%, transparent),
+    0 26px 48px -26px color-mix(in oklab, var(--primary) 60%, transparent);
+}
+
+/* ---------- Quick action tiles ---------- */
+.qa-tile {
+  transition:
+    transform 0.34s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.34s ease;
+  will-change: transform;
+}
+
+.qa-tile:hover {
+  transform: translate3d(0, -4px, 0);
+  box-shadow: 0 24px 42px -28px rgb(2 6 23 / 0.55);
+}
+
+.qa-tile:active {
+  transform: translate3d(0, -1px, 0) scale(0.985);
+}
+
+.qa-tile .qa-icon {
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.qa-tile:hover .qa-icon {
+  transform: translate3d(0, -2px, 0) scale(1.08) rotate(-4deg);
+}
+
+/* ---------- Horizontal chip rail ---------- */
+.chip-rail {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 0.25rem 1.25rem 0.35rem;
+  margin-inline: -1.25rem;
+}
+
+.chip-rail::-webkit-scrollbar { display: none; }
+
+.chip-rail > * { scroll-snap-align: start; }
+
+.search-chip {
+  transition:
+    transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.28s ease,
+    background-color 0.28s ease;
+}
+
+.search-chip:hover { transform: translate3d(0, -2px, 0); }
+.search-chip:active { transform: scale(0.96); }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-camera,
+  .hero-shimmer,
+  .hero-fog,
+  .hero-water-glint,
+  .hero-bird,
+  .hero-plane-far {
+    animation: none !important;
+  }
+}
