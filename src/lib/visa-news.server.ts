@@ -70,6 +70,11 @@ const FEED_SOURCES = [
 
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const FEED_LIMIT = 36;
+const MAX_ITEM_AGE_MS = 90 * 24 * 60 * 60 * 1000;
+const FEED_HEADERS = {
+  Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml",
+  "User-Agent": "Asvior/1.0 (+https://asvior.app; immigration feed)",
+};
 
 type NewsCache = {
   fetchedAt: number;
@@ -133,6 +138,9 @@ function parseFeedItems(
 
     if (!title) continue;
 
+    const publishedMs = new Date(publishedAt).getTime();
+    if (!Number.isNaN(publishedMs) && now - publishedMs > MAX_ITEM_AGE_MS) continue;
+
     const summary = (desc || title).slice(0, 280);
     const base = {
       id: `${source}-${link || title}`.slice(0, 120).replace(/[^a-zA-Z0-9-_]/g, "-"),
@@ -158,8 +166,8 @@ async function fetchFeed(
 ): Promise<HomeVisaUpdate[]> {
   try {
     const res = await fetch(url, {
-      headers: { Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml" },
-      signal: AbortSignal.timeout(12_000),
+      headers: FEED_HEADERS,
+      signal: AbortSignal.timeout(8_000),
     });
     if (!res.ok) return [];
     const xml = await res.text();

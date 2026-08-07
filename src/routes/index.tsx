@@ -33,7 +33,11 @@ import { CountryFlag } from "@/components/CountryFlag";
 import { loadBookmarks } from "@/components/ai-cards";
 import { GUEST_STORAGE_SCOPE } from "@/lib/app-session";
 import { SmoothImage } from "@/components/motion/SmoothImage";
-import { getDailyTrendingDestinations, type HomeVisaUpdate } from "@/data/home-feed";
+import {
+  getDailyTrendingDestinations,
+  normalizeHomeVisaUpdates,
+  type HomeVisaUpdate,
+} from "@/data/home-feed";
 import { resolveApiUrl } from "@/lib/api-base";
 
 export const Route = createFileRoute("/")({
@@ -233,7 +237,7 @@ function HomePage() {
     let cancelled = false;
     const load = async () => {
       try {
-        const res = await fetch(resolveApiUrl("/api/visa-news"));
+        const res = await fetch(resolveApiUrl("/api/visa-news?schema=2"), { cache: "no-store" });
         if (!res.ok) throw new Error("failed");
         const payload = (await res.json()) as {
           items: HomeVisaUpdate[];
@@ -241,7 +245,7 @@ function HomePage() {
           stale: boolean;
         };
         if (cancelled) return;
-        setNews(payload.items ?? []);
+        setNews(normalizeHomeVisaUpdates(payload.items));
         setNewsMeta({ fetchedAt: payload.fetchedAt, stale: !!payload.stale });
       } catch {
         if (!cancelled) {

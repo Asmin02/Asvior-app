@@ -14,7 +14,7 @@ export const Route = createFileRoute("/api/visa-news")({
             request,
             Response.json(payload, {
               headers: {
-                "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+                "Cache-Control": "public, max-age=300, stale-while-revalidate=3600",
               },
             }),
           );

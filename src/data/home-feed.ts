@@ -32,6 +32,89 @@ export interface HomeVisaUpdate {
   isOfficial: boolean;
 }
 
+const IMMIGRATION_BADGES = new Set<ImmigrationBadge>(["new", "visa", "immigration", "border"]);
+
+const CODE_REGION: Partial<Record<string, Region>> = {
+  US: "americas",
+  CA: "americas",
+  MX: "americas",
+  BR: "americas",
+  AR: "americas",
+  GB: "europe",
+  EU: "europe",
+  DE: "europe",
+  FR: "europe",
+  IT: "europe",
+  ES: "europe",
+  PT: "europe",
+  NL: "europe",
+  CH: "europe",
+  AT: "europe",
+  BE: "europe",
+  NO: "europe",
+  SE: "europe",
+  DK: "europe",
+  FI: "europe",
+  IE: "europe",
+  PL: "europe",
+  CZ: "europe",
+  HU: "europe",
+  GR: "europe",
+  AU: "oceania",
+  NZ: "oceania",
+  JP: "asia",
+  KR: "asia",
+  SG: "asia",
+  MY: "asia",
+  TH: "asia",
+  VN: "asia",
+  ID: "asia",
+  PH: "asia",
+  HK: "asia",
+  TW: "asia",
+  IN: "asia",
+  NP: "asia",
+  AE: "middle-east",
+  QA: "middle-east",
+  SA: "middle-east",
+  TR: "middle-east",
+  ZA: "africa",
+  MA: "africa",
+  EG: "africa",
+};
+
+export function homeVisaRegion(code: string): Region {
+  return CODE_REGION[code.toUpperCase()] ?? "europe";
+}
+
+type RawHomeVisaUpdate = Partial<HomeVisaUpdate> &
+  Pick<HomeVisaUpdate, "id" | "countryCode" | "title" | "summary" | "publishedAt" | "source">;
+
+/** Normalize cached or legacy API rows into the current feed schema. */
+export function normalizeHomeVisaUpdate(item: RawHomeVisaUpdate): HomeVisaUpdate {
+  const countryCode = item.countryCode.toUpperCase();
+  return {
+    id: item.id,
+    countryCode,
+    countryName: item.countryName ?? getCountryName(countryCode),
+    title: item.title,
+    summary: item.summary,
+    publishedAt: item.publishedAt,
+    source: item.source,
+    url: item.url,
+    region: item.region ?? homeVisaRegion(countryCode),
+    badges: Array.isArray(item.badges)
+      ? item.badges.filter((badge): badge is ImmigrationBadge => IMMIGRATION_BADGES.has(badge))
+      : [],
+    importance: item.importance ?? 0,
+    isOfficial: item.isOfficial ?? true,
+  };
+}
+
+export function normalizeHomeVisaUpdates(items: RawHomeVisaUpdate[] | undefined): HomeVisaUpdate[] {
+  return (items ?? []).map(normalizeHomeVisaUpdate);
+}
+
 const PLACE_OVERRIDES: Record<string, string[]> = {
   JP: ["Tokyo", "Kyoto", "Osaka"],
   FR: ["Paris", "Nice", "Lyon"],

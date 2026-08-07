@@ -76,6 +76,7 @@ function matchesSearch(item: HomeVisaUpdate, query: string): boolean {
 }
 
 function ImmigrationCard({ item }: { item: HomeVisaUpdate }) {
+  const badges = item.badges ?? [];
   const body = (
     <article className="immigration-card group relative overflow-hidden rounded-3xl p-4 sm:p-5">
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/[0.04] via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
@@ -88,17 +89,21 @@ function ImmigrationCard({ item }: { item: HomeVisaUpdate }) {
             <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
               {item.countryName}
             </p>
-            {item.badges.map((badge) => (
-              <span
-                key={badge}
-                className={cn(
-                  "inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] ring-1 ring-inset",
-                  BADGE_META[badge].className,
-                )}
-              >
-                {BADGE_META[badge].label}
-              </span>
-            ))}
+            {badges.map((badge) => {
+              const meta = BADGE_META[badge];
+              if (!meta) return null;
+              return (
+                <span
+                  key={badge}
+                  className={cn(
+                    "inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] ring-1 ring-inset",
+                    meta.className,
+                  )}
+                >
+                  {meta.label}
+                </span>
+              );
+            })}
           </div>
           <h3 className="mt-1.5 text-sm font-semibold leading-snug text-foreground transition-colors group-hover:text-primary">
             {item.title}
