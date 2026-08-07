@@ -41,6 +41,7 @@ function AuthPage() {
   const [fullName, setFullName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null);
 
   const postAuthPath =
     search.redirect && search.redirect.startsWith("/") ? search.redirect : "/profile";
@@ -74,6 +75,31 @@ function AuthPage() {
     return <Outlet />;
   }
 
+  const resendConfirmation = async () => {
+    if (!email.trim()) {
+      toast.error("Enter your email address first.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: email.trim(),
+        options: {
+          emailRedirectTo: getEmailVerificationRedirectUrl(),
+        },
+      });
+      if (error) throw error;
+      setPendingVerificationEmail(email.trim());
+      toast.success("Confirmation email sent — check your inbox.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Could not resend confirmation email";
+      toast.error(message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const handle = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
@@ -81,7 +107,12 @@ function AuthPage() {
     try {
       if (mode === "signin") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        if (error) {
+          if (/confirm|verified|verification/i.test(error.message)) {
+            setPendingVerificationEmail(email.trim());
+          }
+          throw error;
+        }
         toast.success("Welcome back!");
         navigate({ to: postAuthPath });
       } else if (mode === "signup") {
@@ -101,6 +132,7 @@ function AuthPage() {
           navigate({ to: postAuthPath });
         } else {
           // Email confirmations enabled — wait for verification link.
+          setPendingVerificationEmail(email.trim());
           toast.success("Account created — check your email to verify, then sign in.");
           setMode("signin");
           setPassword("");
@@ -286,6 +318,20 @@ function AuthPage() {
                 >
                   Forgot password?
                 </button>
+                {pendingVerificationEmail && pendingVerificationEmail === email.trim() ? (
+                  <p className="text-muted-foreground">
+                    Need a new confirmation email?{" "}
+                    <button
+                      type="button"
+                      data-testid="auth-resend-confirmation-btn"
+                      onClick={() => void resendConfirmation()}
+                      disabled={busy}
+                      className="font-bold text-primary hover:underline"
+                    >
+                      Resend confirmation
+                    </button>
+                  </p>
+                ) : null}
                 <p className="text-muted-foreground">
                   New here?{" "}
                   <button

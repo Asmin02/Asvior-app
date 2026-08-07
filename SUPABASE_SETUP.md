@@ -51,13 +51,13 @@ Open **Auth → Email Templates** and set each template body as follows.
 
 Subject (keep default or use): `Confirm your email — Asvior`
 
-Body:
+Body — **use the hard-coded domain. Do NOT use `{{ .SiteURL }}`** (an empty Site URL produces broken links like `http:///auth/callback`):
 
 ```html
 <h2>Confirm your email</h2>
 <p>Tap the button below to verify your Asvior account.</p>
 <p>
-  <a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email">
+  <a href="https://asvior.app/auth/callback?token_hash={{ .TokenHash }}&type=email">
     Confirm email
   </a>
 </p>
@@ -73,7 +73,7 @@ Body:
 <h2>Reset your password</h2>
 <p>We received a request to reset your password. Tap the button below to choose a new one.</p>
 <p>
-  <a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=recovery">
+  <a href="https://asvior.app/auth/callback?token_hash={{ .TokenHash }}&type=recovery">
     Reset password
   </a>
 </p>
@@ -123,9 +123,8 @@ that no future stale env can point auth flows at the wrong domain.
 
 - [ ] Site URL is `https://asvior.app` (no trailing slash).
 - [ ] Redirect URLs include all 8 entries in section 1.
-- [ ] `Confirm signup` email body uses `{{ .ConfirmationURL }}` with **no**
-      hard-coded domain in the anchor `href`.
-- [ ] `Reset password` email body uses `{{ .ConfirmationURL }}`.
+- [ ] `Confirm signup` email body uses hard-coded `https://asvior.app/auth/callback?token_hash={{ .TokenHash }}&type=email` — **not** `{{ .SiteURL }}`.
+- [ ] `Reset password` email body uses hard-coded `https://asvior.app/auth/callback?token_hash={{ .TokenHash }}&type=recovery`.
 - [ ] `Enable email provider` and `Confirm email` are both ON.
 - [ ] Vercel production `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY`
       match the values in the Supabase dashboard (Settings → API).
