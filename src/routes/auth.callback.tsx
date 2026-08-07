@@ -21,6 +21,19 @@ type CallbackSearch = {
   error_description?: string;
 };
 
+/** Read callback params from the URL — parent /auth validateSearch strips `type`. */
+export function resolveCallbackParams(search: CallbackSearch): CallbackSearch {
+  if (typeof window === "undefined") return search;
+  const params = new URLSearchParams(window.location.search);
+  return {
+    code: search.code ?? params.get("code") ?? undefined,
+    token_hash: search.token_hash ?? params.get("token_hash") ?? undefined,
+    type: search.type ?? params.get("type") ?? undefined,
+    error: search.error ?? params.get("error") ?? undefined,
+    error_description: search.error_description ?? params.get("error_description") ?? undefined,
+  };
+}
+
 export const Route = createFileRoute("/auth/callback")({
   ssr: false,
   head: () => ({
@@ -48,18 +61,19 @@ function AuthCallbackPage() {
 
     (async () => {
       try {
+        const params = resolveCallbackParams(search);
         const hashFragment =
           typeof window !== "undefined" && window.location.hash.length > 1
             ? window.location.hash
             : undefined;
-        const flowType = inferAuthFlowType(search.type, hashFragment);
+        const flowType = inferAuthFlowType(params.type, hashFragment);
 
         const supabaseUrl =
           import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "";
 
         const { error: exchangeError } = await exchangeAuthCallbackSession(
           supabase,
-          search,
+          params,
           { flow: flowType, hashFragment, supabaseUrl },
         );
         if (exchangeError) throw exchangeError;

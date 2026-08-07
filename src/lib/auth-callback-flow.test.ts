@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { inferAuthFlowType } from "@/lib/auth-callback-exchange";
 import { shouldBypassAuthPage } from "@/routes/auth";
+import { resolveCallbackParams } from "@/routes/auth.callback";
 
 describe("auth callback flow type detection", () => {
   it("detects recovery from query parameter", () => {
@@ -34,5 +35,25 @@ describe("auth page child-route bypass", () => {
 
   it("does not bypass the real sign-in page", () => {
     expect(shouldBypassAuthPage("/auth")).toBe(false);
+  });
+});
+
+describe("auth callback param resolution", () => {
+  it("falls back to window.location.search when parent route strips type", () => {
+    vi.stubGlobal("window", {
+      location: {
+        search: "?token_hash=abc&type=recovery",
+      },
+    });
+
+    expect(resolveCallbackParams({})).toEqual({
+      code: undefined,
+      token_hash: "abc",
+      type: "recovery",
+      error: undefined,
+      error_description: undefined,
+    });
+
+    vi.unstubAllGlobals();
   });
 });
