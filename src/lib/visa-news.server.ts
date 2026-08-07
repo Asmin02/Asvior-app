@@ -246,7 +246,7 @@ export async function getVisaNewsUpdates(force = false): Promise<VisaNewsPayload
     FEED_SOURCES.map((f) => fetchFeed(f.url, f.source, f.defaultCountry)),
   );
 
-  const merged = interleaveByCountry(batches.flat(), 12);
+  const merged = interleaveByCountry(batches.flat(), 18);
 
   if (merged.length > 0) {
     memoryCache = { fetchedAt: now, items: merged };
