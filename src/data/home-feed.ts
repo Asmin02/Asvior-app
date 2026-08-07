@@ -13,14 +13,23 @@ export interface HomeTrendingDestination {
 }
 
 
+import type { Region } from "@/data/regions";
+
+export type ImmigrationBadge = "new" | "visa" | "immigration" | "border";
+
 export interface HomeVisaUpdate {
   id: string;
   countryCode: string;
+  countryName: string;
   title: string;
   summary: string;
   publishedAt: string;
   source: string;
   url?: string;
+  region: Region;
+  badges: ImmigrationBadge[];
+  importance: number;
+  isOfficial: boolean;
 }
 
 const PLACE_OVERRIDES: Record<string, string[]> = {

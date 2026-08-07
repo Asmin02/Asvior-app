@@ -5,9 +5,7 @@ import {
   CheckSquare,
   Wallet,
   Sparkles,
-  Globe2,
   ArrowRight,
-  ArrowUpRight,
   Landmark,
   Lightbulb,
   Search,
@@ -15,10 +13,10 @@ import {
   BookOpen,
   Compass,
   X,
-  Clock3,
   MapPinned,
 } from "lucide-react";
 import { Reveal } from "@/components/motion/Reveal";
+import { GlobalImmigrationUpdates } from "@/components/home/GlobalImmigrationUpdates";
 import { CinematicHero } from "@/components/home/CinematicHero";
 import { AsviorMark } from "@/components/AsviorMark";
 import { ProfileMenu } from "@/components/home/ProfileMenu";
@@ -82,17 +80,6 @@ const TRENDING_IMAGES = [
 ];
 
 const HOME_REFERENCE_DATE = new Date("2026-01-01T00:00:00.000Z");
-const DATE_FMT = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-  timeZone: "UTC",
-});
-const TIME_FMT = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-  hour: "numeric",
-  minute: "2-digit",
-});
 
 const EMBASSY_FINDER_PROMPT =
   "How do I find the nearest embassy or consulate for a country I'm visiting?";
@@ -164,16 +151,6 @@ function greetingFor(date: Date): string {
   return "Good evening";
 }
 
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? "Recently" : DATE_FMT.format(d);
-}
-
-function formatUpdated(iso: string): string {
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? "just now" : TIME_FMT.format(d);
-}
-
 function HomePage() {
   const [recent, setRecent] = useState<RecentSearch[]>([]);
   const [hasBudget, setHasBudget] = useState(false);
@@ -203,14 +180,6 @@ function HomePage() {
         (a, b) => Number(affinity.has(b.code)) - Number(affinity.has(a.code)),
       ),
     [trending, affinity],
-  );
-
-  const personalNews = useMemo(
-    () =>
-      [...news].sort(
-        (a, b) => Number(affinity.has(b.countryCode)) - Number(affinity.has(a.countryCode)),
-      ),
-    [news, affinity],
   );
 
 
@@ -652,46 +621,13 @@ function HomePage() {
         </section>
 
 
-        {/* ---------- Live travel & visa news ---------- */}
-        <section>
-          <Reveal>
-            <div className="mb-3 flex items-end justify-between gap-3">
-              <div className="min-w-0">
-                <h2 className="section-title">Latest travel &amp; visa news</h2>
-                <p className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                  <Clock3 className="h-3 w-3 shrink-0" strokeWidth={2} />
-                  <span className="truncate">
-                    Official sources · refreshed every 24h
-                    {newsMeta ? ` · updated ${formatUpdated(newsMeta.fetchedAt)}` : ""}
-                  </span>
-                </p>
-              </div>
-            </div>
-          </Reveal>
-          {newsLoading ? (
-            <div className="space-y-2.5">
-              {[0, 1, 2].map((i) => (
-                <div key={i} className="skeleton-block h-28 rounded-3xl" />
-              ))}
-            </div>
-          ) : news.length === 0 ? (
-            <EmptyPanel
-              icon={<Globe2 className="h-5 w-5" strokeWidth={1.7} />}
-              title="No live updates right now"
-              body="Official sources refresh every 24 hours."
-              actionLabel="Countries"
-              actionTo="/countries"
-            />
-          ) : (
-            <div className="space-y-2.5">
-              {personalNews.slice(0, 8).map((item, i) => (
-                <Reveal key={item.id} delay={i * 50}>
-                  <NewsCard item={item} />
-                </Reveal>
-              ))}
-            </div>
-          )}
-        </section>
+        <GlobalImmigrationUpdates
+          items={news}
+          loading={newsLoading}
+          meta={newsMeta}
+          affinity={affinity}
+          maxVisible={12}
+        />
 
         <footer className="border-t border-border/60 pt-6 text-center">
           <nav
@@ -717,46 +653,6 @@ function HomePage() {
         </footer>
       </div>
     </div>
-  );
-}
-
-function NewsCard({ item }: { item: HomeVisaUpdate }) {
-  const body = (
-    <div className="flex items-start gap-3">
-      <CountryFlag code={item.countryCode} size="sm" />
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold leading-snug text-foreground">{item.title}</p>
-        <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-          {item.summary}
-        </p>
-        <p className="mt-2 truncate text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
-          {item.source} · {formatDate(item.publishedAt)}
-        </p>
-      </div>
-      <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-    </div>
-  );
-
-  if (item.url) {
-    return (
-      <a
-        href={item.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="float-card block rounded-3xl p-4"
-      >
-        {body}
-      </a>
-    );
-  }
-  return (
-    <Link
-      to="/country/$code"
-      params={{ code: item.countryCode }}
-      className="float-card block rounded-3xl p-4"
-    >
-      {body}
-    </Link>
   );
 }
 

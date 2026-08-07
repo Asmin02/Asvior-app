@@ -1608,6 +1608,31 @@
   }
 }
 
+@utility immigration-card {
+  position: relative;
+  border-radius: 1.75rem;
+  background: var(--card);
+  border: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
+  box-shadow:
+    0 1px 2px color-mix(in oklab, var(--ink, var(--foreground)) 4%, transparent),
+    0 10px 24px -14px color-mix(in oklab, var(--ink, var(--foreground)) 18%, transparent);
+  transition:
+    transform 320ms var(--ease-out-expo),
+    box-shadow 320ms var(--ease-out-expo),
+    border-color 320ms var(--ease-out-expo);
+  will-change: transform;
+  &:hover {
+    transform: translate3d(0, -3px, 0);
+    border-color: color-mix(in oklab, var(--primary) 24%, var(--border));
+    box-shadow:
+      0 2px 4px color-mix(in oklab, var(--ink, var(--foreground)) 5%, transparent),
+      0 18px 36px -18px color-mix(in oklab, var(--primary) 22%, transparent);
+  }
+  &:active {
+    transform: scale(0.99) translate3d(0, -1px, 0);
+  }
+}
+
 /* Frosted glass control — profile button, hero chips. */
 @utility glass-control {
   background: color-mix(in oklab, white 18%, transparent);
